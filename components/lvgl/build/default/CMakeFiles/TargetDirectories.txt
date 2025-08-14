@@ -1,0 +1,9 @@
+/home/gena/Документы/PlatformIO/espidf/boombox/components/lvgl/build/default/CMakeFiles/lvgl.dir
+/home/gena/Документы/PlatformIO/espidf/boombox/components/lvgl/build/default/CMakeFiles/lvgl_examples.dir
+/home/gena/Документы/PlatformIO/espidf/boombox/components/lvgl/build/default/CMakeFiles/lvgl_demos.dir
+/home/gena/Документы/PlatformIO/espidf/boombox/components/lvgl/build/default/CMakeFiles/edit_cache.dir
+/home/gena/Документы/PlatformIO/espidf/boombox/components/lvgl/build/default/CMakeFiles/rebuild_cache.dir
+/home/gena/Документы/PlatformIO/espidf/boombox/components/lvgl/build/default/CMakeFiles/list_install_components.dir
+/home/gena/Документы/PlatformIO/espidf/boombox/components/lvgl/build/default/CMakeFiles/install.dir
+/home/gena/Документы/PlatformIO/espidf/boombox/components/lvgl/build/default/CMakeFiles/install/local.dir
+/home/gena/Документы/PlatformIO/espidf/boombox/components/lvgl/build/default/CMakeFiles/install/strip.dir

@@ -1,0 +1,1 @@
+GEN_CSRCS += _website_alpha_22x22.c _radio_alpha_22x22.c

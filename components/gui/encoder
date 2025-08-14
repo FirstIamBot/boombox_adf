@@ -1,0 +1,74 @@
+// rotary_encoder.c
+
+#include "rotary_encoder.h"
+#include "lvgl/lvgl.h"
+#include "driver/gpio.h"
+#include "driver/pcnt.h"
+
+#define ROTARY_ENCODER_A_PIN GPIO_NUM_1
+#define ROTARY_ENCODER_B_PIN GPIO_NUM_3
+#define ROTARY_ENCODER_BUTTON_PIN GPIO_NUM_13
+
+static lv_indev_t *encoder_indev;
+static lv_indev_drv_t indev_drv;
+static lv_indev_state_t encoder_state = LV_INDEV_STATE_REL;
+static int32_t encoder_diff = 0;
+
+static void IRAM_ATTR encoder_isr_handler(void* arg) {
+    static int last_state = 0;
+    int state = gpio_get_level(ROTARY_ENCODER_A_PIN) | (gpio_get_level(ROTARY_ENCODER_B_PIN) << 1);
+    if (state != last_state) {
+        if ((last_state == 0 && state == 1) || (last_state == 1 && state == 3) ||
+            (last_state == 3 && state == 2) || (last_state == 2 && state == 0)) {
+            encoder_diff++;
+        } else {
+            encoder_diff--;
+        }
+        last_state = state;
+    }
+}
+
+static void IRAM_ATTR button_isr_handler(void* arg) {
+    encoder_state = gpio_get_level(ROTARY_ENCODER_BUTTON_PIN) ? LV_INDEV_STATE_REL : LV_INDEV_STATE_PR;
+}
+
+void rotary_encoder_init(void) {
+    // Configure rotary encoder pins
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << ROTARY_ENCODER_A_PIN) | (1ULL << ROTARY_ENCODER_B_PIN),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+    };
+    gpio_config(&io_conf);
+
+    // Configure button pin
+    io_conf.pin_bit_mask = (1ULL << ROTARY_ENCODER_BUTTON_PIN);
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    io_conf.intr_type = GPIO_INTR_ANYEDGE;
+    gpio_config(&io_conf);
+
+    // Install ISR service
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(ROTARY_ENCODER_A_PIN, encoder_isr_handler, NULL);
+    gpio_isr_handler_add(ROTARY_ENCODER_B_PIN, encoder_isr_handler, NULL);
+    gpio_isr_handler_add(ROTARY_ENCODER_BUTTON_PIN, button_isr_handler, NULL);
+
+    // Initialize LVGL input device driver
+    lv_indev_drv_init(&indev_drv);
+    indev_drv.type = LV_INDEV_TYPE_ENCODER;
+    indev_drv.read_cb = encoder_read;
+    encoder_indev = lv_indev_drv_register(&indev_drv);
+}
+
+bool encoder_read(lv_indev_drv_t * drv, lv_indev_data_t * data) {
+    static int32_t last_diff = 0;
+    int32_t diff = encoder_diff;
+
+    data->enc_diff = diff - last_diff;
+    last_diff = diff;
+    data->state = encoder_state;
+
+    return false;
+}
+

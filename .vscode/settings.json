@@ -1,0 +1,15 @@
+{
+  "C_Cpp.intelliSenseEngine": "default",
+  "idf.espIdfPath": "/home/gena/esp/esp-idf-v5.4",
+  "idf.toolsPath": "/home/gena/.espressif",
+  "idf.pythonInstallPath": "/usr/bin/python3",
+  "idf.flashType": "UART",
+  "idf.port": "/dev/ttyUSB0",
+  "files.associations": {
+    "stdint.h": "c",
+    "audio_element.h": "c",
+    "input_key_service.h": "c",
+    "board.h": "c",
+    "boombox.h": "c"
+  }
+}
