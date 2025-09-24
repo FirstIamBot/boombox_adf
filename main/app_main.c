@@ -25,6 +25,7 @@
 
 #include "boombox.h"
 #include "gui.h"
+#include "common.h"
 
 static const char *TAG = "BLUETOOTH_HTTP_PLAYER";
 
@@ -47,11 +48,9 @@ void app_main(void)
         ESP_ERROR_CHECK(nvs_flash_erase());
         err = nvs_flash_init();
     }
-    
-    ESP_LOGI(TAG, "[ * ] Starting with %s source", 
-             (g_current_source == SOURCE_BLUETOOTH) ? "BLUETOOTH" : "HTTP");
-    ESP_LOGI(TAG, "[ * ] To switch sources, modify g_current_source variable or call switch_audio_source()");
-    
+    gui_boombox_queue_init();
+    boombox_gui_queue_init();
+
     // Создаем задачи для плеера
     xTaskCreate(boombox_task, "boombox_task", 8192, NULL, 5, NULL);
     xTaskCreate(task_gui, "task_gui", 8192, NULL, 5, NULL);

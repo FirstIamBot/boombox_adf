@@ -228,7 +228,7 @@ esp_err_t audio_equalizer_start(audio_equalizer_config_t *config, TaskHandle_t *
         "audio_equalizer",
         8192,
         params,
-        4,
+        2,//4,
         task_handle
     );
     if (result != pdPASS) {

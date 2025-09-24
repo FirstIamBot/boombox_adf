@@ -1028,7 +1028,7 @@ void  setSeekFmSrnThreshold(SI4735_t *cntrl_data, uint16_t value)
 
 /**
  * @ingroup group08 Seek
- *
+ *  
  * @brief Sets the RSSI threshold for a valid FM Seek/Tune.
  *
  * @details RSSI threshold which determines if a valid channel has been found during seek/tune. Specified in units of dBμV in 1 dBμV steps (0–127). Default is 20 dBμV.
@@ -1515,6 +1515,7 @@ void setSeekAmRssiThreshold(SI4735_t *cntrl_data, uint16_t value)
  */
 void setFM(SI4735_t *cntrl_data, uint16_t fromFreq, uint16_t toFreq, uint16_t initialFreq, uint16_t step)
 {
+    ESP_LOGI(TAG, "*** setFM ***");
     if (initialFreq < fromFreq || initialFreq > toFreq)
         initialFreq = fromFreq;
     // From function SetupFM()
@@ -3909,23 +3910,6 @@ void seekStation(SI4735_t *cntrl_data, uint8_t SEEKUP, uint8_t WRAP)
     cntrl_data->seek.arg.WRAP = WRAP;
     cntrl_data->seek.arg.RESERVED1 = 0;
     cntrl_data->seek.arg.RESERVED2 = 0;
-/*
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(seek_start_cmd);
-    Wire.write(seek.raw); // ARG1
-
-    if (seek_start_cmd == AM_SEEK_START) // Sets additional configuration for AM mode
-    {
-        seek_am_complement.ARG2 = seek_am_complement.ARG3 = 0;
-        seek_am_complement.ANTCAPH = 0;
-        seek_am_complement.ANTCAPL = (currentWorkFrequency > 1800) ? 1 : 0; // if SW = 1
-        Wire.write(seek_am_complement.ARG2);                                // ARG2 - Always 0
-        Wire.write(seek_am_complement.ARG3);                                // ARG3 - Always 0
-        Wire.write(seek_am_complement.ANTCAPH);                             // ARG4 - Tuning Capacitor: The tuning capacitor value
-        Wire.write(seek_am_complement.ANTCAPL);                             // ARG5 - will be selected automatically.
-    }
-    Wire.endTransmission();
-*/
 
     write_buf[0] = cntrl_data->seek.raw;
     if (seek_start_cmd == AM_SEEK_START) // Sets additional configuration for AM mode

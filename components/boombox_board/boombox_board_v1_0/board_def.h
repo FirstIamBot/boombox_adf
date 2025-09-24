@@ -47,9 +47,6 @@
 #define I2S_WS_IO 25    // LCK
 #define I2S_DO_IO 32
 
-
-
-
 #define SDCARD_OPEN_FILE_NUM_MAX  5
 
 #define BOARD_PA_GAIN             (10) /* Power amplifier gain defined by board (dB) */

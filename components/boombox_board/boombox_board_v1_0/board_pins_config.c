@@ -30,7 +30,9 @@
 #include "audio_mem.h"
 #include "soc/soc_caps.h"
 
+
 static const char *TAG = "MY_BOARD_V1_0";
+extern audio_source_t g_current_source  = SOURCE_AIR;
 
 esp_err_t get_i2c_pins(i2c_port_t port, i2c_config_t *i2c_config)
 {
@@ -50,13 +52,21 @@ esp_err_t get_i2c_pins(i2c_port_t port, i2c_config_t *i2c_config)
 esp_err_t get_i2s_pins(int port, board_i2s_pin_t *i2s_config)
 {
     AUDIO_NULL_CHECK(TAG, i2s_config, return ESP_FAIL);
-    if (port == 0) {
+    if (port == 0 && (g_current_source == SOURCE_BLUETOOTH || g_current_source == SOURCE_HTTP)) {
+        ESP_LOGI(TAG, "i2s port %d g_current_source=%d", port, g_current_source);
         i2s_config->mck_io_num = -1;
         i2s_config->bck_io_num = I2S_BCK_IO;
         i2s_config->ws_io_num = I2S_WS_IO;
         i2s_config->data_out_num = I2S_DO_IO;
         i2s_config->data_in_num = -1 ;
-    } else if (port == 1) {
+    } else if (port == 0 && g_current_source == SOURCE_AIR) {
+        ESP_LOGI(TAG, "i2s port %d g_current_source=%d", port, g_current_source);
+        i2s_config->mck_io_num = -1;
+        i2s_config->bck_io_num = I2S_BCK_IO;
+        i2s_config->ws_io_num = I2S_WS_IO;
+        i2s_config->data_out_num = -1;
+        i2s_config->data_in_num = I2S_DO_IO;
+    }else if (port == 1) {
         i2s_config->bck_io_num = -1;
         i2s_config->ws_io_num = -1;
         i2s_config->data_out_num = -1;

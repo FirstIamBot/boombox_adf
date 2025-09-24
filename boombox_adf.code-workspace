@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stdint.h": "c",
+			"audio_element.h": "c",
+			"input_key_service.h": "c",
+			"board.h": "c",
+			"boombox.h": "c",
+			"commons.h": "c",
+			"stddef.h": "c",
+			"audio_common.h": "c",
+			"air_task.h": "c"
+		}
+	}
+}

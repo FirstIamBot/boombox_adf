@@ -21,13 +21,17 @@
 
 #include "disp_driver.h"
 #include "touch_driver.h"
+#include "commons.h"
  /*********************
  *      DEFINES
  *********************/
+// Тег для логирования
 #define TAG "gui"
+// Пины энкодера, определённые в конфиге
 #define RE_A_GPIO   CONFIG_RE_A_GPIO    // 16
-#define RE_B_GPIO   CONFIG_RE_B_GPIO    //17
-#define RE_BTN_GPIO CONFIG_RE_BTN_GPIO  //9
+#define RE_B_GPIO   CONFIG_RE_B_GPIO    // 17
+#define RE_BTN_GPIO CONFIG_RE_BTN_GPIO  // 9
+// Длина очереди событий энкодера
 #define EV_QUEUE_LEN 5
 
 #define LV_LVGL_H_INCLUDE_SIMPLE 1
@@ -42,23 +46,20 @@
 /**********************
  *  VARIABLES
  **********************/
+// Указатель на устройство ввода — тачпад
 lv_indev_t * indev_touchpad;
 static lv_indev_drv_t touch_indev_drv;
 
+// Указатель на устройство ввода — энкодер
 lv_indev_t * indev_encoder;
 static lv_indev_drv_t encoder_indev_drv;
 
+// Глобальная структура интерфейса
 lv_ui guider_ui;
-// Define Semaphore
-SemaphoreHandle_t xGuiSemaphore;    // Семафор для работы lvgl
+// Семафор для синхронизации работы с lvgl
+SemaphoreHandle_t xGuiSemaphore;
 
-// Define Queue
-QueueHandle_t xQueueGUItoBoombox;  // Очередь для передачи с GUI на Boombox
-QueueHandle_t xQueueBoomboxtoGUI;  // Очередь для передачи с Boombox на GUI
-
-extern Data_GUI_Boombox_t xTransmitGUItoBoombox; // Передаём данные из GUI в Boombox, экспортируем из custom.h
-Data_Boombox_GUI_t xResivedBoomboxGUI; // Принимаем данные из Boombox для отображения в GUI
-
+// Дескрипторы задач
 TaskHandle_t TaskTFT;
 TaskHandle_t TaskAudio;
 TaskHandle_t TaskRadio;
@@ -68,34 +69,32 @@ extern int slider_vol;
 rotary_encoder_event_t e;
 int32_t new_value;
 
+// Очередь событий энкодера и структура энкодера
 static QueueHandle_t event_queue;
 static rotary_encoder_t re;
 
 
 /**************************************************************************************
-*                             Prototype function
+*                             Прототипы функций
 **************************************************************************************/
 
+// Инициализация энкодера и очереди событий
 void encoder_init(void) {
-
-	// Create event queue for rotary encoders
+    // Создаём очередь событий для энкодера
     event_queue = xQueueCreate(EV_QUEUE_LEN, sizeof(rotary_encoder_event_t));
-
-    // Setup rotary encoder library
+    // Инициализация библиотеки энкодера
     ESP_ERROR_CHECK(rotary_encoder_init(event_queue));
-    
-    // Add one encoder
+    // Добавляем энкодер
     memset(&re, 0, sizeof(rotary_encoder_t));
     re.pin_a = RE_A_GPIO;
     re.pin_b = RE_B_GPIO;
     re.pin_btn = RE_BTN_GPIO;
     ESP_ERROR_CHECK(rotary_encoder_add(&re));
-
 }
 
+// Чтение состояния энкодера и обработка событий
 void encoder_read(lv_indev_drv_t * drv, lv_indev_data_t * data) {
-
-
+    // Получаем событие из очереди
     xQueueReceive(event_queue, &e, 5);
     
     if (guider_ui.pageAirradio_slider_vol != NULL )
@@ -174,17 +173,14 @@ void encoder_read(lv_indev_drv_t * drv, lv_indev_data_t * data) {
 }
 
 /**
- * @ingroup group18 Covert numbers to char array
- * @brief Converts a number to a char array
- * @details It is useful to mitigate memory space used by functions like sprintf or other generic similar functions
- * @details You can use it to format frequency using decimal or thousand separator and also to convert small numbers.
- *
- * @param value  value to be converted
- * @param strValue char array that will be receive the converted value
- * @param len final string size (in bytes)
- * @param dot the decimal or thousand separator position
- * @param separator symbol "." or ","
- * @param remove_leading_zeros if true removes up to two leading zeros (default is true)
+ * @brief Преобразует число в строку (char array)
+ * @details Используется для экономии памяти по сравнению с sprintf и аналогами.
+ * @param value  Число для преобразования
+ * @param strValue Массив символов для результата
+ * @param len Длина итоговой строки
+ * @param dot Позиция разделителя
+ * @param separator Символ-разделитель ('.' или ',')
+ * @param remove_leading_zeros Удалять ведущие нули (по умолчанию true)
  */
 void ConvertToChar(uint16_t value, char *strValue, uint8_t len, uint8_t dot, uint8_t separator, bool remove_leading_zeros)
 {
@@ -216,6 +212,7 @@ void ConvertToChar(uint16_t value, char *strValue, uint8_t len, uint8_t dot, uin
     }
 }
 
+// Инициализация интерфейса и пользовательских событий
 void awgui(void)
 {
     setup_ui(&guider_ui);
@@ -223,6 +220,7 @@ void awgui(void)
     custom_init(&guider_ui);
 }
 
+// Обновление интерфейса на основе новых данных от Boombox
 void awgui_reload(Data_Boombox_GUI_t data){
 
     char valFreq[10];
@@ -247,20 +245,29 @@ void awgui_reload(Data_Boombox_GUI_t data){
             {
                 lv_label_set_text_fmt(guider_ui.pageAirradio_label_mono , data.vcStereoMono);
             }
-            if (guider_ui.pageAirradio_label_rssi_val != NULL || guider_ui.pageAirradio_label_snr_val  != NULL)
+            if (guider_ui.pageAirradio_label_rssi_val != NULL )
             {
                 lv_label_set_text_fmt(guider_ui.pageAirradio_label_rssi_val,"%3d" , data.ucRSSI);
+            }
+            if (guider_ui.pageAirradio_label_snr_val  != NULL)
+            {
                 lv_label_set_text_fmt(guider_ui.pageAirradio_label_snr_val,"%3d" , data.ucSNR);
             }
-            if (guider_ui.pageAirradio_label_wb_val != NULL || guider_ui.pageAirradio_label_step_val  != NULL)
+            if (guider_ui.pageAirradio_label_wb_val != NULL )
             {
                lv_label_set_text(guider_ui.pageAirradio_label_wb_val, data.vcBW);
+            }
+            if (guider_ui.pageAirradio_label_step_val != NULL)
+            {
                lv_label_set_text(guider_ui.pageAirradio_label_step_val, data.vcStep);
             }
-            if (guider_ui.pageAirradio_RDS != NULL || guider_ui.pageAirradio_label_band  != NULL)
+            if (guider_ui.pageAirradio_RDS != NULL )
             {
-                lv_label_set_text(guider_ui.pageAirradio_RDS, data.vcRDSdata);    // Текстовая информация от RDS
-                lv_label_set_text(guider_ui.pageAirradio_label_band, data.vcBand);    // Текстовая информация от Band Name;
+                lv_label_set_text(guider_ui.pageAirradio_RDS, data.vcRDSdata);     // Текстовая информация от RDS
+            }
+            if (guider_ui.pageAirradio_label_band  != NULL)
+            {
+                lv_label_set_text(guider_ui.pageAirradio_label_band, data.vcBand); // Текстовая информация от Band Name;
             }
         break;
         case eBT:
@@ -272,15 +279,13 @@ void awgui_reload(Data_Boombox_GUI_t data){
         default:
             ESP_LOGI(TAG, "************** awgui_reload - default");
         break;
-
     }
-
 }
 
-/* Your callback for when the calibration finishes */
+/* Колбэк, вызываемый по завершении калибровки тачскрина */
 void tc_finish_cb(lv_event_t *event) {
    
-    /* Load the application */
+    /* Загружаем основное приложение */
     awgui();
 
 };
@@ -297,61 +302,65 @@ static void lv_tick_hook(void)
 }
 
 /*********************************************************************************************
-*               Init TFT and Calibration Touch Function
+*               Инициализация TFT и калибровка тачскрина
 **********************************************************************************************/
 
 /**************************************************************************************
- *                            Task function
+ *                            Основная задача GUI
  **************************************************************************************/
+// Главная задача для работы с GUI
 void task_gui(void *arg)
 {
+   // Создаём семафор для lvgl
    xGuiSemaphore = xSemaphoreCreateMutex();
    lv_init();          
    lvgl_driver_init(); 
 
-   /* Example for 1) */
+   /* Инициализация буфера отрисовки дисплея */
    static lv_disp_draw_buf_t draw_buf;
    lv_color_t *buf1 = heap_caps_malloc((DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10) * sizeof(lv_color_t), MALLOC_CAP_DMA);
    lv_color_t *buf2 = heap_caps_malloc((DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10) * sizeof(lv_color_t), MALLOC_CAP_DMA);
 
-   lv_disp_draw_buf_init(&draw_buf, buf1, buf2, (DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10)); /*Initialize the display buffer*/
+   lv_disp_draw_buf_init(&draw_buf, buf1, buf2, (DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10));
    /*------------------
-   * Display
+   * Настройка дисплея
    * -----------------*/
-   static lv_disp_drv_t disp_drv;         /*A variable to hold the drivers. Must be static or global.*/
-   lv_disp_drv_init(&disp_drv);           /*Basic initialization*/
-   disp_drv.draw_buf = &draw_buf;         /*Set an initialized buffer*/
-   disp_drv.flush_cb = disp_driver_flush; /*Set a flush callback to draw to the display*/
-   disp_drv.hor_res = DLV_HOR_RES_MAX;                /*Set the horizontal resolution in pixels*/
-   disp_drv.ver_res = DLV_VER_RES_MAX;                /*Set the vertical resolution in pixels*/
-   lv_disp_drv_register(&disp_drv);       /*Register the driver and save the created display objects*/
+   static lv_disp_drv_t disp_drv;
+   lv_disp_drv_init(&disp_drv);
+   disp_drv.draw_buf = &draw_buf;
+   disp_drv.flush_cb = disp_driver_flush;
+   disp_drv.hor_res = DLV_HOR_RES_MAX;
+   disp_drv.ver_res = DLV_VER_RES_MAX;
+   lv_disp_drv_register(&disp_drv);
    /*------------------
-   * TouchPad
+   * Настройка тачпада
    * -----------------*/
    lv_indev_drv_init( &touch_indev_drv );
    touch_indev_drv.type = LV_INDEV_TYPE_POINTER;
    touch_indev_drv.read_cb = touch_driver_read;
    indev_touchpad = lv_indev_drv_register(&touch_indev_drv);
 
+   // Регистрируем хук для системного тика
    esp_register_freertos_tick_hook(lv_tick_hook);
 
+   // Запуск пользовательского интерфейса
    awgui();
 
    while (1)
    {
-        /* Delay 1 tick (assumes FreeRTOS tick is 10ms */
+        /* Задержка на 10 мс */
         vTaskDelay(pdMS_TO_TICKS(10));
-        /* Try to take the semaphore, call lvgl related function on success */
+        /* Захватываем семафор и вызываем обработчик lvgl */
         if (pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY))
         {
             lv_timer_handler();
             xSemaphoreGive(xGuiSemaphore);
         }
         /*****************************************************************************************
-            Принимаем данные через в очереди xQueueBoomboxtoGUI 
-            в структуру xResivedBoomboxGUI из Boombox для отображения в GUI
+            Получаем данные из очереди xBoomboxToGuiQueue
+            и обновляем интерфейс с помощью awgui_reload
         ******************************************************************************************/
-        if(pdTRUE == xQueueReceive(xQueueBoomboxtoGUI, &xResivedBoomboxGUI, pdPASS))
+        if(pdTRUE == xQueueReceive(xBoomboxToGuiQueue, &xResivedBoomboxGUI, pdPASS))
         {
             awgui_reload(xResivedBoomboxGUI);
         }

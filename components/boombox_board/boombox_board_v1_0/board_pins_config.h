@@ -24,7 +24,7 @@
 
 #ifndef _BOARD_PINS_CONFIG_H_
 #define _BOARD_PINS_CONFIG_H_
-
+#include "board.h"
 #include "driver/i2c.h"
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"

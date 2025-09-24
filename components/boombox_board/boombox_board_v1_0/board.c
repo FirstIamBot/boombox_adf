@@ -33,6 +33,13 @@ static const char *TAG = "AUDIO_BOARD";
 
 static audio_board_handle_t board_handle = 0;
 
+audio_pipeline_handle_t pipeline;
+audio_element_handle_t http_stream_reader, bt_stream_reader, i2s_stream_writer, selected_decoder;
+audio_event_iface_msg_t msg;
+audio_event_iface_handle_t evt_1;
+esp_periph_set_handle_t set ;
+//TaskHandle_t equalizer_handle;
+
 audio_board_handle_t audio_board_init(void)
 {
     if (board_handle) {

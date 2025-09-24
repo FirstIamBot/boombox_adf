@@ -1044,6 +1044,7 @@ typedef struct
     uint16_t DOSR;   // Digital Output Sample Rate(32–48 ksps .0 to disable digital audio output).
 } si4735_digital_output_sample_rate; // Maybe not necessary
 
+
 typedef struct si4735_ctrl
 {
     uint8_t currentTune;     //!<  tell the current tune (FM, AM or SSB)

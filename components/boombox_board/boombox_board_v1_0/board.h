@@ -31,7 +31,13 @@
 #include "esp_peripherals.h"
 #include "periph_sdcard.h"
 
-
+#include "audio_element.h"
+#include "audio_pipeline.h"
+#include "audio_event_iface.h"
+#include "audio_idf_version.h"
+#include "filter_resample.h"
+#include "audio_mem.h"
+#include "audio_common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,7 +54,7 @@ typedef enum {
 /****************************************************************************************************
  * @brief Global variable to store the current audio source
  */
-static audio_source_t g_current_source = SOURCE_AIR;//  SOURCE_HTTP; // SOURCE_BLUETOOTH;// 
+static audio_source_t g_current_source ;
 //*****************************************************************************************************
 /**
  * @brief Audio board handle
@@ -119,6 +125,7 @@ audio_board_handle_t audio_board_get_handle(void);
  *          others  fail
  */
 esp_err_t audio_board_deinit(audio_board_handle_t audio_board);
+
 
 #ifdef __cplusplus
 }

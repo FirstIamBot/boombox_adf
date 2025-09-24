@@ -480,7 +480,7 @@ menu "LVGL TFT Display controller"
             default 19 if LV_PREDEFINED_DISPLAY_TTGO
             default 19 if LV_PREDEFINED_DISPLAY_TTGO_CAMERA_PLUS
             default 13 if LV_PREDEFINED_DISPLAY_WT32_SC01
-            default 13
+            default 23
 
             help
                 Configure the display MOSI pin here.

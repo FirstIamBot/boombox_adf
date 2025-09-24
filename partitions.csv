@@ -1,0 +1,12 @@
+# ESP32 Partition Table
+
+# Name,   Type,   SubType, Offset,  Size,   Flags
+#---------------------------------------------------------
+# Factory app,   factory, 0x1000,  0x300000
+# OTA app,       ota_0,   0x310000, 0x100000
+# OTA app,       ota_1,   0x410000, 0x100000
+# NVS data,      data,    0x500000, 0x10000
+# SPIFFS,        spiffs,  0x510000, 0x100000
+# LittleFS,      littlefs,0x610000, 0x100000
+# Partition table, 0x710000, 0x1000
+#---------------------------------------------------------

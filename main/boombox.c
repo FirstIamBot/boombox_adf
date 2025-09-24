@@ -6,14 +6,33 @@
 #include "http_task.h"
 #include "air_task.h"
 
+#include "commons.h"
+
 static const char *TAG = "BOOMBOX_TASK";
 
+extern QueueHandle_t xGuiToBoomboxQueue;
+Data_GUI_Boombox_t xResiveGUItoBoombox;
+
+
 // Глобальная переменная для выбора источника
-extern audio_source_t g_current_source;
+extern audio_source_t g_current_source; // Изначально запускаем AIR радио;
 
 void boombox_task(void *pvParameters)
 {
+
+    g_current_source = SOURCE_AIR;
+    
     while (1) {
+        /* Receive data from GUI
+        if (xGuiToBoomboxQueue != NULL) {
+            if (xQueueReceive(xGuiToBoomboxQueue, &xResiveGUItoBoombox, portMAX_DELAY) == pdPASS) {
+                ESP_LOGI(TAG, "Received data from GUI: State=%d", xResiveGUItoBoombox.State);
+                // Обработка полученных данных
+                g_current_source = (audio_source_t)xResiveGUItoBoombox.eModeBoombox;
+                // Например, изменение частоты или громкости радио
+            }
+        }
+         */
         if (g_current_source == SOURCE_BLUETOOTH) {
             ESP_LOGI(TAG, "Switching to Bluetooth player");
             bt_player();
