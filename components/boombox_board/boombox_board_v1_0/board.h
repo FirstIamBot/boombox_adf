@@ -47,14 +47,14 @@ extern "C" {
  * @brief Audio source type
  */
 typedef enum {
+    SOURCE_AIR,
     SOURCE_BLUETOOTH,
-    SOURCE_HTTP,
-    SOURCE_AIR
+    SOURCE_HTTP
 } audio_source_t;
 /****************************************************************************************************
  * @brief Global variable to store the current audio source
  */
-static audio_source_t g_current_source ;
+extern audio_source_t g_current_source;
 //*****************************************************************************************************
 /**
  * @brief Audio board handle

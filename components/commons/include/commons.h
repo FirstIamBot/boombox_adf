@@ -58,9 +58,9 @@ typedef enum {
 //=================  Структура данных режимов роботы  Boombox =====
 typedef enum
 {
-  eAir = 1,
-  eBT = 2,
-  eWeb = 3,
+  eAir,
+  eBT,
+  eWeb,
 } ModeBoombox_t;
 
 //=================  Структура данных обработки нажатия кнопок lvgl ==============
@@ -138,10 +138,6 @@ void boombox_gui_queue_init(void);
 
 extern QueueHandle_t xGuiToBoomboxQueue;
 extern QueueHandle_t xBoomboxToGuiQueue;
-
-extern Data_GUI_Boombox_t xTransmitGUItoBoombox;
-extern Data_Boombox_GUI_t xResivedBoomboxGUI;
-
 
 #endif 
 

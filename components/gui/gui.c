@@ -42,10 +42,11 @@
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-
 /**********************
  *  VARIABLES
  **********************/
+Data_Boombox_GUI_t xResivedBoomboxToGUI; // Переменная для хранения полученных данных от Boombox к GUI
+extern Data_GUI_Boombox_t xTransmitGUItoBoombox; // Внешняя Переменная для передачи данных от GUI к Boombox
 // Указатель на устройство ввода — тачпад
 lv_indev_t * indev_touchpad;
 static lv_indev_drv_t touch_indev_drv;
@@ -356,13 +357,26 @@ void task_gui(void *arg)
             lv_timer_handler();
             xSemaphoreGive(xGuiSemaphore);
         }
+       /*****************************************************************************************
+            Отправка данных от GUI к Boombox очередь xGuiToBoomboxQueue
+        ******************************************************************************************/
+       if(xTransmitGUItoBoombox.State == true){                 
+            ESP_LOGW(TAG, " ****************************** xTransmitGUItoBoombox.eModeBoombox=%d", xTransmitGUItoBoombox.eModeBoombox);
+            if(pdTRUE == xQueueSend(xGuiToBoomboxQueue, &xTransmitGUItoBoombox, pdPASS))
+            {
+                ESP_LOGE(TAG, "Error to xGuiToBoomboxQueue");
+            }
+            xTransmitGUItoBoombox.State = false;
+        }
         /*****************************************************************************************
             Получаем данные из очереди xBoomboxToGuiQueue
             и обновляем интерфейс с помощью awgui_reload
-        ******************************************************************************************/
-        if(pdTRUE == xQueueReceive(xBoomboxToGuiQueue, &xResivedBoomboxGUI, pdPASS))
+        
+ 
+        if(pdTRUE == xQueueReceive(xBoomboxToGuiQueue, &xResivedBoomboxToGUI, pdPASS))
         {
-            awgui_reload(xResivedBoomboxGUI);
+            awgui_reload(xResivedBoomboxToGUI);
         }
+        ******************************************************************************************/
     }
 }

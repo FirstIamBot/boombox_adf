@@ -136,7 +136,7 @@ esp_err_t i2c_master_init(void)
         .scl_io_num = I2C_MASTER_SCL_IO,
         .sda_io_num = I2C_MASTER_SDA_IO,
         .glitch_ignore_cnt = 7,
-        .flags.enable_internal_pullup = true,
+        .flags.enable_internal_pullup = true,// Включить внутренний подтягивающий резистор
     };
     
     // Создаем шину I2C
@@ -247,11 +247,11 @@ esp_err_t register_write_block(uint8_t reg_addr, uint8_t *data, size_t len)
 
     esp_err_t ret; 
     uint16_t propCMD, propDATA;
-    propCMD =  data[1]<<8 | data[2];   
 
+    propCMD =  data[1]<<8 | data[2];   
     propDATA =  data[3]<<8 | data[4];
+
     ESP_LOGD(TAG, "**** I2C  deviceAddress = %x", deviceAddress);
-    
     switch (reg_addr)
     {
         case SET_PROPERTY:
@@ -457,7 +457,7 @@ void delay_ms(int ms) {
 }
 
 
-static int scan_i2c_devices()
+int scan_i2c_devices()
 {
     uint8_t address;
     printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\r\n");
@@ -476,6 +476,7 @@ static int scan_i2c_devices()
             }
         }
         printf("\r\n");
+        //return address
     }
     return 0;
 }
@@ -519,8 +520,8 @@ void init_si4735(SI4735_t *cntrl_data, uint8_t resetPin, uint8_t ctsIntEnable, u
         return;
     }
 
-    ESP_LOGI(TAG, " init_si4735");
-    ESP_ERROR_CHECK(i2c_master_init());
+    ESP_LOGD(TAG, " init_si4735");
+    //ESP_ERROR_CHECK(i2c_master_init());
     delay_ms(500); 
     cntrl_data->resetPin = resetPin; // Set the reset pin number
     initResetPin(cntrl_data);
@@ -662,7 +663,7 @@ void radioPowerUp(SI4735_t *cntrl_data)
     delay_ms(1);
     write_buf[0] = cntrl_data->powerUp.raw[0]; // 0x80; // 
     write_buf[1] = cntrl_data->powerUp.raw[1]; // 0xB0; // 
-    ESP_LOGI(TAG, " radioPowerUp  POWER_UP");
+    ESP_LOGD(TAG, " radioPowerUp  POWER_UP");
     ESP_ERROR_CHECK(register_write_block(POWER_UP, write_buf, 2));
     // Delay at least 500 ms between powerup command and first tune command to wait for
     // the oscillator to stabilize if XOSCEN is set and crystal is used as the RCLK.
@@ -868,8 +869,8 @@ void setFrequency(SI4735_t *cntrl_data, uint16_t freq)
     write_buf[2] = cntrl_data->set_frequency.arg.FREQL;
     write_buf[3] = cntrl_data->set_frequency.arg.ANTCAPH;
 
-    ESP_LOGD(TAG, " setFrequency");
-    ESP_LOGD(TAG, " cntrl_data->set_frequency.arg = 0x%x%x(%d)", cntrl_data->set_frequency.arg.FREQH,cntrl_data->set_frequency.arg.FREQL, cntrl_data->frequency.value);
+    ESP_LOGI(TAG, " setFrequency");
+    ESP_LOGI(TAG, " cntrl_data->set_frequency.arg = 0x%x%x(%d)", cntrl_data->set_frequency.arg.FREQH,cntrl_data->set_frequency.arg.FREQL, cntrl_data->frequency.value);
 
     if (cntrl_data->currentTune == FM_TUNE_FREQ) // if FM
         ESP_ERROR_CHECK(register_write_block(FM_TUNE_FREQ, write_buf, 4));
@@ -1376,19 +1377,7 @@ void setAmBandwidth(SI4735_t *cntrl_data, uint8_t AMCHFLT, uint8_t AMPLFLT)
     cntrl_data->property.value = AM_CHANNEL_FILTER;
     cntrl_data->bandwidth_config.param.AMCHFLT = AMCHFLT;
     cntrl_data->bandwidth_config.param.AMPLFLT = AMPLFLT;
-/*
-    waitToSend();
-    volume = volume;
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(SET_PROPERTY);
-    Wire.write(0x00);                  // Always 0x00
-    Wire.write(property.raw.byteHigh); // High byte first
-    Wire.write(property.raw.byteLow);  // Low byte after
-    Wire.write(filter.raw[1]);         // Raw data for AMCHFLT and
-    Wire.write(filter.raw[0]);         // AMPLFLT
-    Wire.endTransmission();
-    waitToSend();
-*/
+
     write_buf[0] = 0x00;
     write_buf[1] = cntrl_data->property.raw.byteHigh;
     write_buf[2] = cntrl_data->property.raw.byteLow;
@@ -1515,7 +1504,7 @@ void setSeekAmRssiThreshold(SI4735_t *cntrl_data, uint16_t value)
  */
 void setFM(SI4735_t *cntrl_data, uint16_t fromFreq, uint16_t toFreq, uint16_t initialFreq, uint16_t step)
 {
-    ESP_LOGI(TAG, "*** setFM ***");
+    ESP_LOGD(TAG, "*** setFM ***");
     if (initialFreq < fromFreq || initialFreq > toFreq)
         initialFreq = fromFreq;
     // From function SetupFM()
@@ -1527,7 +1516,6 @@ void setFM(SI4735_t *cntrl_data, uint16_t fromFreq, uint16_t toFreq, uint16_t in
     lastMode = FM_CURRENT_MODE;
     //**************
     setFrequency(cntrl_data, initialFreq);
-    
 }
 
 /**
@@ -1600,13 +1588,7 @@ void powerDown(void)
     // Turns the external mute circuit on
     if (audioMuteMcuPin >= 0)
         setHardwareAudioMute(true);
-/*
-    waitToSend();
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(POWER_DOWN);
-    Wire.endTransmission();
-    delayMicroseconds(2500);
-*/
+
     ESP_LOGD(TAG, " powerDown POWER_DOWN");
     ESP_ERROR_CHECK(register_write_byte(POWER_DOWN, 0));
     delay_ms(3);
@@ -1644,15 +1626,7 @@ void setAutomaticGainControl(SI4735_t *cntrl_data, uint8_t AGCDIS, uint8_t AGCID
     cntrl_data->agc_overrride.arg.DUMMY = 0; // ARG1: bits 7:1 Always write to 0;
     cntrl_data->agc_overrride.arg.AGCDIS = AGCDIS;
     cntrl_data->agc_overrride.arg.AGCIDX = AGCIDX;
-/*
-    waitToSend();
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(cmd);
-    Wire.write(agc.raw[0]);
-    Wire.write(agc.raw[1]);
-    Wire.endTransmission();
-    waitToSend();
-*/
+
     write_buf[0] = cntrl_data->agc_overrride.raw[0];
     write_buf[1] = cntrl_data->agc_overrride.raw[1];
     
@@ -1676,7 +1650,6 @@ void getStatus(SI4735_t *cntrl_data, uint8_t INTACK, uint8_t CANCEL)
     uint8_t cmd = FM_TUNE_STATUS;
     int limitResp = 8;
     uint8_t write_buf[2];
-    //uint8_t read_buf[limitResp];
 
     if (cntrl_data->currentTune == FM_TUNE_FREQ)
         cmd = FM_TUNE_STATUS;
@@ -1688,7 +1661,6 @@ void getStatus(SI4735_t *cntrl_data, uint8_t INTACK, uint8_t CANCEL)
         limitResp = 6;
     }
 
-    //waitToSend();
     cntrl_data->tune_status.arg.INTACK = INTACK;
     cntrl_data->tune_status.arg.CANCEL = CANCEL;
     cntrl_data->tune_status.arg.RESERVED2 = 0;
@@ -1817,21 +1789,7 @@ void getAutomaticGainControl(SI4735_t *cntrl_data)
     { // AM TUNE - SAME COMMAND used on SSB mode
         cmd = AM_AGC_STATUS;
     }
-/*
-    waitToSend();
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(cmd);
-    Wire.endTransmission();
 
-    do
-    {
-        waitToSend();
-        Wire.requestFrom(deviceAddress, 3);
-        currentAgcStatus.raw[0] = Wire.read(); // STATUS response
-        currentAgcStatus.raw[1] = Wire.read(); // RESP 1
-        currentAgcStatus.raw[2] = Wire.read(); // RESP 2
-    } while (currentAgcStatus.refined.ERR);    // If error, try get AGC status again.
-*/
     ESP_LOGD(TAG, " getAutomaticGainControl");
     ESP_ERROR_CHECK(register_read(cmd, cntrl_data->agc_status.raw, 3));    
 }
@@ -2253,17 +2211,7 @@ void sendSSBModeProperty(SI4735_t *cntrl_data)
     uint8_t write_buf[5] = {0};
 
     cntrl_data->property.value = SSB_MODE;
-/*
-    waitToSend();
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(SET_PROPERTY);
-    Wire.write(0x00);                  // Always 0x00
-    Wire.write(property.raw.byteHigh); // High byte first
-    Wire.write(property.raw.byteLow);  // Low byte after
-    Wire.write(currentSSBMode.raw[1]); // SSB MODE params; freq. high byte first
-    Wire.write(currentSSBMode.raw[0]); // SSB MODE params; freq. low byte after
-    Wire.endTransmission();
-*/
+
     write_buf[0] = 0x00;
     write_buf[1] = cntrl_data->property.raw.byteHigh;
     write_buf[2] = cntrl_data->property.raw.byteLow;
@@ -2463,16 +2411,7 @@ void setFrequencyNBFM(SI4735_t *cntrl_data, uint16_t freq)
     cntrl_data->frequency.value = freq;
     cntrl_data->set_frequency.arg.FREQH = cntrl_data->frequency.raw.FREQH;
     cntrl_data->set_frequency.arg.FREQL = cntrl_data->frequency.raw.FREQL;
-/*
-    waitToSend(); // Wait for the si473x is ready.
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(0x50);
-    Wire.write(0x00); // Send a byte with FAST and  FREEZE information; if not FM must be 0;
-    Wire.write(currentFrequency.raw.FREQH);
-    Wire.write(currentFrequency.raw.FREQL);
-    Wire.endTransmission();
-    waitToSend();                // Wait for the si473x is ready.
-*/    
+   
     write_buf[0] = 0x00;
     write_buf[1] = cntrl_data->frequency.raw.FREQH;
     write_buf[2] = cntrl_data->frequency.raw.FREQL;
@@ -2515,23 +2454,6 @@ si47x_firmware_query_library queryLibraryId(SI4735_t *cntrl_data)
 
     powerDown(); // Is it necessary
 
-    //delay_ms(500);
-/*
-    waitToSend();
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(POWER_UP);
-    Wire.write(0b00011111);          // Set to Read Library ID, disable interrupt; disable GPO2OEN; boot normaly; enable External Crystal Oscillator  .
-    Wire.write(SI473X_ANALOG_AUDIO); // Set to Analog Line Input.
-    Wire.endTransmission();
-
-    do
-    {
-        waitToSend();
-        Wire.requestFrom(deviceAddress, 8);
-        for (int i = 0; i < 8; i++)
-            libraryID.raw[i] = Wire.read();
-    } while (libraryID.resp.ERR); // If error found, try it again.
-*/
     write_buf[0] = POWER_UP;
     write_buf[1] = 0b00011111;
     write_buf[2] = SI473X_DIGITAL_AUDIO2; //SI473X_ANALOG_AUDIO
@@ -2560,14 +2482,7 @@ si47x_firmware_query_library queryLibraryId(SI4735_t *cntrl_data)
 void patchPowerUpNBFM(SI4735_t *cntrl_data)
 {
     uint8_t write_buf[2];
-/*
-    waitToSend();
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(POWER_UP);
-    Wire.write(0b00110000);          // This is a condition for loading the patch: Set to AM, Enable External Crystal Oscillator; Set patch enable; GPO2 output disabled; CTS interrupt disabled.
-    Wire.write(SI473X_ANALOG_AUDIO); // This is a condition for loading the patch: Set to Analog Output. You can change this calling setNBFM.
-    Wire.endTransmission();
-*/
+
     write_buf[0] = 0b00110000;
     write_buf[1] = SI473X_DIGITAL_AUDIO2; //  SI473X_ANALOG_AUDIO
 
@@ -2920,17 +2835,7 @@ void setRdsConfig(SI4735_t *cntrl_data, uint8_t RDSEN, uint8_t BLETHA, uint8_t B
     cntrl_data->rds_config.arg.BLETHC = BLETHC;
     cntrl_data->rds_config.arg.BLETHD = BLETHD;
     cntrl_data->rds_config.arg.DUMMY1 = 0;
-/*
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(SET_PROPERTY);
-    Wire.write(0x00);                  // Always 0x00 (I need to check it)
-    Wire.write(property.raw.byteHigh); // Send property - High byte - most significant first
-    Wire.write(property.raw.byteLow);  // Low byte
-    Wire.write(config.raw[1]);         // Send the argments. Most significant first
-    Wire.write(config.raw[0]);
-    Wire.endTransmission();
-    delayMicroseconds(550);
-*/
+
     write_buf[0] = 0x00;
     write_buf[1] = cntrl_data->property.raw.byteHigh;
     write_buf[2] = cntrl_data->property.raw.byteLow;
@@ -2991,18 +2896,6 @@ void setRdsIntSource(SI4735_t *cntrl_data, uint8_t RDSRECV, uint8_t RDSSYNCLOST,
 
     cntrl_data->property.value = FM_RDS_INT_SOURCE;
 
-/* waitToSend();
-
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(SET_PROPERTY);
-    Wire.write(0x00);                  // Always 0x00 (I need to check it)
-    Wire.write(property.raw.byteHigh); // Send property - High byte - most significant first
-    Wire.write(property.raw.byteLow);  // Low byte
-    Wire.write(rds_int_source.raw[1]); // Send the argments. Most significant first
-    Wire.write(rds_int_source.raw[0]);
-    Wire.endTransmission();
-    waitToSend();
-*/
     write_buf[0] = 0x00;
     write_buf[1] = cntrl_data->property.raw.byteHigh;
     write_buf[2] = cntrl_data->property.raw.byteLow;
@@ -3068,21 +2961,7 @@ void getRdsStatus(SI4735_t *cntrl_data, uint8_t INTACK, uint8_t MTFIFO, uint8_t 
     cntrl_data->rds_command.arg.INTACK = INTACK;
     cntrl_data->rds_command.arg.MTFIFO = MTFIFO;
     cntrl_data->rds_command.arg.STATUSONLY = STATUSONLY;
-/*  waitToSend();
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(FM_RDS_STATUS);
-    Wire.write(rds_cmd.raw);
-    Wire.endTransmission();
 
-    do
-    {
-        waitToSend();
-        // Gets response information
-        Wire.requestFrom(deviceAddress, 13);
-        for (uint8_t i = 0; i < 13; i++)
-            currentRdsStatus.raw[i] = Wire.read();
-    } while (currentRdsStatus.resp.ERR);
-*/
     write_buf[0] = FM_RDS_STATUS;
     write_buf[1] = cntrl_data->rds_command.raw;
 
@@ -3905,7 +3784,7 @@ void seekStation(SI4735_t *cntrl_data, uint8_t SEEKUP, uint8_t WRAP)
 
     // Check which FUNCTION (AM or FM) is working now
     uint8_t seek_start_cmd = (cntrl_data->currentTune == FM_TUNE_FREQ) ? FM_SEEK_START : AM_SEEK_START;
-    //waitToSend();
+
     cntrl_data->seek.arg.SEEKUP = SEEKUP;
     cntrl_data->seek.arg.WRAP = WRAP;
     cntrl_data->seek.arg.RESERVED1 = 0;

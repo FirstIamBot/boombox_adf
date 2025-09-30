@@ -34,7 +34,7 @@ static TaskHandle_t bt_task_handle = NULL;
 static TaskHandle_t http_task_handle = NULL;
 // Глобальные переменные для управления переключением источников
 
-
+audio_source_t g_current_source;
 //*********************************************************************************************************************
 
 

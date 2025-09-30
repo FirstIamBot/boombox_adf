@@ -9,13 +9,6 @@ QueueHandle_t xGuiToBoomboxQueue = NULL;
 // Очередь для передачи данных от Boombox к GUI
 QueueHandle_t xBoomboxToGuiQueue = NULL;
 
-// Переменная для передачи данных от GUI к Boombox (не используется)
-//Data_GUI_Boombox_t xTransmitGUItoBoombox;
-
-// Структура для хранения полученных данных от Boombox к GUI
-Data_Boombox_GUI_t xResivedBoomboxGUI;
-
-
 // Инициализация очереди для передачи данных от GUI к Boombox
 void gui_boombox_queue_init(void)
 {

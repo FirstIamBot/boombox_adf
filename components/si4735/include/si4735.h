@@ -1094,6 +1094,7 @@ typedef struct si4735_ctrl
  **************************************************************************************/
 esp_err_t i2c_master_init(void);
 esp_err_t i2c_master_deinit(void);
+int scan_i2c_devices();
 
 void delay_ms(int ms);
 void init_si4735(SI4735_t * cntrl_data, uint8_t resetPin, uint8_t ctsIntEnable, uint8_t defaultFunction, uint8_t audioMode, uint8_t clockType, uint8_t gpo2ENABLE);

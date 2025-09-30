@@ -61,8 +61,6 @@ audio_hal_handle_t audio_board_codec_init(void)
     return codec_hal;
 }
 
-
-
 audio_board_handle_t audio_board_get_handle(void)
 {
     return board_handle;

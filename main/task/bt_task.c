@@ -37,7 +37,7 @@ extern audio_event_iface_handle_t evt_1;
 extern esp_periph_set_handle_t set; 
 
 
-extern audio_source_t g_current_source;
+//extern audio_source_t g_current_source;
 
 esp_periph_handle_t bt_periph = NULL;
 

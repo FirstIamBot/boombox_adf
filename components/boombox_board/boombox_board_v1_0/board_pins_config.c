@@ -31,8 +31,8 @@
 #include "soc/soc_caps.h"
 
 
-static const char *TAG = "MY_BOARD_V1_0";
-extern audio_source_t g_current_source  = SOURCE_AIR;
+static const char *TAG = "BOARD_PIN_CNFG_V1_0";
+//extern audio_source_t g_current_source ;
 
 esp_err_t get_i2c_pins(i2c_port_t port, i2c_config_t *i2c_config)
 {
@@ -51,6 +51,7 @@ esp_err_t get_i2c_pins(i2c_port_t port, i2c_config_t *i2c_config)
 
 esp_err_t get_i2s_pins(int port, board_i2s_pin_t *i2s_config)
 {
+    g_current_source = SOURCE_AIR;
     AUDIO_NULL_CHECK(TAG, i2s_config, return ESP_FAIL);
     if (port == 0 && (g_current_source == SOURCE_BLUETOOTH || g_current_source == SOURCE_HTTP)) {
         ESP_LOGI(TAG, "i2s port %d g_current_source=%d", port, g_current_source);

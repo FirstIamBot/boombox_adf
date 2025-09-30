@@ -25,7 +25,7 @@
 static const char *TAG = "HTTP_PLAYER";
 
 
-extern audio_source_t g_current_source;
+//extern audio_source_t g_current_source;
 extern audio_pipeline_handle_t pipeline;
 extern audio_element_handle_t http_stream_reader, i2s_stream_writer, selected_decoder;
 
