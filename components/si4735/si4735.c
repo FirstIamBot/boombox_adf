@@ -162,7 +162,7 @@ esp_err_t i2c_master_init(void)
         return ret;
     }
     
-    ESP_LOGI(TAG, "I2C master initialized successfully");
+    ESP_LOGW(TAG, "I2C master initialized successfully");
     return ESP_OK;
 }
 
@@ -188,8 +188,147 @@ esp_err_t i2c_master_deinit(void)
         bus_handle = NULL;
     }
     
-    ESP_LOGI(TAG, "I2C master deinitialized");
+    ESP_LOGW(TAG, "I2C master deinitialized");
     return ret;
+}
+
+
+/**
+ * @brief Логирует информацию о I2C команде и данных для SI4735
+ * 
+ * @param reg_addr Адрес регистра/команды
+ * @param data Указатель на данные команды
+ */
+static void log_i2c_command(uint8_t reg_addr, uint8_t *data)
+{
+    uint16_t propCMD, propDATA;
+
+    data[0] = reg_addr; // First byte is the register address
+    propCMD =  data[2]<<8 | data[3];   
+    propDATA =  data[4]<<8 | data[5];
+
+    ESP_LOGI(TAG, "**** I2C  deviceAddress = %x", deviceAddress);
+
+    switch (reg_addr)
+    {
+        case SET_PROPERTY:
+            ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (SET_PROPERTY)", reg_addr);
+                switch (propCMD){
+                    case REFCLK_FREQ:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (REFCLK_FREQ)", propCMD);
+                        break;
+                    case REFCLK_PRESCALE:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (REFCLK_PRESCALE)", propCMD);
+                        break;
+                    case FM_SEEK_FREQ_SPACING:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_SEEK_FREQ_SPACING)",propCMD);
+                        break;
+                    case RX_VOLUME:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (RX_VOLUME)",propCMD);
+                        break;
+                    case FM_SEEK_BAND_BOTTOM:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_SEEK_BAND_BOTTOM)",propCMD);
+                        break;
+                    case FM_SEEK_BAND_TOP:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_SEEK_BAND_TOP)",propCMD);
+                        break;
+                    case FM_BLEND_RSSI_MONO_THRESHOLD:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_BLEND_RSSI_MONO_THRESHOLD)",propCMD);
+                        break;
+                    case FM_BLEND_RSSI_STEREO_THRESHOLD:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_BLEND_RSSI_STEREO_THRESHOLD)",propCMD);
+                        break;
+                    case AM_CHANNEL_FILTER:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (AM_CHANNEL_FILTER)",propCMD);
+                        break;  
+                    case AM_SOFT_MUTE_MAX_ATTENUATION:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (AM_SOFT_MUTE_MAX_ATTENUATION)",propCMD);
+                        break;  
+                    case AM_SOFT_MUTE_SNR_THRESHOLD:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (AM_SOFT_MUTE_SNR_THRESHOLD)",propCMD);
+                        break;    
+                    case AM_SEEK_RSSI_THRESHOLD:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (AM_SEEK_RSSI_THRESHOLD)",propCMD);
+                        break;
+                    case AM_SEEK_SNR_THRESHOLD:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (AM_SEEK_SNR_THRESHOLD)",propCMD);
+                        break;
+                    case AM_SEEK_BAND_BOTTOM:
+                        ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (AM_SEEK_BAND_BOTTOM)", reg_addr);
+                        break;
+                    case AM_SEEK_BAND_TOP:
+                        ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (AM_SEEK_BAND_TOP)", reg_addr);
+                        break;
+                    case AM_DEEMPHASIS:
+                        ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (AM_DEEMPHASIS)", reg_addr);
+                        break;                      
+                    case FM_SEEK_TUNE_RSSI_THRESHOLD:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_SEEK_TUNE_RSSI_THRESHOLD)",propCMD);
+                        break;
+                    case FM_SEEK_TUNE_SNR_THRESHOLD:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_SEEK_TUNE_SNR_THRESHOLD)",propCMD);
+                        break;                    
+                    case FM_DEEMPHASIS:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_DEEMPHASIS)",propCMD);
+                        break;
+                    case DIGITAL_OUTPUT_SAMPLE_RATE:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (DIGITAL_OUTPUT_SAMPLE_RATE)",propCMD);
+                        break;
+                    case DIGITAL_OUTPUT_FORMAT:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (DIGITAL_OUTPUT_FORMAT)",propCMD);
+                        break;
+                    case FM_RDS_INT_FIFO_COUNT:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_RDS_INT_FIFO_COUNT)",propCMD);
+                        break;
+                    case FM_RDS_INT_SOURCE:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_RDS_INT_SOURCE)",propCMD);
+                        break;     
+                    case FM_RDS_CONFIG:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_RDS_CONFIG)",propCMD);
+                        break;
+                    case FM_SOFT_MUTE_MAX_ATTENUATION:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_SOFT_MUTE_MAX_ATTENUATION)",propCMD);
+                        break;     
+                    case FM_SOFT_MUTE_SNR_THRESHOLD:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_SOFT_MUTE_SNR_THRESHOLD)",propCMD);
+                        break;   
+                    case FM_CHANNEL_FILTER:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_CHANNEL_FILTER)",propCMD);
+                        break;
+                    case FM_DISABLE_DEBUG:
+                        ESP_LOGI(TAG, "**** propCMD = 0x%4X (FM_DISABLE_DEBUG)",propCMD);
+                        break;           
+                    default:
+                        ESP_LOGI(TAG, "**** UNKNOW propCMD = 0x%X", propCMD);
+                    break;
+                }
+                ESP_LOGI(TAG, "**** propDATA = 0x%4X", propDATA);
+                break;
+        case POWER_UP:
+            ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (POWER_UP)", reg_addr);
+            break;
+        case POWER_DOWN:
+            ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (POWER_DOWN)", reg_addr);
+            break;
+        case FM_TUNE_FREQ:
+            ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (FM_TUNE_FREQ)", reg_addr);
+            break;
+        case FM_SEEK_START:
+            ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (FM_SEEK_START)", reg_addr);
+            break;
+        case FM_AGC_OVERRIDE:
+            ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (FM_AGC_OVERRIDE)", reg_addr);
+            break;
+        case GPIO_CTL:
+            ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (GPIO_CTL)", reg_addr);
+            break;
+          case GPIO_SET:
+            ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X (GPIO_SET)", reg_addr);
+            break; 
+        default:
+            ESP_LOGI(TAG, "**** I2C  reg_addr= 0x%2X ", reg_addr);
+            break;
+    }
 }
 
 /**
@@ -238,7 +377,7 @@ esp_err_t register_write_byte(uint8_t reg_addr, uint8_t data)
 /**
  * @brief Write a block 
  */
-esp_err_t register_write_block(uint8_t reg_addr, uint8_t *data, size_t len)
+esp_err_t register_write_block(uint8_t *data, size_t len)
 {
     if (dev_handle == NULL) {
         ESP_LOGE(TAG, "I2C device not initialized");
@@ -246,135 +385,8 @@ esp_err_t register_write_block(uint8_t reg_addr, uint8_t *data, size_t len)
     }
 
     esp_err_t ret; 
-    uint16_t propCMD, propDATA;
-
-    propCMD =  data[1]<<8 | data[2];   
-    propDATA =  data[3]<<8 | data[4];
-
-    ESP_LOGD(TAG, "**** I2C  deviceAddress = %x", deviceAddress);
-    switch (reg_addr)
-    {
-        case SET_PROPERTY:
-            ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (SET_PROPERTY)", reg_addr);
-                switch (propCMD){
-                    case REFCLK_FREQ:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (REFCLK_FREQ)", propCMD);
-                        break;
-                    case REFCLK_PRESCALE:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (REFCLK_PRESCALE)", propCMD);
-                        break;
-                    case FM_SEEK_FREQ_SPACING:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_SEEK_FREQ_SPACING)",propCMD);
-                        break;
-                    case RX_VOLUME:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (RX_VOLUME)",propCMD);
-                        break;
-                    case FM_SEEK_BAND_BOTTOM:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_SEEK_BAND_BOTTOM)",propCMD);
-                        break;
-                    case FM_SEEK_BAND_TOP:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_SEEK_BAND_TOP)",propCMD);
-                        break;
-                    case FM_BLEND_RSSI_MONO_THRESHOLD:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_BLEND_RSSI_MONO_THRESHOLD)",propCMD);
-                        break;
-                    case FM_BLEND_RSSI_STEREO_THRESHOLD:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_BLEND_RSSI_STEREO_THRESHOLD)",propCMD);
-                        break;
-                    case AM_CHANNEL_FILTER:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (AM_CHANNEL_FILTER)",propCMD);
-                        break;  
-                    case AM_SOFT_MUTE_MAX_ATTENUATION:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (AM_SOFT_MUTE_MAX_ATTENUATION)",propCMD);
-                        break;  
-                    case AM_SOFT_MUTE_SNR_THRESHOLD:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (AM_SOFT_MUTE_SNR_THRESHOLD)",propCMD);
-                        break;    
-                    case AM_SEEK_RSSI_THRESHOLD:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (AM_SEEK_RSSI_THRESHOLD)",propCMD);
-                        break;
-                    case AM_SEEK_SNR_THRESHOLD:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (AM_SEEK_SNR_THRESHOLD)",propCMD);
-                        break;
-                    case AM_SEEK_BAND_BOTTOM:
-                        ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (AM_SEEK_BAND_BOTTOM)", reg_addr);
-                        break;
-                    case AM_SEEK_BAND_TOP:
-                        ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (AM_SEEK_BAND_TOP)", reg_addr);
-                        break;
-                    case AM_DEEMPHASIS:
-                        ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (AM_DEEMPHASIS)", reg_addr);
-                        break;                      
-                    case FM_SEEK_TUNE_RSSI_THRESHOLD:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_SEEK_TUNE_RSSI_THRESHOLD)",propCMD);
-                        break;
-                    case FM_SEEK_TUNE_SNR_THRESHOLD:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_SEEK_TUNE_SNR_THRESHOLD)",propCMD);
-                        break;                    
-                    case FM_DEEMPHASIS:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_DEEMPHASIS)",propCMD);
-                        break;
-                    case DIGITAL_OUTPUT_SAMPLE_RATE:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (DIGITAL_OUTPUT_SAMPLE_RATE)",propCMD);
-                        break;
-                    case DIGITAL_OUTPUT_FORMAT:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (DIGITAL_OUTPUT_FORMAT)",propCMD);
-                        break;
-                    case FM_RDS_INT_FIFO_COUNT:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_RDS_INT_FIFO_COUNT)",propCMD);
-                        break;
-                    case FM_RDS_INT_SOURCE:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_RDS_INT_SOURCE)",propCMD);
-                        break;     
-                    case FM_RDS_CONFIG:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_RDS_CONFIG)",propCMD);
-                        break;
-                    case FM_SOFT_MUTE_MAX_ATTENUATION:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_SOFT_MUTE_MAX_ATTENUATION)",propCMD);
-                        break;     
-                    case FM_SOFT_MUTE_SNR_THRESHOLD:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_SOFT_MUTE_SNR_THRESHOLD)",propCMD);
-                        break;   
-                    case FM_CHANNEL_FILTER:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_CHANNEL_FILTER)",propCMD);
-                        break;
-                    case FM_DISABLE_DEBUG:
-                        ESP_LOGD(TAG, "**** propCMD = 0x%4X (FM_DISABLE_DEBUG)",propCMD);
-                        break;           
-                    default:
-                        ESP_LOGD(TAG, "**** UNKNOW propCMD = 0x%X", propCMD);
-                    break;
-                }
-                ESP_LOGD(TAG, "**** propDATA = 0x%4X", propDATA);
-                break;
-        case POWER_UP:
-            ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (POWER_UP)", reg_addr);
-            break;
-        case POWER_DOWN:
-            ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (POWER_DOWN)", reg_addr);
-            break;
-        case FM_TUNE_FREQ:
-            ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (FM_TUNE_FREQ)", reg_addr);
-            break;
-        case FM_SEEK_START:
-            ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (FM_SEEK_START)", reg_addr);
-            break;
-        case FM_AGC_OVERRIDE:
-            ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (FM_AGC_OVERRIDE)", reg_addr);
-            break;
-        case GPIO_CTL:
-            ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (GPIO_CTL)", reg_addr);
-            break;
-          case GPIO_SET:
-            ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X (GPIO_SET)", reg_addr);
-            break; 
-        default:
-            ESP_LOGD(TAG, "**** I2C  reg_addr= 0x%2X ", reg_addr);
-            break;
-    }
 
     ret = i2c_master_transmit(dev_handle, data, len, I2C_MASTER_TIMEOUT_MS);
-    //ret = i2c_master_transmit(dev_handle, data, len+1, -1); // Use -1 to disable timeout, as we handle it manually
     
     if (ret == ESP_OK) {
         ESP_LOGD(TAG, "Write OK");
@@ -404,17 +416,32 @@ esp_err_t register_write_block(uint8_t reg_addr, uint8_t *data, size_t len)
  */
 void sendProperty(SI4735_t *cntrl_data, uint16_t propertyNumber, uint16_t parameter)
 {
-    uint8_t write_buf[5] = {0};
+    uint8_t write_buf[6] = {0};
+    esp_err_t ret;
 
     cntrl_data->property.value = propertyNumber;
     cntrl_data->param.value = parameter;
 
-    write_buf[0] = 0x00;
-    write_buf[1] = cntrl_data->property.raw.byteHigh;
-    write_buf[2] = cntrl_data->property.raw.byteLow;
-    write_buf[3] = cntrl_data->param.raw.byteHigh;
-    write_buf[4] = cntrl_data->param.raw.byteLow;
-    ESP_ERROR_CHECK(register_write_block(SET_PROPERTY, write_buf, sizeof(write_buf)));
+    write_buf[0] = SET_PROPERTY;
+    write_buf[1] = 0x00;
+    write_buf[2] = cntrl_data->property.raw.byteHigh;
+    write_buf[3] = cntrl_data->property.raw.byteLow;
+    write_buf[4] = cntrl_data->param.raw.byteHigh;
+    write_buf[5] = cntrl_data->param.raw.byteLow;
+
+    //log_i2c_command(propertyNumber, write_buf);
+
+    ret = i2c_master_transmit(dev_handle, write_buf, sizeof(write_buf), I2C_MASTER_TIMEOUT_MS);
+    
+    if (ret == ESP_OK) {
+        ESP_LOGD(TAG, "Write OK");
+    } else if (ret == ESP_ERR_TIMEOUT) {
+        ESP_LOGW(TAG, "Bus is busy");
+    } else if (ret == ESP_ERR_INVALID_ARG) {
+        ESP_LOGW(TAG, "Invalid  Argument");
+    } else {
+        ESP_LOGW(TAG, "Write Failed");
+    }
 
     delay_ms(1); //delayMicroseconds(550);
 }
@@ -658,13 +685,14 @@ void reset(SI4735_t *cntrl_data)
  */
 void radioPowerUp(SI4735_t *cntrl_data)
 {
-    uint8_t write_buf[2];
+    uint8_t write_buf[3];
 
     delay_ms(1);
-    write_buf[0] = cntrl_data->powerUp.raw[0]; // 0x80; // 
-    write_buf[1] = cntrl_data->powerUp.raw[1]; // 0xB0; // 
+    write_buf[0] = POWER_UP; // 0x01; // 
+    write_buf[1] = cntrl_data->powerUp.raw[0]; // 0x80; // 
+    write_buf[2] = cntrl_data->powerUp.raw[1]; // 0xB0; // 
     ESP_LOGD(TAG, " radioPowerUp  POWER_UP");
-    ESP_ERROR_CHECK(register_write_block(POWER_UP, write_buf, 2));
+    ESP_ERROR_CHECK(register_write_block(write_buf, 3));
     // Delay at least 500 ms between powerup command and first tune command to wait for
     // the oscillator to stabilize if XOSCEN is set and crystal is used as the RCLK.
     delay_ms(500);
@@ -768,20 +796,6 @@ void setVolume(SI4735_t *cntrl_data, uint8_t volume)
  */
 void getFirmware(SI4735_t *cntrl_data)
 {
-/*
-    waitToSend();
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(GET_REV);
-    Wire.endTransmission();
-    do
-    {
-        waitToSend();
-        // Request for 9 bytes response
-        Wire.requestFrom(deviceAddress, 9);
-        for (int i = 0; i < 9; i++)
-            firmwareInfo.raw[i] = Wire.read();
-    } while (firmwareInfo.resp.ERR);
-*/
     ESP_LOGD(TAG, "I2C getFirmware");
     ESP_ERROR_CHECK(register_read(GET_REV, cntrl_data->firmware_information.raw, sizeof(cntrl_data->firmware_information.raw)));
     for( uint8_t i=0; i<9; ++i){
@@ -850,7 +864,7 @@ void setTuneFrequencyAntennaCapacitor(SI4735_t *cntrl_data, uint16_t capacitor)
  */
 void setFrequency(SI4735_t *cntrl_data, uint16_t freq)
 {
-    uint8_t write_buf[5] = {0};
+    uint8_t write_buf[6] = {0};
     //waitToSend(); // Wait for the si473x is ready.
     cntrl_data->frequency.value = freq;
     cntrl_data->set_frequency.arg.FREQH = cntrl_data->frequency.raw.FREQH;
@@ -864,19 +878,23 @@ void setFrequency(SI4735_t *cntrl_data, uint16_t freq)
         cntrl_data->set_frequency.arg.FREEZE = 0;                // Used just on FM
     }
 
-    write_buf[0] = cntrl_data->set_frequency.raw[0];
-    write_buf[1] = cntrl_data->set_frequency.arg.FREQH;
-    write_buf[2] = cntrl_data->set_frequency.arg.FREQL;
-    write_buf[3] = cntrl_data->set_frequency.arg.ANTCAPH;
+    write_buf[1] = cntrl_data->set_frequency.raw[0];
+    write_buf[2] = cntrl_data->set_frequency.arg.FREQH;
+    write_buf[3] = cntrl_data->set_frequency.arg.FREQL;
+    write_buf[4] = cntrl_data->set_frequency.arg.ANTCAPH;
 
-    ESP_LOGI(TAG, " setFrequency");
-    ESP_LOGI(TAG, " cntrl_data->set_frequency.arg = 0x%x%x(%d)", cntrl_data->set_frequency.arg.FREQH,cntrl_data->set_frequency.arg.FREQL, cntrl_data->frequency.value);
+    ESP_LOGD(TAG, " setFrequency");
+    ESP_LOGD(TAG, " cntrl_data->set_frequency.arg = 0x%x%x(%d)", cntrl_data->set_frequency.arg.FREQH,cntrl_data->set_frequency.arg.FREQL, cntrl_data->frequency.value);
 
-    if (cntrl_data->currentTune == FM_TUNE_FREQ) // if FM
-        ESP_ERROR_CHECK(register_write_block(FM_TUNE_FREQ, write_buf, 4));
-    else if (cntrl_data-> currentTune== AM_TUNE_FREQ) {// if AM or SSB
-        write_buf[4] = cntrl_data->set_frequency.arg.ANTCAPL;
-        ESP_ERROR_CHECK(register_write_block(AM_TUNE_FREQ, write_buf, 5));
+    if (cntrl_data->currentTune == FM_TUNE_FREQ){
+         // if FM
+        write_buf[0] = FM_TUNE_FREQ;
+        ESP_ERROR_CHECK(register_write_block(write_buf, 5));
+    }
+    else if (cntrl_data-> currentTune == AM_TUNE_FREQ) {// if AM or SSB
+        write_buf[0] = AM_TUNE_FREQ;
+        write_buf[5] = cntrl_data->set_frequency.arg.ANTCAPL;
+        ESP_ERROR_CHECK(register_write_block( write_buf, 6));
     }
     delay_ms(maxDelaySetFrequency); // For some reason I need to delay here.
 }
@@ -1385,7 +1403,7 @@ void setAmBandwidth(SI4735_t *cntrl_data, uint8_t AMCHFLT, uint8_t AMPLFLT)
     write_buf[4] = cntrl_data->bandwidth_config.raw[0];
     
     ESP_LOGD(TAG, " setBandwidth");
-    ESP_ERROR_CHECK(register_write_block(SET_PROPERTY, write_buf, sizeof(write_buf)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
     
 }
 
@@ -1613,26 +1631,26 @@ void powerDown(void)
 void setAutomaticGainControl(SI4735_t *cntrl_data, uint8_t AGCDIS, uint8_t AGCIDX)
 {
     uint8_t cmd;
-    uint8_t write_buf[2];
+    uint8_t write_buf[3];
 
     // cmd = (currentTune == FM_TUNE_FREQ) ? FM_AGC_OVERRIDE : AM_AGC_OVERRIDE; // AM_AGC_OVERRIDE = SSB_AGC_OVERRIDE = 0x48
     if (cntrl_data->currentTune == FM_TUNE_FREQ)
-        cmd = FM_AGC_OVERRIDE;
+        write_buf[0] = FM_AGC_OVERRIDE;
     else if (cntrl_data->currentTune == NBFM_TUNE_FREQ)
-        cmd = NBFM_AGC_OVERRIDE;
+        write_buf[0] = NBFM_AGC_OVERRIDE;
     else
-        cmd = AM_AGC_OVERRIDE;
+        write_buf[0] = AM_AGC_OVERRIDE;
 
     cntrl_data->agc_overrride.arg.DUMMY = 0; // ARG1: bits 7:1 Always write to 0;
     cntrl_data->agc_overrride.arg.AGCDIS = AGCDIS;
     cntrl_data->agc_overrride.arg.AGCIDX = AGCIDX;
 
-    write_buf[0] = cntrl_data->agc_overrride.raw[0];
-    write_buf[1] = cntrl_data->agc_overrride.raw[1];
+    write_buf[1] = cntrl_data->agc_overrride.raw[0];
+    write_buf[2] = cntrl_data->agc_overrride.raw[1];
     
     if (cntrl_data->currentTune == FM_TUNE_FREQ)
     ESP_LOGD(TAG, " setAutomaticGainControl FM_AGC_OVERRIDE AM_AGC_OVERRIDE");
-    ESP_ERROR_CHECK( register_write_block(cmd, write_buf, sizeof(write_buf)));
+    ESP_ERROR_CHECK( register_write_block(write_buf, sizeof(write_buf)));
 }
 
 /**
@@ -2014,7 +2032,7 @@ void setSSBBfo(SI4735_t *cntrl_data, int offset)
     write_buf[4] = cntrl_data->bfo_offset.raw.FREQL;
 
     ESP_LOGD(TAG, " setSSBBfo");
-    ESP_ERROR_CHECK(register_write_block(SET_PROPERTY, write_buf, sizeof(write_buf)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
 
     delay_ms(1);//delayMicroseconds(550);
 }
@@ -2168,7 +2186,7 @@ void setSSBSoftMute(SI4735_t *cntrl_data, uint8_t SMUTESEL)
 }
 
 /**
- * @ingroup group17
+ * @ingroup group17 ???????????????????????????
  *
  * @brief Automatic Gain Control setup
  * @details Overrides the SSB AGC setting by disabling the AGC and forcing the gain index that ranges between 0 (minimum attenuation) and 37+ATTN_BACKUP (maximum attenuation).
@@ -2179,7 +2197,7 @@ void setSSBSoftMute(SI4735_t *cntrl_data, uint8_t SMUTESEL)
  */
 void setSsbAgcOverrite(SI4735_t *cntrl_data, uint8_t SSBAGCDIS, uint8_t SSBAGCNDX, uint8_t reserved)
 {
-    uint8_t write_buf[2];
+    uint8_t write_buf[3];
 
     cntrl_data->agc_overrride.arg.DUMMY = reserved; // ARG1: bits 7:1 - The manual says: Always write to 0;
     cntrl_data->agc_overrride.arg.AGCDIS = SSBAGCDIS;
@@ -2193,11 +2211,12 @@ void setSsbAgcOverrite(SI4735_t *cntrl_data, uint8_t SSBAGCDIS, uint8_t SSBAGCND
     Wire.endTransmission();
     waitToSend();
 */
-    write_buf[0] = cntrl_data->agc_overrride.raw[0];
-    write_buf[1] = cntrl_data->agc_overrride.raw[1];
+    write_buf[0] = SSB_AGC_OVERRIDE;
+    write_buf[1] = cntrl_data->agc_overrride.raw[0];
+    write_buf[2] = cntrl_data->agc_overrride.raw[1];
 
     ESP_LOGD(TAG, " setSsbAgcOverrite");
-    ESP_ERROR_CHECK(register_write_block(SSB_AGC_OVERRIDE, write_buf, sizeof(write_buf)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
         
 }
 
@@ -2208,18 +2227,19 @@ void setSsbAgcOverrite(SI4735_t *cntrl_data, uint8_t SSBAGCDIS, uint8_t SSBAGCND
  */
 void sendSSBModeProperty(SI4735_t *cntrl_data)
 {
-    uint8_t write_buf[5] = {0};
+    uint8_t write_buf[6] = {0};
 
     cntrl_data->property.value = SSB_MODE;
 
     write_buf[0] = 0x00;
-    write_buf[1] = cntrl_data->property.raw.byteHigh;
-    write_buf[2] = cntrl_data->property.raw.byteLow;
-    write_buf[3] = cntrl_data->ssb_mode.raw[1];
-    write_buf[4] = cntrl_data->ssb_mode.raw[0];
+    write_buf[1] = SSB_MODE;
+    write_buf[2] = cntrl_data->property.raw.byteHigh;
+    write_buf[3] = cntrl_data->property.raw.byteLow;
+    write_buf[4] = cntrl_data->ssb_mode.raw[1];
+    write_buf[5] = cntrl_data->ssb_mode.raw[0];
 
     ESP_LOGD(TAG, " sendSSBModeProperty");
-    ESP_ERROR_CHECK(register_write_block(SET_PROPERTY, write_buf, sizeof(write_buf)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
     
     delay_ms(1);//delayMicroseconds(550);
 }
@@ -2231,13 +2251,14 @@ void sendSSBModeProperty(SI4735_t *cntrl_data)
  */
 void ssbPowerUp(SI4735_t *cntrl_data)
 {
-    uint8_t write_buf[2];
+    uint8_t write_buf[3];
  
-    write_buf[0] = 0b00010001;
-    write_buf[1] = 0b00000101;
+    write_buf[0] = POWER_UP;
+    write_buf[1] = 0b00010001;
+    write_buf[2] = 0b00000101;
     
     ESP_LOGD(TAG, " ssbPowerUp");
-    ESP_ERROR_CHECK(register_write_block(POWER_UP, write_buf,sizeof(write_buf)));
+    ESP_ERROR_CHECK(register_write_block( write_buf,sizeof(write_buf)));
 
     cntrl_data->powerUp.arg.CTSIEN = ctsIntEnable;     // 1 -> Interrupt anabled;
     cntrl_data->powerUp.arg.GPO2OEN = 0;                     // 1 -> GPO2 Output Enable;
@@ -2407,17 +2428,19 @@ void setNBFM(SI4735_t *cntrl_data, uint16_t fromFreq, uint16_t toFreq, uint16_t 
  */
 void setFrequencyNBFM(SI4735_t *cntrl_data, uint16_t freq)
 {
-    uint8_t write_buf[3];
+    uint8_t write_buf[4];
+
     cntrl_data->frequency.value = freq;
     cntrl_data->set_frequency.arg.FREQH = cntrl_data->frequency.raw.FREQH;
     cntrl_data->set_frequency.arg.FREQL = cntrl_data->frequency.raw.FREQL;
    
     write_buf[0] = 0x00;
-    write_buf[1] = cntrl_data->frequency.raw.FREQH;
-    write_buf[2] = cntrl_data->frequency.raw.FREQL;
+    write_buf[1] = NBFM_TUNE_FREQ;
+    write_buf[2] = cntrl_data->frequency.raw.FREQH;
+    write_buf[3] = cntrl_data->frequency.raw.FREQL;
 
     ESP_LOGD(TAG, " setFrequencyNBFM");
-    ESP_ERROR_CHECK(register_write_block(0x50, write_buf, sizeof(write_buf)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
 
     delay_ms(250);                  // For some reason I need to delay here.
 }
@@ -2481,13 +2504,14 @@ si47x_firmware_query_library queryLibraryId(SI4735_t *cntrl_data)
  */
 void patchPowerUpNBFM(SI4735_t *cntrl_data)
 {
-    uint8_t write_buf[2];
+    uint8_t write_buf[3];
 
-    write_buf[0] = 0b00110000;
-    write_buf[1] = SI473X_DIGITAL_AUDIO2; //  SI473X_ANALOG_AUDIO
+    write_buf[0] = POWER_UP;
+    write_buf[1] = 0b00110000;
+    write_buf[2] = SI473X_DIGITAL_AUDIO2; //  SI473X_ANALOG_AUDIO
 
     ESP_LOGD(TAG, " patchPowerUpNBFM");
-    ESP_ERROR_CHECK( register_write_block(POWER_UP, write_buf, sizeof(write_buf)));
+    ESP_ERROR_CHECK( register_write_block( write_buf, sizeof(write_buf)));
     
     delay_ms(maxDelayAfterPouwerUp);
 }
@@ -2692,13 +2716,14 @@ bool downloadCompressedPatch(const uint8_t *ssb_patch_content, const uint16_t ss
  */
 void patchPowerUp()
 {
-    uint8_t write_buf[2];
+    uint8_t write_buf[3];
 
-    write_buf[0] = 0b00110001;
-    write_buf[1] = SI473X_DIGITAL_AUDIO2; //SI473X_ANALOG_AUDIO
+    write_buf[0] = POWER_UP;
+    write_buf[1] = 0b00110001;
+    write_buf[2] = SI473X_DIGITAL_AUDIO2; //SI473X_ANALOG_AUDIO
 
     ESP_LOGD(TAG, " patchPowerUp");
-    ESP_ERROR_CHECK(register_write_block(POWER_UP, write_buf,sizeof(write_buf)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
 
     delay_ms(maxDelayAfterPouwerUp);
 }
@@ -2843,7 +2868,7 @@ void setRdsConfig(SI4735_t *cntrl_data, uint8_t RDSEN, uint8_t BLETHA, uint8_t B
     write_buf[4] = cntrl_data->rds_config.raw[0];
 
     ESP_LOGD(TAG, " setRdsConfig");
-    ESP_ERROR_CHECK(register_write_block(SET_PROPERTY, write_buf, 5));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
     delay_ms(1);
     
     RdsInit();
@@ -2881,6 +2906,7 @@ void setRdsIntSource(SI4735_t *cntrl_data, uint8_t RDSRECV, uint8_t RDSSYNCLOST,
 
     si47x_property property;
     si47x_rds_int_source rds_int_source;
+
     uint8_t write_buf[5] = {0};
 
     if (cntrl_data->currentTune != FM_TUNE_FREQ)
@@ -2903,7 +2929,7 @@ void setRdsIntSource(SI4735_t *cntrl_data, uint8_t RDSRECV, uint8_t RDSSYNCLOST,
     write_buf[4] = cntrl_data->rds_int_source.raw[0];
 
     ESP_LOGD(TAG, " setRdsIntSource");
-    ESP_ERROR_CHECK(register_write_block(SET_PROPERTY, write_buf, sizeof(write_buf)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
 
 }
 
@@ -3789,20 +3815,22 @@ void seekStation(SI4735_t *cntrl_data, uint8_t SEEKUP, uint8_t WRAP)
     cntrl_data->seek.arg.WRAP = WRAP;
     cntrl_data->seek.arg.RESERVED1 = 0;
     cntrl_data->seek.arg.RESERVED2 = 0;
-
-    write_buf[0] = cntrl_data->seek.raw;
+    
+    write_buf[0] = seek_start_cmd;
+    write_buf[1] = cntrl_data->seek.raw;
     if (seek_start_cmd == AM_SEEK_START) // Sets additional configuration for AM mode
     {
         cntrl_data->seek_am_complement.ARG2 = cntrl_data->seek_am_complement.ARG3 = 0;
         cntrl_data->seek_am_complement.ANTCAPH = 0;
         cntrl_data->seek_am_complement.ANTCAPL = (cntrl_data->frequency.value > 1800) ? 1 : 0; // if SW = 1
-        write_buf[1] = cntrl_data->seek_am_complement.ARG2;         // ARG2 - Always 0
-        write_buf[2] = cntrl_data->seek_am_complement.ARG3;         // ARG3 - Always 0
-        write_buf[3] = cntrl_data->seek_am_complement.ANTCAPH;      // ARG4 - Tuning Capacitor: The tuning capacitor value
-        write_buf[4] = cntrl_data->seek_am_complement.ANTCAPL;      // ARG5 - will be selected automatically.
+
+        write_buf[2] = cntrl_data->seek_am_complement.ARG2;         // ARG2 - Always 0
+        write_buf[3] = cntrl_data->seek_am_complement.ARG3;         // ARG3 - Always 0
+        write_buf[4] = cntrl_data->seek_am_complement.ANTCAPH;      // ARG4 - Tuning Capacitor: The tuning capacitor value
+        write_buf[5] = cntrl_data->seek_am_complement.ANTCAPL;      // ARG5 - will be selected automatically.
     }
     ESP_LOGD(TAG, " seekStation");
-    ESP_ERROR_CHECK(register_write_block(seek_start_cmd, write_buf, sizeof(write_buf)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
 
    delay_ms(MAX_DELAY_AFTER_SET_FREQUENCY << 2);
 }
@@ -3922,6 +3950,7 @@ void seekStationProgress(SI4735_t *cntrl_data, void (*showFunc)(uint16_t f), boo
 void setGpioCtl(SI4735_t *cntrl_data, uint8_t GPO1OEN, uint8_t GPO2OEN, uint8_t GPO3OEN)
 {
     esp_err_t ret;
+    uint8_t write_buf[2];
 
     cntrl_data->gpio.arg.GPO1OEN = GPO1OEN;
     cntrl_data->gpio.arg.GPO2OEN = GPO2OEN;
@@ -3929,8 +3958,10 @@ void setGpioCtl(SI4735_t *cntrl_data, uint8_t GPO1OEN, uint8_t GPO2OEN, uint8_t 
     cntrl_data->gpio.arg.DUMMY1 = 0;
     cntrl_data->gpio.arg.DUMMY2 = 0;
 
+    write_buf[0] = GPIO_CTL ;
+    write_buf[1] = cntrl_data->gpio.raw;
     ESP_LOGD(TAG, " setGpioCtl");
-    ESP_ERROR_CHECK(register_write_block(GPIO_CTL, &cntrl_data->gpio.raw, sizeof(cntrl_data->gpio.raw)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
 
 }
 
@@ -3958,6 +3989,7 @@ void setGpioCtl(SI4735_t *cntrl_data, uint8_t GPO1OEN, uint8_t GPO2OEN, uint8_t 
 void setGpio(SI4735_t *cntrl_data, uint8_t GPO1LEVEL, uint8_t GPO2LEVEL, uint8_t GPO3LEVEL)
 {
     esp_err_t ret;
+    uint8_t write_buf[2];
 
     cntrl_data->gpio.arg.GPO1OEN = GPO1LEVEL;
     cntrl_data->gpio.arg.GPO2OEN = GPO2LEVEL;
@@ -3965,8 +3997,11 @@ void setGpio(SI4735_t *cntrl_data, uint8_t GPO1LEVEL, uint8_t GPO2LEVEL, uint8_t
     cntrl_data->gpio.arg.DUMMY1 = 0;
     cntrl_data->gpio.arg.DUMMY2 = 0;
 
+    write_buf[0] = GPIO_CTL ;
+    write_buf[1] = cntrl_data->gpio.raw;
+
     ESP_LOGD(TAG, " setGpio");
-    ESP_ERROR_CHECK(register_write_block(GPIO_CTL, &cntrl_data->gpio.raw, sizeof(cntrl_data->gpio.raw)));
+    ESP_ERROR_CHECK(register_write_block( write_buf, sizeof(write_buf)));
     //ESP_ERROR_CHECK(register_write_byte(GPIO_SET, gpio.raw));
 }
 

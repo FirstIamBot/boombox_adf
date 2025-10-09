@@ -33,11 +33,9 @@ extern audio_pipeline_handle_t pipeline;
 extern audio_element_handle_t bt_stream_reader, i2s_stream_writer, selected_decoder;
 
 extern audio_event_iface_msg_t msg;
-extern audio_event_iface_handle_t evt_1;
+extern audio_event_iface_handle_t evt;
 extern esp_periph_set_handle_t set; 
-
-
-//extern audio_source_t g_current_source;
+extern audio_source_t g_current_source;
 
 esp_periph_handle_t bt_periph = NULL;
 
@@ -45,8 +43,6 @@ esp_periph_handle_t bt_periph = NULL;
 void bt_player()
 {
     ESP_LOGI(TAG, "[ * ] Bluetooth player started");
-    //audio_pipeline_handle_t pipeline;
-    //audio_element_handle_t bt_stream_reader, i2s_stream_writer;
 
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
@@ -209,8 +205,6 @@ void bt_player_task(void *pvParameters)
 // Функция запуска BT проигрывателя 
 void bt_player_start( ) {
    ESP_LOGI(TAG, "[ * ] Bluetooth player started");
-    //audio_pipeline_handle_t pipeline;
-    //audio_element_handle_t bt_stream_reader, i2s_stream_writer;
 
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
@@ -287,10 +281,10 @@ void bt_player_start( ) {
 
     ESP_LOGI(TAG, "[ 6 ] Set up  event listener");
     audio_event_iface_cfg_t evt_cfg = AUDIO_EVENT_IFACE_DEFAULT_CFG();
-    evt_1 = audio_event_iface_init(&evt_cfg);
+    evt = audio_event_iface_init(&evt_cfg);
 
     ESP_LOGI(TAG, "[6.1] Listening event from all elements of pipeline");   
-    audio_pipeline_set_listener(pipeline, evt_1);
+    audio_pipeline_set_listener(pipeline, evt);
 
     ESP_LOGI(TAG, "[ 7 ] Start audio_pipeline");
     audio_pipeline_run(pipeline);
@@ -300,7 +294,7 @@ void bt_player_start( ) {
 void bt_player_run( ) {
     ESP_LOGI(TAG, "[ 8 ] Listen for all pipeline events");
     while (1) {
-        esp_err_t ret = audio_event_iface_listen(evt_1, &msg, portMAX_DELAY);
+        esp_err_t ret = audio_event_iface_listen(evt, &msg, portMAX_DELAY);
         if (ret != ESP_OK) {
             ESP_LOGE(TAG, "[ * ] Event interface error : %d", ret);
             continue;
@@ -342,10 +336,10 @@ void bt_player_stop(){
 
     /* Stop all periph before removing the listener */
     esp_periph_set_stop_all(set);
-    audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt_1);
+    audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt);
 
     /* Make sure audio_pipeline_remove_listener & audio_event_iface_remove_listener are called before destroying event_iface */
-    audio_event_iface_destroy(evt_1);
+    audio_event_iface_destroy(evt);
 
     /* Release all resources */
     audio_pipeline_unregister(pipeline, bt_stream_reader);

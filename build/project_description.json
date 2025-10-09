@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "bt_http_boombox",
-    "project_version":    "e8af787-dirty",
+    "project_version":    "85d1d60-dirty",
     "project_path":       "/home/gena/Документы/PlatformIO/espidf/adf/boombox_adf",
     "idf_path":           "/home/gena/esp/esp-idf-v5.4",
     "build_dir":          "/home/gena/Документы/PlatformIO/espidf/adf/boombox_adf/build",

@@ -28,11 +28,10 @@ static const char *TAG = "HTTP_PLAYER";
 //extern audio_source_t g_current_source;
 extern audio_pipeline_handle_t pipeline;
 extern audio_element_handle_t http_stream_reader, i2s_stream_writer, selected_decoder;
-
 extern audio_event_iface_msg_t msg;
-extern audio_event_iface_handle_t evt_1;
+extern audio_event_iface_handle_t evt;
 extern esp_periph_set_handle_t set; 
-
+extern audio_source_t g_current_source;
 
 //*********************************************************************************************************************
 //#define SELECT_AAC_DECODER 1
@@ -82,9 +81,6 @@ void http_player()
     }
 
     ESP_ERROR_CHECK(esp_netif_init());
-
-    //audio_pipeline_handle_t pipeline;
-    //audio_element_handle_t http_stream_reader, i2s_stream_writer, selected_decoder;
 
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
@@ -255,9 +251,6 @@ void http_player_start( ) {
 
     ESP_ERROR_CHECK(esp_netif_init());
 
-    //audio_pipeline_handle_t pipeline;
-    //audio_element_handle_t http_stream_reader, i2s_stream_writer, selected_decoder;
-
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
 
@@ -332,13 +325,13 @@ void http_player_start( ) {
 
     ESP_LOGI(TAG, "[ 4 ] Set up  event listener");
     audio_event_iface_cfg_t evt_cfg = AUDIO_EVENT_IFACE_DEFAULT_CFG();
-    evt_1 = audio_event_iface_init(&evt_cfg);
+    evt = audio_event_iface_init(&evt_cfg);
 
     ESP_LOGI(TAG, "[4.1] Listening event from all elements of pipeline");
-    audio_pipeline_set_listener(pipeline, evt_1);
+    audio_pipeline_set_listener(pipeline, evt);
 
     ESP_LOGI(TAG, "[4.2] Listening event from peripherals");
-    audio_event_iface_set_listener(esp_periph_set_get_event_iface(set), evt_1);
+    audio_event_iface_set_listener(esp_periph_set_get_event_iface(set), evt);
 
     ESP_LOGI(TAG, "[ 5 ] Start audio_pipeline");
     audio_pipeline_run(pipeline);
@@ -349,7 +342,7 @@ void http_player_start( ) {
 void http_player_run( ){
     while (1) {
         
-        esp_err_t ret = audio_event_iface_listen(evt_1, &msg, portMAX_DELAY);
+        esp_err_t ret = audio_event_iface_listen(evt, &msg, portMAX_DELAY);
         if (ret != ESP_OK) {
             ESP_LOGE(TAG, "[ * ] Event interface error : %d", ret);
             continue;
@@ -396,10 +389,10 @@ void http_player_stop(){
 
     /* Stop all peripherals before removing the listener */
     esp_periph_set_stop_all(set);
-    audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt_1);
+    audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt);
 
     /* Make sure audio_pipeline_remove_listener & audio_event_iface_remove_listener are called before destroying event_iface */
-    audio_event_iface_destroy(evt_1);
+    audio_event_iface_destroy(evt);
 
     /* Release all resources */
     audio_pipeline_deinit(pipeline);

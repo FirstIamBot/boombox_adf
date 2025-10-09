@@ -54,7 +54,7 @@ typedef enum {
 /****************************************************************************************************
  * @brief Global variable to store the current audio source
  */
-extern audio_source_t g_current_source;
+//extern audio_source_t g_current_source;
 //*****************************************************************************************************
 /**
  * @brief Audio board handle

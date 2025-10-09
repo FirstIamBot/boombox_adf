@@ -40,6 +40,12 @@
     "periph_sdcard.h": "c",
     "i2s_stream.h": "c",
     "audio_event_iface.h": "c",
-    "esp_a2dp_api.h": "c"
+    "esp_a2dp_api.h": "c",
+    "periph_adc_button.h": "c",
+    "common.h": "c",
+    "thread": "c",
+    "string": "c",
+    "string_view": "c",
+    "array": "c"
   }
 }

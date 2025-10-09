@@ -25,22 +25,21 @@
 
 #include "boombox.h"
 #include "gui.h"
-#include "common.h"
+#include "commons.h"
 
-static const char *TAG = "BLUETOOTH_HTTP_PLAYER";
+static const char *TAG = "BOOMBOX";
 
 
 static TaskHandle_t bt_task_handle = NULL;
 static TaskHandle_t http_task_handle = NULL;
 // Глобальные переменные для управления переключением источников
 
-audio_source_t g_current_source;
 //*********************************************************************************************************************
 
 
 void app_main(void)
 {
-    ESP_LOGI(TAG, "=== BT/HTTP BOOMBOX STARTING ===");
+    ESP_LOGI(TAG, "===  BOOMBOX STARTING ===");
     
     // Инициализация NVS
     esp_err_t err = nvs_flash_init();

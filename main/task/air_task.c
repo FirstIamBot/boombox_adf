@@ -1,9 +1,7 @@
-
-#include "board.h"
+/*                                  */
+//#include "board.h"
 
 #include "air_task.h"
-#include "si4735.h"
-#include "commons.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -20,7 +18,11 @@
 #include "filter_resample.h"
 #include "audio_mem.h"
 #include "audio_common.h"
-
+//=============================================================================================================
+// Test it with patch_init.h or patch_full.h. Do not try load both.
+#include <patch_init.h> // SSB patch for whole SSBRX initialization string
+// #include <patch_full.h>    // SSB patch for whole SSBRX full download
+//=============================================================================================================
 /*===========================================++++=== Bandwidth  SSB    ==================================
  0 = 1.2 kHz low-pass filter  (default).
  1 = 2.2 kHz low-pass filter.
@@ -63,7 +65,7 @@ const char *  bandwidthAM[] = {
     "1.8",
     "2.5",  
 };
-
+/*===========================================++++=== Bandwidth  FM   ==================================*/
 const char * bandwidthFM[] = {
     "AUT", // Automatic - default
     "110", 
@@ -110,7 +112,7 @@ Band band[] = {  ////
   {   "LW", LW_BAND_TYPE,  AM,   150,   279,   164, 1}, //  LW          0  ////
   {   "MW", MW_BAND_TYPE,  AM,   520,  1710,   750, 1}, //  MW          1  ////
   {   "SW", SW_BAND_TYPE,  AM,  1710, 30000, 10000, 0},  // Whole SW    2  ////
-  {   "FM", FM_BAND_TYPE,  FM,  7600, 10800, 10030, 2}, //  FM          3  ////
+  {   "FM", FM_BAND_TYPE,  FM,  7600, 10800, 10280, 2}, //  FM          3  ////
   {"2220M", LW_BAND_TYPE, LSB,   130,   140,   135, 1}, // Ham          4  ////
   { "630M", LW_BAND_TYPE, LSB,   420,   520,   475, 1}, // Ham  630M    5
   { "160M", SW_BAND_TYPE, LSB,  1800,  1920,  1910, 1}, // Ham  160M    6  ////
@@ -139,21 +141,22 @@ Band band[] = {  ////
   {  "10M", SW_BAND_TYPE, USB, 28000, 30000, 28500, 1} // Ham   10M    29
 };
 //=======================================================
+#define RESET_PIN CONFIG_RESET_PIN
+#define SAMPLE_RATE 44100
+
+// Структура данных радио SI4735
+SI4735_t * rx_radio;
 extern QueueHandle_t xBoomboxToGuiQueue;
 extern audio_pipeline_handle_t pipeline;
 extern audio_element_handle_t i2s_stream_writer;
 extern audio_event_iface_msg_t msg;
-extern audio_event_iface_handle_t evt_1;
+extern audio_event_iface_handle_t evt;
 extern esp_periph_set_handle_t set; 
-
-#define RESET_PIN CONFIG_RESET_PIN
-//#define AUDIO_OUTPUT_MODE CONFIG_AUDIO_OUTPUT_MODE
-#define RSSI_SEARCH 15
-#define SNR_SEARCH  5
+extern audio_source_t g_current_source;
+// Структура данных для сохранения временных(текущих) данных
+air_config_t air_radio_config;
 
 static const char *TAG = "AIR_TASK";
-// Структура данных радио SI4735
-SI4735_t * rx_radio;
 char *stationName;
 char *stationInfo;
 char *programInfo;
@@ -161,154 +164,658 @@ char *rdsTime;
 char *dataRDS;
 static uint8_t statusRDS = 0;
 //=============================================================================================================
-// Test it with patch_init.h or patch_full.h. Do not try load both.
-#include <patch_init.h> // SSB patch for whole SSBRX initialization string
-// #include <patch_full.h>    // SSB patch for whole SSBRX full download
-//=============================================================================================================
-// Стуктура данных для сохранения временных(текущих) данных
-//air_config_t air_radio_config;
 
-
-/**
- * @brief Сканирует FM-диапазон и сохраняет найденные станции в массив структур si4735_station_t.
- * 
- * @param rx_radio      Указатель на структуру SI4735
- * @param stations      Массив структур si4735_station_t для сохранения станций
- * @param max_stations  Максимальное количество станций для поиска
- * @return int          Количество найденных станций
- */
-int scan_fm_stations(SI4735_t *rx_radio, air_config_t * cnfg, si4735_station_t *stations, int max_stations)
+void loadSSB(SI4735_t *rx, air_config_t *cnfg)
 {
-    int found = 0;
-
-    setFM(rx_radio, 8750, 10800, 8750, cnfg->currentStepFM); // Запуск FM
-
-    uint16_t freq = 8750;
-    uint16_t first_station = 0;
-    bool first_found = false;
-
-    while (found < max_stations) {
-        if (!seekNextStation(rx_radio)) {
-            break;
-        }
-        freq = getFrequency(rx_radio);
-
-        int rssi = getCurrentRSSI(rx_radio);
-        int snr  = getCurrentSNR(rx_radio);
-
-        if (rssi >= cnfg->rssi_thresh_seek && snr >= cnfg->snr_thresh_seek) {
-            if (!first_found) {
-                first_station = freq;
-                first_found = true;
-            } else if (freq == first_station) {
-                break;
-            }
-            stations[found].freq_khz = freq;
-            stations[found].rssi = rssi;
-            found++;
-        }
-    }
-    return found;
+  uint16_t size_content = sizeof(ssb_patch_content)/sizeof(uint16_t);
+  //const uint16_t size_content(ssb_patch_content );// see ssb_patch_content in patch_full.h or patch_init.h
+  queryLibraryId(rx); // Исправлено: передаем указатель на SI4735_t
+  patchPowerUp();
+  delay_ms(50);
+  uint32_t startload = xTaskGetTickCount();
+  downloadPatch(ssb_patch_content, size_content);
+  //ESP_LOGI(TAG, "SSB patch was loaded in:  =  %d ms", xTaskGetTickCount()-startload );
+  // Parameters
+  // AUDIOBW - SSB Audio bandwidth; 0 = 1.2kHz (default); 1=2.2kHz; 2=3kHz; 3=4kHz; 4=500Hz; 5=1kHz;
+  // SBCUTFLT SSB - side band cutoff filter for band passand low pass filter ( 0 or 1)
+  // AVC_DIVIDER  - set 0 for SSB mode; set 3 for SYNC mode.
+  // AVCEN - SSB Automatic Volume Control (AVC) enable; 0=disable; 1=enable (default).
+  // SMUTESEL - SSB Soft-mute Based on RSSI or SNR (0 or 1).
+  // DSP_AFCDIS - DSP AFC Disable or enable; 0=SYNC MODE, AFC enable; 1=SSB MODE, AFC disable.
+  setSSBConfig(rx, cnfg->BandWidthSSB, 0, 1, 0, 1, 1);
 }
-
-void radio_init(air_config_t * cnfg){
-    // Инициализация радио SI4735 с заданной конфигурацией
+/*
+  Функция инициализации радио SI4735
+  Проблема при инициализации радио в том, что при смене диапазона (BandType)
+  загрузка будет производится предыдущего диапазона.
+  Поэтому при инициализации радио, нужно учитывать текущий диапазон.
+  currentBandType = LW_BAND_TYPE, MW_BAND_TYPE, SW_BAND_TYPE
+  брать частоту из band[]
+*/
+void radio_init(SI4735_t *rx, air_config_t *cnfg)
+ {
+  if(cnfg->currentBandType == LW_BAND_TYPE ){
+    ESP_LOGI(TAG, "init %s_BAND_TYPE",band[cnfg->currentBandType].bandName); 
+    //cnfg->currentFrequency = band[MW_BAND_TYPE].currentFreq;
+    init_si4735(rx, RESET_PIN, -1, AM_CURRENT_MODE, SI473X_DIGITAL_AUDIO2, XOSCEN_RCLK, 0);  // Analog and digital audio outputs (LOUT/ROUT and DCLK, DFS, DIO), external RCLK
+    // AM Setup
+    setAmBandwidth(rx, 0, cnfg->BandWidthAM); // 0 = 6 kHz Bandwidth, 1 = Enable Noise Rejection Filter
+    setAMDeEmphasis(rx, 1);
+    setAmSoftMuteMaxAttenuation(rx, 10);
+    setAMSoftMuteSnrThreshold(rx, 9);
+    setSeekAmLimits(rx, band[LW_BAND_TYPE].minimumFreq, band[LW_BAND_TYPE].maximumFreq);
+    setSeekAmSrnThreshold(rx, 11);
+    setSeekAmRssiThreshold(rx, 42);
+    // Starts defaul radio function and band (FM; from 84 to 108 MHz; 103.9 MHz; step 10kHz) 
+    setAM(rx, band[LW_BAND_TYPE].minimumFreq, band[LW_BAND_TYPE].maximumFreq, cnfg->currentFrequency, stepAM[LW_BAND_TYPE].idx);
+    setAutomaticGainControl(rx, cnfg->onoffAGCgain, cnfg->currentAGCgain); //MaxAGCgainFM 
+    setVolume(rx, cnfg->currentVOL);
+    delay_ms(300);
+    // Init Digital Output
+    digitalOutputSampleRate(rx, SAMPLE_RATE);
+    delay_ms(200);
+    digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+    delay_ms(200);
+  }
+  else if(cnfg->currentBandType == MW_BAND_TYPE){
+    ESP_LOGI(TAG, "init %s_BAND_TYPE",band[cnfg->currentBandType].bandName); 
+    //cnfg->currentFrequency = band[MW_BAND_TYPE].currentFreq;
+    init_si4735(rx, RESET_PIN, -1, AM_CURRENT_MODE, SI473X_DIGITAL_AUDIO2, XOSCEN_RCLK, 0);  // Analog and digital audio outputs (LOUT/ROUT and DCLK, DFS, DIO), external RCLK
+    // AM Setup
+    setAmBandwidth(rx, 0, cnfg->BandWidthAM); // 0 = 6 kHz Bandwidth, 1 = Enable Noise Rejection Filter
+    setAMDeEmphasis(rx, 1);
+    setAmSoftMuteMaxAttenuation(rx, 10);
+    setAMSoftMuteSnrThreshold(rx, 9);
+    setSeekAmLimits(rx, band[MW_BAND_TYPE].minimumFreq, band[MW_BAND_TYPE].maximumFreq);
+    setSeekAmSrnThreshold(rx, 11);
+    setSeekAmRssiThreshold(rx, 42);
+    // Starts defaul radio function and band (FM; from 84 to 108 MHz; 103.9 MHz; step 10kHz) 
+    setAM(rx, band[MW_BAND_TYPE].minimumFreq, band[MW_BAND_TYPE].maximumFreq, cnfg->currentFrequency, stepAM[MW_BAND_TYPE].idx);
+    setAutomaticGainControl(rx, cnfg->onoffAGCgain, cnfg->currentAGCgain); //MaxAGCgainFM 
+    setVolume(rx, cnfg->currentVOL);
+    delay_ms(300);
+    // Init Digital Output
+    digitalOutputSampleRate(rx, SAMPLE_RATE);
+    delay_ms(200);
+    digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+    delay_ms(200);
+  }
+  else if(cnfg->currentBandType == SW_BAND_TYPE){
+    ESP_LOGI(TAG, "init %s_BAND_TYPE",band[cnfg->currentBandType].bandName); 
+    init_si4735(rx, RESET_PIN, -1, AM_CURRENT_MODE, SI473X_DIGITAL_AUDIO2, XOSCEN_RCLK, 0);  // Analog and digital audio outputs (LOUT/ROUT and DCLK, DFS, DIO), external RCLK
+    //cnfg->currentFrequency = band[SW_BAND_TYPE].currentFreq;
+    // AM Setup
+    setAmBandwidth(rx, 0, cnfg->BandWidthAM); // 0 = 6 kHz Bandwidth, 1 = Enable Noise Rejection Filter
+    setAMDeEmphasis(rx, 1);
+    setAmSoftMuteMaxAttenuation(rx, 10);
+    setAMSoftMuteSnrThreshold(rx, 9);
+    setSeekAmLimits(rx, band[SW_BAND_TYPE].minimumFreq, band[SW_BAND_TYPE].maximumFreq);
+    setSeekAmSrnThreshold(rx, 11);
+    setSeekAmRssiThreshold(rx, 42);
+    // Starts defaul radio function and band (AM; ) 
+    setAM(rx, band[cnfg->currentBandType].minimumFreq, band[cnfg->currentBandType].maximumFreq, cnfg->currentFrequency, stepAM[cnfg->currentBandType].idx);
+    setVolume(rx, cnfg->currentVOL);
+    setAutomaticGainControl(rx, cnfg->onoffAGCgain, cnfg->currentAGCgain); //MaxAGCgainFM 
+    delay_ms(300);
+    // Init Digital Output
+    digitalOutputSampleRate(rx, SAMPLE_RATE);
+    delay_ms(200);
+    digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+    delay_ms(200);
+  }
+  else if(cnfg->currentBandType > 3) {
+    if(band[cnfg->currentBandType].prefmod ==1 || band[cnfg->currentBandType].prefmod || 2){ // SSB mode LSB and USB modolation
+      ESP_LOGI(TAG, "init %s_BAND_TYPE - ",band[cnfg->currentBandType].bandName); 
+      init_si4735(rx, RESET_PIN, -1, AM_CURRENT_MODE, SI473X_DIGITAL_AUDIO2, XOSCEN_RCLK, 0);  // Analog and digital audio outputs (LOUT/ROUT and DCLK, DFS, DIO), external RCLK
+      //cnfg->currentFrequency = band[cnfg->currentBandType].currentFreq;
+      loadSSB(rx, cnfg);
+      setTuneFrequencyAntennaCapacitor(rx, 0); // Set antenna tuning capacitor for SW.
+      setSSB(rx, band[cnfg->currentBandType].minimumFreq, band[cnfg->currentBandType].maximumFreq, cnfg->currentFrequency, stepAM[cnfg->currentBandType].idx, band[cnfg->currentBandType].prefmod);
+      // Init Digital Output
+      digitalOutputSampleRate(rx, SAMPLE_RATE);
+      delay_ms(200);
+      // OSIZE Dgital Output Audio Sample Precision (0=16 bits, 1=20 bits, 2=24 bits, 3=8bits).
+      // OMONO Digital Output Mono Mode (0=Use mono/stereo blend ).
+      // OMODE Digital Output Mode (0=I2S, 6 = Left-justified, 8 = MSB at second DCLK after DFS pulse, 12 = MSB at first DCLK after DFS pulse).
+      // OFALL Digital Output DCLK Edge (0 = use DCLK rising edge, 1 = use DCLK falling edge)
+      digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+      delay_ms(200);
+    }
+    else if(band[cnfg->currentBandType].prefmod == 0) { // AM modolation
+      init_si4735(rx, RESET_PIN, -1, AM_CURRENT_MODE, SI473X_DIGITAL_AUDIO2, XOSCEN_RCLK, 0);  // Analog and digital audio outputs (LOUT/ROUT and DCLK, DFS, DIO), external RCLK
+      //cnfg->currentFrequency = band[cnfg->currentBandType].currentFreq;
+      // AM Setup
+      setAmBandwidth(rx, 0, cnfg->BandWidthAM); // 0 = 6 kHz Bandwidth, 1 = Enable Noise Rejection Filter
+      setAMDeEmphasis(rx, 1);
+      setAmSoftMuteMaxAttenuation(rx, 10);
+      setAMSoftMuteSnrThreshold(rx, 9);
+      setSeekAmLimits(rx, band[cnfg->currentBandType].minimumFreq, band[cnfg->currentBandType].maximumFreq);
+      setSeekAmSrnThreshold(rx, 11);
+      setSeekAmRssiThreshold(rx, 42);
+      // Starts defaul radio function and band (AM; ) 
+      setAM(rx, band[cnfg->currentBandType].minimumFreq, band[cnfg->currentBandType].maximumFreq, cnfg->currentFrequency, stepAM[cnfg->currentBandType].idx);
+      setVolume(rx, cnfg->currentVOL);
+      setAutomaticGainControl(rx, cnfg->onoffAGCgain, cnfg->currentAGCgain); //MaxAGCgainFM 
+      delay_ms(300);
+      // Init Digital Output
+      digitalOutputSampleRate(rx, SAMPLE_RATE);
+      delay_ms(200);
+      digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+      delay_ms(200);
+    }     
+  }
+  else if(cnfg->currentBandType == FM_BAND_TYPE){
+    ESP_LOGI(TAG, "init %s_BAND_TYPE",band[cnfg->currentBandType].bandName); 
+    //getDeviceI2CAddress(RESET_PIN);
     // Use SI473X_DIGITAL_AUDIO1       - Digital audio output (SI4735 device pins: 3/DCLK, 24/LOUT/DFS, 23/ROUT/DIO )
     // Use SI473X_DIGITAL_AUDIO2       - Digital audio output (SI4735 device pins: 3/DCLK, 2/DFS, 1/DIO)
     // Use SI473X_ANALOG_DIGITAL_AUDIO - Analog and digital audio outputs (24/LOUT/ 23/ROUT and 3/DCLK, 2/DFS, 1/DIO)
     // XOSCEN_RCLK                     - Use external source clock (active crystal or signal generator)
-    if (rx_radio == NULL) {
-        ESP_LOGE(TAG, "Failed to allocate memory for SI4735 control structure");
-        return;
-    }
-    memset(rx_radio, 0, sizeof(SI4735_t));
-    init_si4735(rx_radio, RESET_PIN, -1, FM_CURRENT_MODE, SI473X_DIGITAL_AUDIO2, XOSCEN_RCLK, 0);  // Analog and digital audio outputs (LOUT/ROUT and DCLK, DFS, DIO), external RCLK
+    init_si4735(rx, RESET_PIN, -1, FM_CURRENT_MODE, SI473X_DIGITAL_AUDIO2, XOSCEN_RCLK, 0);  // Analog and digital audio outputs (LOUT/ROUT and DCLK, DFS, DIO), external RCLK
     delay_ms(500); 
     // FM Setup
-    ESP_LOGI(TAG, "air_config_t:\n currentVOL= %d\n, currentStepFM= %d\n, currentStepAM= %d\n, currentMod= %d\n, currentFrequency= %d\n, currentBandType= %d\n, BandWidthFM= %d\n, BandWidthAM= %d\n, BandWidthSSB= %d\n, currentAGCgain= %d\n, onoffAGCgain= %d\n, rssi_thresh_seek= %d\n, snr_thresh_seek= %d",
-             cnfg->currentVOL,
-             cnfg->currentStepFM,
-             cnfg->currentStepAM,
-             cnfg->currentMod,
-             cnfg->currentFrequency,
-             cnfg->currentBandType,
-             cnfg->BandWidthFM,
-             cnfg->BandWidthAM,
-             cnfg->BandWidthSSB,
-             cnfg->currentAGCgain,
-             cnfg->onoffAGCgain,
-             cnfg->rssi_thresh_seek,
-             cnfg->snr_thresh_seek);
-
-   // FM Setup
-    cnfg->currentFrequency = band[FM_BAND_TYPE].currentFreq;
-    setTuneFrequencyAntennaCapacitor(rx_radio, 0); //0 = automatic capacitor tuning. valid range is 0 to 191.  
-    setFmBandwidth(rx_radio, cnfg->BandWidthFM);      // Automatically select proper channel filter (Default)  
-    setFMDeEmphasis(rx_radio, 1);     // 1 = 50 μs Europe, Australia, Japan. 2 = 75 μs USA (default)
-    setFmBlendRssiStereoThreshold(rx_radio, 10); // 49 force stereo, set this to 0. force mono, set this to 127
-    setFmBLendRssiMonoThreshold(rx_radio, 30);
-    setFmSoftMuteMaxAttenuation(rx_radio, 10); //Default: 0x0002 Range: 
-    setFmSoftMuteSnrAttenuation(rx_radio, 6);
-    setSeekFmLimits(rx_radio, band[FM_BAND_TYPE].minimumFreq, band[FM_BAND_TYPE].maximumFreq);
-    setSeekFmSpacing(rx_radio, stepFM[cnfg->currentStepFM].idx); // 1(10 kHz), 5 (50 kHz), 10 (100 kHz), and 20 (200 kHz). Default is 10
-    setSeekFmSrnThreshold(rx_radio, cnfg->rssi_thresh_seek);
-    setSeekFmRssiThreshold(rx_radio, cnfg->rssi_thresh_seek);
+    //cnfg->currentFrequency = band[FM_BAND_TYPE].currentFreq;
+    setTuneFrequencyAntennaCapacitor(rx, 0); //0 = automatic capacitor tuning. valid range is 0 to 191.  
+    setFmBandwidth(rx, cnfg->BandWidthFM);      // Automatically select proper channel filter (Default)  
+    setFMDeEmphasis(rx, 1);     // 1 = 50 μs Europe, Australia, Japan. 2 = 75 μs USA (default)
+    setFmBlendRssiStereoThreshold(rx, 10); // 49 force stereo, set this to 0. force mono, set this to 127
+    setFmBLendRssiMonoThreshold(rx, 30);
+    setFmSoftMuteMaxAttenuation(rx, 10); //Default: 0x0002 Range: 
+    setFmSoftMuteSnrAttenuation(rx, 6);
+    setSeekFmLimits(rx, band[FM_BAND_TYPE].minimumFreq, band[FM_BAND_TYPE].maximumFreq);
+    setSeekFmSpacing(rx, stepFM[cnfg->currentStepFM].idx); // 1(10 kHz), 5 (50 kHz), 10 (100 kHz), and 20 (200 kHz). Default is 10
+    setSeekFmSrnThreshold(rx, 6);
+    setSeekFmRssiThreshold(rx, 20);
     // Starts defaul radio function and band (FM; from 84 to 108 MHz; 103.9 MHz; step 10kHz) 
-    setFM(rx_radio, band[FM_BAND_TYPE].minimumFreq, band[FM_BAND_TYPE].maximumFreq, cnfg->currentFrequency, stepFM[cnfg->currentStepFM].idx);
-    setVolume(rx_radio, cnfg->currentVOL);
-    setAutomaticGainControl(rx_radio, cnfg->onoffAGCgain, cnfg->currentAGCgain); //MaxAGCgainFM 
+    setFM(rx, band[FM_BAND_TYPE].minimumFreq, band[FM_BAND_TYPE].maximumFreq, cnfg->currentFrequency, stepFM[cnfg->currentStepFM].idx);
+    setVolume(rx, cnfg->currentVOL);
+    setAutomaticGainControl(rx, cnfg->onoffAGCgain, cnfg->currentAGCgain); //MaxAGCgainFM 
     delay_ms(300);
     // Init Digital Output
-    digitalOutputSampleRate(rx_radio, 48000);
+    digitalOutputSampleRate(rx, SAMPLE_RATE);
     delay_ms(200);
-    digitalOutputFormat(rx_radio, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+    // OSIZE Dgital Output Audio Sample Precision (0=16 bits, 1=20 bits, 2=24 bits, 3=8bits).
+    // OMONO Digital Output Mono Mode (0=Use mono/stereo blend ).
+    // OMODE Digital Output Mode (0=I2S, 6 = Left-justified, 8 = MSB at second DCLK after DFS pulse, 12 = MSB at first DCLK after DFS pulse).
+    // OFALL Digital Output DCLK Edge (0 = use DCLK rising edge, 1 = use DCLK falling edge)
+    digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
     delay_ms(200);
     //RDS
     RdsInit();
-    setRdsConfig(rx_radio, 1, 2, 2, 2, 2); //  1, 2, 2, 2, 2     3, 3, 3, 3, 3
-    setFifoCount(rx_radio, 1);
+    setRdsConfig(rx, 1, 2, 2, 2, 2); //  1, 2, 2, 2, 2     3, 3, 3, 3, 3
+    setFifoCount(rx, 1);
+  }
 }
 
-// Вывод статуса радио
-void statusRadio(SI4735_t * rx)
+char *checkRDS(SI4735_t *rx){
+
+  char *utcTime;
+  char *utcDateTime;
+  char *stationName;
+  char *stationInformation;
+  char *programInformation;
+
+  uint16_t year, month, day, hour, minute;
+
+/* */
+  // Не выдаёт информацию по RDS
+  getRdsStatus(rx, 0, 0 ,0);
+  if (getRdsReceived(rx)) {
+    if (getRdsSync(rx) && getRdsSyncFound(rx) ) {
+      utcTime = getRdsTime(rx);              // returns NULL if no information
+      stationName = getRdsText0A(rx);        // returns NULL if no information
+      stationInformation = getRdsText2B(rx); // returns NULL if no information
+      programInformation = getRdsText2A(rx); // returns NULL if no information
+      if ( utcTime != NULL ){
+        ESP_LOGI(TAG, "######  RDS utcTime(len-%d) : %s", strlen(utcTime), utcTime);
+        return utcTime;
+      }
+      if ( stationName != NULL ){
+        ESP_LOGI(TAG, "######  RDS stationName(len-%d) : %s", strlen(stationName), stationName);
+        //return stationName;
+      }
+      if ( stationInformation != NULL ){
+        ESP_LOGI(TAG, "######  RDS stationInformation(len-%d) : %s", strlen(stationInformation), stationInformation);
+        //return stationName;
+      }
+      if ( programInformation != NULL ){
+        ESP_LOGI(TAG, "######  RDS stationName(len-%d) : %s", strlen(programInformation), programInformation);
+        //return stationName;
+      }
+    } 
+  }
+
+/*  
+  #define INRERVAL_RDS 1000
+  static uint32_t previousMillis = 0;
+
+  if(get->currentBandType == FM_BAND_TYPE ){
+    previousMillis = xTaskGetTickCount();
+    dataRDS = (char *)malloc(240 );
+    if((getRdsAllData(&radio, &stationName, &stationInfo, &programInfo, &rdsTime) != NULL) ){ // && (xTaskGetTickCount() - previousMillis > INRERVAL_RDS )
+      if(stationName != NULL){
+        removeUnwantedChar( stationName, strlen(stationName));
+        memcpy(dataRDS, stationName, strlen(stationName));
+        ESP_LOGI(TAG, " stationName -  %s", stationName);
+      }
+      if(stationInfo != NULL){
+        removeUnwantedChar( stationInfo, strlen(stationInfo));
+        ESP_LOGI(TAG, " stationInfo -  %s", stationInfo);
+
+        memcpy(dataRDS, stationInfo, strlen(stationInfo));
+      }
+      if(programInfo != NULL){
+        removeUnwantedChar( programInfo, strlen(programInfo));
+        ESP_LOGI(TAG, " programInfo -  %s", programInfo);
+        memcpy(dataRDS, programInfo, strlen(programInfo));
+      }
+      if(rdsTime != NULL){
+        removeUnwantedChar( rdsTime, strlen(rdsTime));
+        ESP_LOGI(TAG, " rdsTime -  %s", rdsTime);
+        memcpy(dataRDS, rdsTime, strlen(rdsTime));
+      }
+      if(stationName != NULL || stationInfo != NULL || programInfo != NULL || rdsTime != NULL ){
+        removeUnwantedChar( dataRDS, strlen(dataRDS));
+        get_data->vcRDSdata = dataRDS;
+        ESP_LOGI(TAG, " dataRDS -  %s", dataRDS);
+      } 
+    }
+    free(dataRDS);
+  }
+  */
+ /*  
+  char *strRDS = "фівапролджє.юбьтимсчяйцукенгшщзхї 132+7-,,Ю,Ю..ю!№;";
+  char *prtRDS;
+  char bufst[120];
+  ESP_LOGI(TAG, " ######################  strRDS -  %s", strRDS);
+  prtRDS = strRDS;
+  ESP_LOGI(TAG, " ######################  prtRDS -  %s", prtRDS);
+  strcat(bufst, prtRDS);
+  ESP_LOGI(TAG, " ######################  bufst -  %s", bufst);
+  get_data->vcRDSdata = bufst;
+
+  char bufst[120] = {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m'};
+  char *strRDS ;
+
+  //char *prtRDS = malloc(strlen(bufst)+1);
+  char *prtRDS;
+  prtRDS= malloc(strlen(bufst)+1);
+
+  ESP_LOGI(TAG, " ########  bufst -  %s", bufst);
+  memcpy(prtRDS, bufst, strlen(bufst));
+  ESP_LOGI(TAG, " ########  prtRDS -  %s", prtRDS);
+  
+  get_data->vcRDSdata = prtRDS;
+
+  if(statusRDS == 1 ){
+    statusRDS = 0;
+    get_data->vcRDSdata = "                            ";
+  }
+  free(prtRDS);
+ */
+/*
+  rdsBeginQuery(rx);
+  if (!getRdsReceived(rx))  return 0;
+  if (getRdsSync(&radio) && getRdsSyncFound(&radio)) return 0; //  if (!getRdsSync(rx) || getNumRdsFifoUsed(rx) == 0) return 0; //  
+  utcTime = getRdsTime(rx);              // returns NULL if no information
+  stationName = getRdsText0A(rx);        // returns NULL if no information
+  stationInformation = getRdsText2B(rx); // returns NULL if no information
+  programInformation = getRdsText2A(rx); // returns NULL if no information
+
+  getRdsDateTime(rx, &year, &month, &day, &hour, &minute);
+  
+  utcDateTime = getRdsDateTimeStr(rx);
+  ESP_LOGI(TAG, "pointer stationName-------- RDS: %p   strlen stationName  - %d", stationName, strlen(stationName));
+  ESP_LOGI(TAG, "pointer stationInformation ----------- RDS: %p", stationInformation);
+  ESP_LOGI(TAG, "pointer programInformation ----------- RDS: %p", programInformation);
+  ESP_LOGI(TAG, "pointer utcTime ---------------------- RDS: %p", utcTime);
+
+  if (stationName != 0) ESP_LOGI(TAG, "RDS stationName : %s", stationName);
+  if (stationInformation != 0) ESP_LOGI(TAG, "RDS stationInformation : %s", stationInformation);
+  if (programInformation != 0) ESP_LOGI(TAG, "RDS  programInformation : %s", programInformation);
+  if (!utcDateTime) return 0;
+  ESP_LOGI(TAG, "RDS: %s", utcDateTime);
+
+  return utcDateTime;
+*/
+return 0;
+}
+
+void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
 {
-    ESP_LOGI(TAG, "******************** si4735task Status ******************");
-    ESP_LOGI(TAG, "Frequency = %d", getFrequency(rx));
-    ESP_LOGI(TAG, "Volume = %d", getVolume(rx));
-    ESP_LOGI(TAG, "******* si4735task Received Signal Quality **************");
-    getCurrentReceivedSignalQuality(rx, 0 );
-    ESP_LOGI(TAG, "Current SNR = %d", getCurrentSNR(rx));
-    ESP_LOGI(TAG, "Current RSSI = %d", getCurrentRSSI(rx));
-    ESP_LOGI(TAG, "********************************************************");
+  static uint8_t amountStation;
+  uint16_t last_frequency = 0;
+  uint16_t frequency = 0;
+  uint8_t mode = 0;
+
+  ESP_LOGD(TAG, "set_radio();");
+  if(set_data->eDataDescription == BANDIDx){
+    //ESP_LOGI(TAG, "******* Air Radio - BANDIDx = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+
+    if(set_data->ucValue == LW_BAND_TYPE){
+      set->currentBandType = LW_BAND_TYPE;
+      set->currentMod = band[set->currentBandType].prefmod;           // Устанока предпочтительной модуляции
+      set->currentStepAM = band[set->currentBandType].currentStep ;
+      set->currentFrequency = band[set->currentBandType].currentFreq;
+      
+      radio_init(rx, set);
+    }
+    if(set_data->ucValue == MW_BAND_TYPE){
+      set->currentBandType = MW_BAND_TYPE;
+      set->currentMod = band[set->currentBandType].prefmod;           // Устанока предпочтительной модуляции
+      set->currentStepAM = band[set->currentBandType].currentStep ;
+      set->currentFrequency = band[set->currentBandType].currentFreq;
+      
+      radio_init(rx, set);
+    }
+    if(set_data->ucValue == SW_BAND_TYPE){
+      set->currentBandType = SW_BAND_TYPE;
+      set->currentMod = band[set->currentBandType].prefmod;           // Устанока предпочтительной модуляции
+      set->currentStepAM = band[set->currentBandType].currentStep ;
+      set->currentFrequency = band[set->currentBandType].currentFreq;
+
+      radio_init(rx, set);
+    }
+    if(set_data->ucValue > 3 ){
+      ESP_LOGD(TAG, "################## Air Radio - BANDIDx = %d (BAND type), ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+      set->currentBandType = set_data->ucValue; // BAND_TYPE
+      set->currentMod = band[set->currentBandType].prefmod;           // Устанока предпочтительной модуляции
+      set->currentStepAM = band[set->currentBandType].currentStep ;
+      set->currentFrequency = band[set->currentBandType].currentFreq;
+
+      radio_init(rx, set);
+    }
+    if(set_data->ucValue == FM_BAND_TYPE){
+      // Starts defaul radio function and band (FM; from 84 to 108 MHz; 103.9 MHz; step 10kHz) 
+      set->currentBandType = FM_BAND_TYPE;
+      set->currentStepAM = band[set->currentBandType].currentStep ;
+      set->currentFrequency = band[set->currentBandType].currentFreq;
+
+      radio_init(rx, set);
+    }
+  }
+  else if(set_data->eDataDescription == MODIDx){          // Установка предпочтительной модуляции (AM, LSB, USB) и включения режима SSB 
+    ESP_LOGD(TAG, "******* Air Radio - MODIDx = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    set->currentMod = set_data->ucValue;
+    if(set->currentMod == 0){
+      // Starts defaul radio function and AM modulation
+      setAM(rx, band[set->currentBandType].minimumFreq, band[set->currentBandType].maximumFreq, set->currentFrequency, stepAM[set->currentBandType].idx);
+      // Init Digital Output
+      digitalOutputSampleRate(rx, SAMPLE_RATE);
+      delay_ms(200);
+      digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+      delay_ms(200);
+    }
+    else if(set->currentMod == 1 || set->currentMod == 2){
+      // Starts defaul radio function and SSB modulation 
+      setSSBband(rx, set->currentMod);
+      // Init Digital Output
+      digitalOutputSampleRate(rx, SAMPLE_RATE);
+      delay_ms(200);
+      digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+      delay_ms(200);
+    }
+  }
+  else if(set_data->eDataDescription == STEPFM){
+    set->currentStepFM = set_data->ucValue;
+  }
+  else if(set_data->eDataDescription == STEPAM){
+    set->currentStepAM = set_data->ucValue;
+  }
+  else if(set_data->eDataDescription == BANDFM){
+    set->BandWidthFM = set_data->ucValue;
+    setFmBandwidth(rx, set->BandWidthFM );
+  }
+  else if(set_data->eDataDescription == BANDAM){
+    ESP_LOGI(TAG, "******* Air Radio - BANDAM = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    if(set->currentBandType == LW_BAND_TYPE){
+      set->BandWidthAM = set_data->ucValue;
+      setAmBandwidth(rx, set->BandWidthAM , 1);
+    }
+    if(set->currentBandType == MW_BAND_TYPE){
+      set->BandWidthAM = set_data->ucValue;
+      setAmBandwidth(rx, set->BandWidthAM , 1);
+    }
+    if(set->currentBandType == SW_BAND_TYPE){
+      set->BandWidthAM = set_data->ucValue;
+      setAmBandwidth(rx, set->BandWidthAM , 1); 
+    }
+    if(set->currentBandType > 3){
+      set->BandWidthAM = set_data->ucValue;
+      setAmBandwidth(rx, set->BandWidthAM , 1);
+    }
+  }
+  else if(set_data->eDataDescription == BANDSSB){
+    ESP_LOGI(TAG, "******* Air Radio - BANDSSB = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    set->BandWidthSSB = set_data->ucValue;
+    setSSBAudioBandwidth(rx, set->BandWidthSSB );
+  }
+  else if(set_data->eDataDescription == STEPUP){
+    ESP_LOGD(TAG, "******* Air Radio - STEPUP = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    // Вставить функцию увеличения частоты на заданный шаг в верх сторону
+  }
+  else if(set_data->eDataDescription == STEPDOWN){
+    ESP_LOGD(TAG, "******* Air Radio - STEPDOWN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    // Вставить функцию уменьшения частоты на заданный шаг в нижнюю сторону
+  }
+  else if(set_data->eDataDescription == STEP_STATION_UP){
+    ESP_LOGD(TAG, "******* Air Radio - STEP_STATION_UP = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    if((set->currentBandType == LW_BAND_TYPE) || (set->currentBandType == MW_BAND_TYPE) || set->currentBandType == SW_BAND_TYPE){
+      set->currentFrequency += stepAM[set->currentStepAM].idx;
+      //**************
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType > 3){
+      //**************
+      set->currentFrequency += stepAM[set->currentStepAM].idx;
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType == FM_BAND_TYPE){
+      clearRDSbuffer();
+      //**************
+      set->currentFrequency += stepFM[set->currentStepFM].idx;
+      setFrequency(rx, set->currentFrequency);
+
+    }
+  }
+  else if(set_data->eDataDescription == STEP_STATION_DOWN){
+    ESP_LOGD(TAG, "******* Air Radio - STEP_STATION_DOWN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    if((set->currentBandType == LW_BAND_TYPE) || (set->currentBandType == MW_BAND_TYPE) || set->currentBandType == SW_BAND_TYPE){
+      //**************
+      set->currentFrequency -= stepAM[set->currentStepAM].idx;
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType > 3){
+      //**************
+      set->currentFrequency -= stepAM[set->currentStepAM].idx;
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType == FM_BAND_TYPE){
+      clearRDSbuffer();
+      //**************
+      set->currentFrequency -= stepFM[set->currentStepFM].idx;
+      setFrequency(rx, set->currentFrequency);
+    }
+  }
+  else if(set_data->eDataDescription == UP_SEEK){
+    ESP_LOGD(TAG, "******* Air Radio - UP_SEEK = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    // Вставить функцию увеличения частоты на заданный шаг или сканирование в верх сторону
+  }
+  else if(set_data->eDataDescription == AGCGAIN){
+    ESP_LOGD(TAG, "******* Air Radio - AGCGAIN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    set->onoffAGCgain = set_data->ucValue;
+    setAutomaticGainControl(rx, set->onoffAGCgain, set->currentAGCgain); //MaxAGCgainFM
+  }
+  else if(set_data->eDataDescription == SLIDER_AGC){
+    ESP_LOGD(TAG, "******* Air Radio - SLIDER_AGC = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    set->currentAGCgain = set_data->ucValue;
+    setAutomaticGainControl(rx, set->onoffAGCgain, set->currentAGCgain); //MaxAGCgainFM
+  }
+  else if(set_data->eDataDescription == SLIDER_VOL){
+    ESP_LOGD(TAG, "******* Air Radio - SLIDER_VOL = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    set->currentVOL = set_data->ucValue*0.63;
+    setVolume(rx, set->currentVOL);
+  }
+  else if(set_data->eDataDescription == SET_FREQ){
+    ESP_LOGD(TAG, "******* Air Radio - SET_FREQ = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    set->currentFrequency = set_data->ucValue;
+    if((set->currentBandType == LW_BAND_TYPE) || (set->currentBandType == MW_BAND_TYPE)){
+      //**************
+      setFrequency(rx, set->currentFrequency);
+      setAM(rx, band[set->currentBandType].minimumFreq, band[set->currentBandType].maximumFreq, set->currentFrequency, stepAM[set->currentBandType].idx);
+    }
+    if(set->currentBandType == SW_BAND_TYPE){
+      //**************
+      setFrequency(rx, set->currentFrequency);
+      setAM(rx, band[set->currentBandType].minimumFreq, band[set->currentBandType].maximumFreq, set->currentFrequency, stepAM[set->currentBandType].idx);
+    }
+    if(set->currentBandType > 3){
+      //**************
+      setFrequency(rx, set->currentFrequency);
+      setAM(rx, band[set->currentBandType].minimumFreq, band[set->currentBandType].maximumFreq, set->currentFrequency, stepAM[set->currentBandType].idx);
+      //Добавить для SSB выбор по модуляции
+    }
+    if(set->currentBandType == FM_BAND_TYPE){
+      clearRDSbuffer();
+      //**************
+      setFrequency(rx, set->currentFrequency);
+      setFM(rx, band[FM_BAND_TYPE].minimumFreq, band[FM_BAND_TYPE].maximumFreq, set->currentFrequency, stepFM[set->currentStepFM].idx);
+      //RDS
+      RdsInit();
+      setRdsConfig(rx, 1, 2, 2, 2, 2);// 3,2,3,3,3  1, 2, 2, 2, 2 3, 3, 3, 3, 3 
+      setFifoCount(rx, 1);  
+    }
+    setVolume(rx, set->currentVOL);
+    // Init Digital Output
+    digitalOutputSampleRate(rx, SAMPLE_RATE);
+    delay_ms(200);
+    digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+    delay_ms(200);
+
+  }
 }
 
-// Основная функция проигрывателя AIR радио
-void air_player( ){
+void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
+{
+  char strfreq[10];
 
-    uint8_t n = 0;
-    uint8_t mode = 1;  // mode = 0 Fixed Frequency , mode = 1  Scan Frequency 
-    uint8_t i=0;
+  uint8_t n = 5, d = 3;
+  
+  ESP_LOGD(TAG, "get_radio();");
+  get->currentFrequency = getFrequency(rx);
+  getCurrentReceivedSignalQuality(rx,0);
 
-    uint16_t station[50];
-    uint16_t last_frequency = 0;
+  if (isCurrentTuneFM(rx))
+	{
+    if (get->currentFrequency < 10000)
+    {
+      n = 4;
+      d = 2;
+    }
+    get_data->ucFreq = get->currentFrequency;
+    convertToChar(get->currentFrequency, strfreq, n, d, '.',true);
+    get_data->vcFreqRange = "MHz";
 
-    // Стуктура данных для сохранения временных(текущих) данных
-    air_config_t air_radio_config = {
-        .currentVOL = 22,  // 0 = Minimum  64 - Maximum
-        .currentStepFM = 1, // 0 - 10 KHz, 1 - 50KHz, 2 - 100 KHz
-        .currentStepAM = 1,
-        .currentMod = 1,    // 0 - AM, 1 - LSB, 2 - USB
-        .currentFrequency = 1000,
-        .currentBandType = 3, // FM_BAND_TYPE
-        .BandWidthFM = 0, // AUT-0, 110-1
-        .BandWidthAM = 0, // 6kHz - 0
-        .BandWidthSSB = 0, // 1.2KHz - 0
-        .currentAGCgain = 5,    // 0 = Minimum attenuation (max gain) 36 - Maximum attenuation (min gain)
-        .onoffAGCgain = 0,  // 0 = AGC enabled; 1 = AGC disabled
-        .rssi_thresh_seek = 25, // Минимальный уровень RSSI для принятия станции
-        .snr_thresh_seek = 6   // Минимальный уровень SNR для принятия станции
-    };
+    if( getCurrentPilot(rx) == 0 )
+    {
+      get_data->vcStereoMono = " mono ";
+    } 
+    else
+    {
+      get_data->vcStereoMono = "stereo";
+    }
+    get_data->vcBand = " FM ";
+	}
+	else {
+    if (get->currentBandType == MW_BAND_TYPE || get->currentBandType == LW_BAND_TYPE || get->currentBandType == SW_BAND_TYPE){
+      convertToChar(get->currentFrequency, strfreq, 5, 0, '.', true);
+    }
+    else {
+      convertToChar(get->currentFrequency, strfreq, 5, 2, '.', true);
+    }
+    get_data->ucFreq = get->currentFrequency;
+    get_data->vcFreqRange = "KHz";
+    //get_data->vcStereoMono = "      ";
+    if(get->currentMod == 0) // AM (AM modulation) mode
+    {
+      get_data->vcStereoMono = " AM";
+    }
+    else // SSB (LSB, USB modulation) mode
+    {
+      if(get->currentMod == 1)
+      {
+        get_data->vcStereoMono = " USB ";
+      }
+      else
+      {
+        get_data->vcStereoMono = " LSB ";
+      }
+    }
+  }
+  if(get->currentBandType == MW_BAND_TYPE){
+    get_data->vcBand = " MW ";
+  }
+  if(get->currentBandType == LW_BAND_TYPE){
+    get_data->vcBand = " LW ";
+  }
+  if(get->currentBandType == SW_BAND_TYPE){
+    get_data->vcBand = " SW ";
+  }
+  if(get->currentBandType > 3){
+    get_data->vcBand = band[get->currentBandType].bandName;
+  }
+  get_data->ucSNR = getCurrentSNR(rx);
+  get_data->ucRSSI = getCurrentRSSI(rx);
+/*
+*   Вывод данных о шаге частоты(vcStep) и полосе пропускания(vcBW) в зависимости от типа диапазона частот
+*/
+  if (get->currentBandType == MW_BAND_TYPE || get->currentBandType == LW_BAND_TYPE || get->currentBandType == SW_BAND_TYPE){ 
+    get_data->vcStep = (char *)stepAM[get->currentStepAM].desc;  
+    get_data->vcBW = (char *)bandwidthAM[get->BandWidthAM];
+  }
+  else if( get->currentBandType > 3){
+    get_data->vcStep = (char *)stepAM[get->currentStepAM].desc;  
+    if(get->currentMod == 0) // AM (AM modulation) mode
+    {
+      get_data->vcBW = (char *)bandwidthAM[get->BandWidthAM];
+    }
+    else // SSB (LSB, USB modulation) mode
+    {
+       get_data->vcBW = (char *)bandwidthSSB[get->BandWidthSSB];
+    }
+  }
+  else if(get->currentBandType == FM_BAND_TYPE ){
+    get_data->vcBW = (char *)bandwidthFM[get->BandWidthFM];
+    get_data->vcStep =  (char *)stepFM[get->currentStepFM].desc; 
+  }
+  get_data->ucBand = get->currentBandType;
+  //get_data->ucslider_vol = get->currentVOL; // ??????????????????
+//*********************************************************************************************************************
+  rdsTime = checkRDS(rx);
+  if(rdsTime == 0){
+    ESP_LOGI(TAG, " No data RDS  ");
+    get_data->vcRDSdata = "   ";
+  }
+  else{
+    get_data->vcRDSdata = rdsTime;
+  }
+  
+  get_data->eModeBoombox = eAir;
+  get_data->State = true;
 
+}
+
+void clearRDSbuffer(){
+  free(dataRDS);
+  rdsTime = stationName = stationInfo = programInfo = NULL;
+  statusRDS = 1;
+}
+
+//=======================================================================================
+void init_air_player(BoomBox_config_t  *init_air_config)
+{
+    ESP_LOGI(TAG, "init_air_player(BoomBox_config_t  *init_air_config)");  
+  
     // add pipeline and elements
     ESP_LOGI(TAG, "[ * ] Air player started");
     //export from pipeline i2s_stream_writer -  board.c ;
@@ -325,20 +832,17 @@ void air_player( ){
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
 
     ESP_LOGI(TAG, "[ 1 ] Init AIR radio");
-    
+    // ************* Si4735 init ********************* 
+    // init  i2c шины
     ESP_ERROR_CHECK(i2c_master_init());
-    // Set current source to AIR
-    g_current_source = 2;
-    ESP_LOGI(TAG, "*** g_current_source=%d", g_current_source);
-    // ************* Si4735 init *********************
     // Выделяем память для структуры SI4735
     rx_radio = (SI4735_t*)malloc(sizeof(SI4735_t));
     if (rx_radio == NULL) {
         ESP_LOGE(TAG, "Failed to allocate memory for SI4735 control structure");
         return;
     }
-    radio_init(&air_radio_config);
-
+    radio_init(rx_radio, &init_air_config->air_radio_config);
+    // ***********************************************************************************************************
     ESP_LOGI(TAG, "[ 2 ] Start codec chip");
     audio_board_handle_t board_handle = audio_board_init();
     audio_hal_ctrl_codec(board_handle->audio_hal, AUDIO_HAL_CODEC_MODE_DECODE, AUDIO_HAL_CTRL_START);
@@ -353,7 +857,66 @@ void air_player( ){
 
     ESP_LOGI(TAG, "[4] Create i2s stream to write data to codec chip");
     i2s_stream_cfg_t i2s_cfg = I2S_STREAM_CFG_DEFAULT();
-    
+    /*
+    i2s_stream_cfg_t i2s_cfg = {
+        .type = AUDIO_STREAM_WRITER,
+        .transmit_mode = I2S_COMM_MODE_STD,
+        
+        // Конфигурация канала
+        .chan_cfg = {
+            .id = I2S_NUM_0,
+            .role = I2S_ROLE_MASTER,
+            .dma_desc_num = 3,
+            .dma_frame_num = 312,
+            .auto_clear = 1,
+        },
+        
+        // Стандартная конфигурация I2S
+        .std_cfg = {
+            // Конфигурация тактирования
+            .clk_cfg = {
+                .sample_rate_hz = 44100,
+                .clk_src = I2S_CLK_SRC_DEFAULT,
+                .mclk_multiple = I2S_MCLK_MULTIPLE_256,
+            },
+            
+            // Конфигурация слотов данных
+            .slot_cfg = {
+                .data_bit_width = I2S_DATA_BIT_WIDTH_16BIT,
+                .slot_bit_width = I2S_SLOT_BIT_WIDTH_AUTO,
+                .slot_mode = I2S_SLOT_MODE_STEREO,
+                .slot_mask = (I2S_SLOT_MODE_STEREO == I2S_SLOT_MODE_MONO) ? 
+                            I2S_STD_SLOT_RIGHT : I2S_STD_SLOT_BOTH,
+                .ws_width = I2S_DATA_BIT_WIDTH_16BIT,
+                .ws_pol = 0,
+                .bit_shift = 1,
+                .msb_right = (I2S_DATA_BIT_WIDTH_16BIT <= I2S_DATA_BIT_WIDTH_16BIT) ? 1 : 0,
+            },
+            
+            // Конфигурация GPIO
+            .gpio_cfg = {
+                .invert_flags = {
+                    .mclk_inv = 0,
+                    .bclk_inv = 0,
+                },
+            },
+        },
+        
+        // Дополнительные параметры
+        .use_alc = 0,
+        .volume = 0,
+        .out_rb_size = (8 * 1024),
+        .task_stack = (3584),
+        .task_core = (0),
+        .task_prio = (23),
+        .stack_in_ext = 0,
+        .multi_out_num = 0,
+        .uninstall_drv = 1,
+        .need_expand = 0,
+        .expand_src_bits = I2S_DATA_BIT_WIDTH_16BIT,
+        .buffer_len = (3600),
+    };
+    */    
     i2s_cfg.type = AUDIO_STREAM_READER; // Чтение аудио потока AUDIO_STREAM_WRITER; // Запись аудио потока  
 
     i2s_stream_writer = i2s_stream_init(&i2s_cfg);
@@ -366,7 +929,7 @@ void air_player( ){
     audio_pipeline_link(pipeline, &link_tag[0], 1);
 
     audio_event_iface_cfg_t evt_cfg = AUDIO_EVENT_IFACE_DEFAULT_CFG();
-    audio_event_iface_handle_t evt = audio_event_iface_init(&evt_cfg);
+    evt = audio_event_iface_init(&evt_cfg);
 
     ESP_LOGI(TAG, "[5.1] Listening event from all elements of pipeline");
     audio_pipeline_set_listener(pipeline, evt);
@@ -376,33 +939,49 @@ void air_player( ){
  
     ESP_LOGI(TAG, "[ 7 ] Listen for all pipeline events");
 
+}
 
-    while(1){
-                  
-       // setFM(rx_radio, 8750, 10800, 10210, 0);
-        statusRadio(rx_radio);
-        //delay_ms(200);
-        setVolume(rx_radio, 90);
-
-        vTaskDelay(1500); 
-    }
-    ESP_LOGI(TAG, "[ 8 ] Stop audio_pipeline and release all resources");
-    
+void  deinit_air_player()
+{
     audio_pipeline_stop(pipeline);
     audio_pipeline_wait_for_stop(pipeline);
     audio_pipeline_terminate(pipeline);
     audio_pipeline_unregister(pipeline, i2s_stream_writer);
-
     /* Terminate the pipeline before removing the listener */
     audio_pipeline_remove_listener(pipeline);
-
     /* Make sure audio_pipeline_remove_listener & audio_event_iface_remove_listener are called before destroying event_iface */
     audio_event_iface_destroy(evt);
-
     /* Release all resources */
     audio_pipeline_deinit(pipeline);
     audio_element_deinit(i2s_stream_writer);
-
     ESP_LOGI(TAG, "[ 10 ] Cleaning up AIR player resources");
     // Здесь должна быть очистка ресурсов pipeline, radio и т.д.
+    radio_deinit(rx_radio);
+
+}
+
+// Вывод статуса радио
+void statusRadio(SI4735_t * rx)
+{
+   // ESP_LOGI(TAG, "******************** si4735task Status ******************");
+    //ESP_LOGI(TAG, "Frequency = %d, Volume = %d", getFrequency(rx), getVolume(rx));
+    //ESP_LOGI(TAG, "******* si4735task Received Signal Quality **************");
+   getCurrentReceivedSignalQuality(rx, 0 );
+   // ESP_LOGI(TAG, "Current SNR = %d, Current RSSI = %d", getCurrentSNR(rx), getCurrentRSSI(rx));
+   // ESP_LOGI(TAG, "********************************************************");
+  //printf("\033[1A\033[2K");
+    printf("Frequency = %d Hz, Volume = %d, SNR = %d dB, RSSI = %d dBμV", 
+            getFrequency(rx), getVolume(rx), getCurrentSNR(rx), getCurrentRSSI(rx));
+}
+
+// Основная функция проигрывателя AIR радио
+void air_player( Data_GUI_Boombox_t *xDataGUI,  Data_Boombox_GUI_t *xDataBoomBox)
+{
+
+    set_radio(rx_radio, xDataGUI, &air_radio_config);
+    
+    get_radio(rx_radio, xDataBoomBox, &air_radio_config);
+
+    statusRadio(rx_radio);
+
 }

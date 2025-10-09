@@ -47,13 +47,7 @@
 #define AIR_SPEAKER 1
 #define BT_SPEAKER 2
 #define WEB_SPEKER 3
-/***********************************************
- * 
- * 
- * ******************************************* */
-typedef enum {
-    UNINITIALIZED, INITIALIZED, RUNNING, STOPPED
-} component_status_t;
+
 
 //=================  Структура данных режимов роботы  Boombox =====
 typedef enum
@@ -131,7 +125,44 @@ typedef struct
     ModeBoombox_t eModeBoombox;
     AirWebDescription_t eDataDescription;  // название Элемента
 } Data_Boombox_GUI_t;
-//==================================================================================================
+
+//================  Структура данных конфигурации эфирного приёмника  =================
+typedef struct {
+    uint16_t freq_khz; // Частота в кГц
+    int rssi;          // Уровень сигнала rssi
+    int snr;           // Уровень snr
+    uint16_t stations[50];
+} si4735_station_t;
+
+// Структура данных для сохранения временных(текущих) данных AIR PLAYER в Flash
+typedef struct {
+    uint8_t currentBandType;    // Тип текущего диапазона (FM, LW, MW, SW)  
+    uint8_t currentMod;         // Текущий режим (AM, SSB, FM)  
+    uint16_t currentStepFM;     // Шаг настройки FM  
+    uint16_t currentStepAM;     // Шаг настройки AM   
+    uint16_t currentFrequency;  // Текущая частота
+    uint8_t currentVOL;         // Текущий уровень громкости  
+    uint8_t BandWidthFM;        // Ширина полосы FM   
+    uint8_t BandWidthAM;        // Ширина полосы AM    
+    uint8_t BandWidthSSB;       // Ширина полосы SSB     
+    uint8_t currentAGCgain;     // Текущее значение AGC     
+    uint8_t onoffAGCgain;       // Включение/выключение AGC (0 = включено, 1 = выключено)
+    uint8_t rssi_thresh_seek;   // Минимальный уровень RSSI для принятия станции
+    uint8_t snr_thresh_seek;    //Минимальный уровень SNR для принятия станции
+    si4735_station_t air_station; // Структура для хранения информации о станции
+} air_config_t;
+
+
+typedef struct
+{
+    ModeBoombox_t eModeBoombox; // режим работы Boombox 
+    uint8_t current_source;     // текущий источник (AIR_SPEAKER, BT_SPEAKER, WEB_SPEKER)
+    air_config_t air_radio_config; // конфигурация эфирного приёмника
+    // Добавить конфигурации BT и WEB
+    //bt_config_t bt_config;
+    //web_config_t web_config;
+} BoomBox_config_t;
+
 
 void gui_boombox_queue_init(void);
 void boombox_gui_queue_init(void);

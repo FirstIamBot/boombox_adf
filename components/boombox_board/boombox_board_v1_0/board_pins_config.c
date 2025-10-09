@@ -32,7 +32,8 @@
 
 
 static const char *TAG = "BOARD_PIN_CNFG_V1_0";
-//extern audio_source_t g_current_source ;
+
+extern audio_source_t g_current_source ;
 
 esp_err_t get_i2c_pins(i2c_port_t port, i2c_config_t *i2c_config)
 {
