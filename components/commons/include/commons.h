@@ -128,9 +128,7 @@ typedef struct
 
 //================  Структура данных конфигурации эфирного приёмника  =================
 typedef struct {
-    uint16_t freq_khz; // Частота в кГц
-    int rssi;          // Уровень сигнала rssi
-    int snr;           // Уровень snr
+    uint8_t currentStationIndex; // Индекс текущей станции в массиве stations
     uint16_t stations[50];
 } si4735_station_t;
 
@@ -149,7 +147,11 @@ typedef struct {
     uint8_t onoffAGCgain;       // Включение/выключение AGC (0 = включено, 1 = выключено)
     uint8_t rssi_thresh_seek;   // Минимальный уровень RSSI для принятия станции
     uint8_t snr_thresh_seek;    //Минимальный уровень SNR для принятия станции
-    si4735_station_t air_station; // Структура для хранения информации о станции
+    //si4735_station_t air_station; // Структура для хранения информации о станции
+    si4735_station_t air_FM_station; // Структура для хранения информации о станции
+    si4735_station_t air_LW_station; // Структура для хранения информации о станции
+    si4735_station_t air_MW_station; // Структура для хранения информации о станции
+    si4735_station_t air_SW_station; // Структура для хранения информации о станции
 } air_config_t;
 
 

@@ -67,7 +67,7 @@ static void pageAirradio_up_step_event_handler (lv_event_t *e)
     switch (code) {
     case LV_EVENT_LONG_PRESSED:
     {
-        xTransmitGUItoBoombox.eDataDescription = eSeekUP;
+        xTransmitGUItoBoombox.eDataDescription = eStationStepUP;
         xTransmitGUItoBoombox.ucValue = 1;
         xTransmitGUItoBoombox.State = true;
         lv_obj_set_style_opa(guider_ui.pageAirradio_up_step, 255, 0);
@@ -81,6 +81,9 @@ static void pageAirradio_up_step_event_handler (lv_event_t *e)
     case LV_EVENT_PRESSED:
     {
         lv_obj_set_style_opa(guider_ui.pageAirradio_up_step, 132, 0);
+        xTransmitGUItoBoombox.eDataDescription = eStepUP;
+        xTransmitGUItoBoombox.ucValue = 1;
+        xTransmitGUItoBoombox.State = true;
         break;
     }
     default:
@@ -95,6 +98,9 @@ static void pageAirradio_down_step_event_handler (lv_event_t *e)
     case LV_EVENT_LONG_PRESSED:
     {
         lv_obj_set_style_opa(guider_ui.pageAirradio_down_step, 255, 0);
+        xTransmitGUItoBoombox.eDataDescription = eStationStepDOWN;
+        xTransmitGUItoBoombox.ucValue = 1;
+        xTransmitGUItoBoombox.State = true;
         break;
     }
     case LV_EVENT_PRESSED:

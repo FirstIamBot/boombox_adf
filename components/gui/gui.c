@@ -225,8 +225,7 @@ void awgui(void)
 void awgui_reload(Data_Boombox_GUI_t data){
 
     char valFreq[10];
-
-      /*    */
+    /*    */
     switch(data.eModeBoombox){
         case eAir:
             if(data.ucBand == 3){
@@ -361,22 +360,21 @@ void task_gui(void *arg)
             Отправка данных от GUI к Boombox очередь xGuiToBoomboxQueue
         ******************************************************************************************/
        if(xTransmitGUItoBoombox.State == true){                 
-            ESP_LOGW(TAG, " ****************************** xTransmitGUItoBoombox.eModeBoombox=%d", xTransmitGUItoBoombox.eModeBoombox);
-            if(pdTRUE == xQueueSend(xGuiToBoomboxQueue, &xTransmitGUItoBoombox, pdPASS))
+            if(pdTRUE != xQueueSend(xGuiToBoomboxQueue, &xTransmitGUItoBoombox, 50 / portTICK_PERIOD_MS)) 
             {
-                ESP_LOGE(TAG, "Error to xGuiToBoomboxQueue");
+                ESP_LOGE(TAG, "Error to xGuiToBoomboxQueue");//??????????????????????
             }
             xTransmitGUItoBoombox.State = false;
         }
         /*****************************************************************************************
             Получаем данные из очереди xBoomboxToGuiQueue
             и обновляем интерфейс с помощью awgui_reload
-        
+         ******************************************************************************************/       
  
-        if(pdTRUE == xQueueReceive(xBoomboxToGuiQueue, &xResivedBoomboxToGUI, pdPASS))
+        if(pdTRUE == xQueueReceive(xBoomboxToGuiQueue, &xResivedBoomboxToGUI, 50 / portTICK_PERIOD_MS))
         {
             awgui_reload(xResivedBoomboxToGUI);
         }
-        ******************************************************************************************/
+
     }
 }

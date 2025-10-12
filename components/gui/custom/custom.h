@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 #include "gui_guider.h"
-#include "../commons/include/commons.h"
+#include "commons.h"
 //#include "/home/gena/GUI-Guider-Projects/AirWebRadio_01/commons/include/common.h"
 
 static uint8_t button_pres = 0;

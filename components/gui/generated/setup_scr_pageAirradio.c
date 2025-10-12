@@ -88,7 +88,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
     lv_obj_align(ui->pageAirradio_down_step_label, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_pad_all(ui->pageAirradio_down_step, 0, LV_STATE_DEFAULT);
     lv_obj_set_width(ui->pageAirradio_down_step_label, LV_PCT(100));
-    lv_obj_set_pos(ui->pageAirradio_down_step, 19, 89);
+    lv_obj_set_pos(ui->pageAirradio_down_step, 20, 89);
     lv_obj_set_size(ui->pageAirradio_down_step, 40, 38);
 
     //Write style for pageAirradio_down_step, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -157,8 +157,8 @@ void setup_scr_pageAirradio(lv_ui *ui)
     ui->pageAirradio_label_Freq = lv_label_create(ui->pageAirradio);
     lv_label_set_text(ui->pageAirradio_label_Freq, "");
     lv_label_set_long_mode(ui->pageAirradio_label_Freq, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_Freq, 74, 94);
-    lv_obj_set_size(ui->pageAirradio_label_Freq, 124, 27);
+    lv_obj_set_pos(ui->pageAirradio_label_Freq, 84, 94);
+    lv_obj_set_size(ui->pageAirradio_label_Freq, 114, 26);
     lv_obj_add_flag(ui->pageAirradio_label_Freq, LV_OBJ_FLAG_CLICKABLE);
 
     //Write style for pageAirradio_label_Freq, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -179,7 +179,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
 
     //Write codes pageAirradio_label_step_val
     ui->pageAirradio_label_step_val = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_step_val, "100");
+    lv_label_set_text(ui->pageAirradio_label_step_val, "");
     lv_label_set_long_mode(ui->pageAirradio_label_step_val, LV_LABEL_LONG_WRAP);
     lv_obj_set_pos(ui->pageAirradio_label_step_val, 52, 22);
     lv_obj_set_size(ui->pageAirradio_label_step_val, 40, 17);
@@ -333,7 +333,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
 
     //Write codes pageAirradio_label_wb_val
     ui->pageAirradio_label_wb_val = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_wb_val, "AUTO");
+    lv_label_set_text(ui->pageAirradio_label_wb_val, "");
     lv_label_set_long_mode(ui->pageAirradio_label_wb_val, LV_LABEL_LONG_WRAP);
     lv_obj_set_pos(ui->pageAirradio_label_wb_val, 4, 22);
     lv_obj_set_size(ui->pageAirradio_label_wb_val, 50, 16);
@@ -709,7 +709,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
 
     //Write codes pageAirradio_label_rssi_val
     ui->pageAirradio_label_rssi_val = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_rssi_val, "40");
+    lv_label_set_text(ui->pageAirradio_label_rssi_val, "");
     lv_label_set_long_mode(ui->pageAirradio_label_rssi_val, LV_LABEL_LONG_WRAP);
     lv_obj_set_pos(ui->pageAirradio_label_rssi_val, 134, 9);
     lv_obj_set_size(ui->pageAirradio_label_rssi_val, 29, 14);
@@ -778,7 +778,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
 
     //Write codes pageAirradio_label_snr_val
     ui->pageAirradio_label_snr_val = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_snr_val, "40");
+    lv_label_set_text(ui->pageAirradio_label_snr_val, "");
     lv_label_set_long_mode(ui->pageAirradio_label_snr_val, LV_LABEL_LONG_WRAP);
     lv_obj_set_pos(ui->pageAirradio_label_snr_val, 241, 9);
     lv_obj_set_size(ui->pageAirradio_label_snr_val, 27, 14);
@@ -847,7 +847,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
 
     //Write codes pageAirradio_cont_AGC
     ui->pageAirradio_cont_AGC = lv_obj_create(ui->pageAirradio);
-    lv_obj_set_pos(ui->pageAirradio_cont_AGC, 6, 107);
+    lv_obj_set_pos(ui->pageAirradio_cont_AGC, 4, 89);
     lv_obj_set_size(ui->pageAirradio_cont_AGC, 309, 47);
     lv_obj_set_scrollbar_mode(ui->pageAirradio_cont_AGC, LV_SCROLLBAR_MODE_OFF);
     lv_obj_add_flag(ui->pageAirradio_cont_AGC, LV_OBJ_FLAG_HIDDEN);
@@ -922,7 +922,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
     //Write codes pageAirradio_cb_AGC
     ui->pageAirradio_cb_AGC = lv_checkbox_create(ui->pageAirradio_cont_AGC);
     lv_checkbox_set_text(ui->pageAirradio_cb_AGC, "AGC");
-    lv_obj_set_pos(ui->pageAirradio_cb_AGC, 5, 10);
+    lv_obj_set_pos(ui->pageAirradio_cb_AGC, 5, 11);
 
     //Write style for pageAirradio_cb_AGC, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_pad_top(ui->pageAirradio_cb_AGC, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -1025,7 +1025,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
 
     //Write codes pageAirradio_cont_vol
     ui->pageAirradio_cont_vol = lv_obj_create(ui->pageAirradio);
-    lv_obj_set_pos(ui->pageAirradio_cont_vol, 241, 5);
+    lv_obj_set_pos(ui->pageAirradio_cont_vol, 134, 3);
     lv_obj_set_size(ui->pageAirradio_cont_vol, 68, 233);
     lv_obj_set_scrollbar_mode(ui->pageAirradio_cont_vol, LV_SCROLLBAR_MODE_OFF);
     lv_obj_add_flag(ui->pageAirradio_cont_vol, LV_OBJ_FLAG_HIDDEN);

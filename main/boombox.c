@@ -109,7 +109,7 @@ void boombox_config_init_default(BoomBox_config_t *config)
     config->air_radio_config.currentMod = 1;     // 0 - AM, 1 - LSB, 2 - USB
     config->air_radio_config.currentStepFM = 1; // 1 - 10 КГц, 5 - 50КГц, 10 - 100 КГц
     config->air_radio_config.currentStepAM = 1;
-    config->air_radio_config.currentFrequency = 10610;    
+    config->air_radio_config.currentFrequency = 10030;    
     config->air_radio_config.currentVOL = 60;   // 0 = Минимум, 64 = Максимум
     config->air_radio_config.BandWidthFM = 0;     // AUT-0, 110-1
     config->air_radio_config.BandWidthAM = 0;     // 6kHz - 0
@@ -117,13 +117,22 @@ void boombox_config_init_default(BoomBox_config_t *config)
     config->air_radio_config.currentAGCgain = 36; // 0 = мин. аттенюация (макс. усиление), 36 - макс. аттенюация (мин. усиление)
     config->air_radio_config.onoffAGCgain = 1;    // 0 = AGC включен, 1 = выключен
     config->air_radio_config.rssi_thresh_seek = 15; // Минимальный уровень RSSI для принятия станции
-    config->air_radio_config.snr_thresh_seek = 6;   // Минимальный уровень SNR для принятия станции
-    config->air_radio_config.air_station.freq_khz = 8800; // Частота станции в кГц
-    config->air_radio_config.air_station.rssi = 0; // Изначально уровень сигнала 0
-    config->air_radio_config.air_station.snr = 0;  // Изначально уровень SNR 0
+    config->air_radio_config.snr_thresh_seek = 8;   // Минимальный уровень SNR для принятия станции
+
+    config->air_radio_config.air_FM_station.currentStationIndex = 0;
+    config->air_radio_config.air_LW_station.currentStationIndex = 0;
+    config->air_radio_config.air_MW_station.currentStationIndex = 0;
+    config->air_radio_config.air_SW_station.currentStationIndex = 0;
+
     for(int i = 0; i < 50; i++) {
-        config->air_radio_config.air_station.stations[i] = 0; // Инициализация массива частот станций
-    }   
+        config->air_radio_config.air_FM_station.stations[i] = 0; // Инициализация массива частот станций
+    }
+    for(int i = 0; i < 50; i++) {
+        config->air_radio_config.air_MW_station.stations[i] = 0; // Инициализация массива частот станций
+    } 
+    for(int i = 0; i < 50; i++) {
+        config->air_radio_config.air_SW_station.stations[i] = 0; // Инициализация массива частот станций
+    }    
     ESP_LOGI(TAG, "Default configuration initialized");
 }
 
@@ -139,16 +148,13 @@ void boombox_task(void *pvParameters)
     ESP_ERROR_CHECK(ret);
 
     // Загрузка конфигурации из NVS
-   /*   */
     if (boombox_config_load_from_nvs(&xBoomBox_config) != ESP_OK) {
         ESP_LOGW(TAG, "Failed to load config, using defaults");
         boombox_config_init_default(&xBoomBox_config);
     }
-
-
     // Устанавливаем источник по умолчанию из конфигурации
     g_current_source = xBoomBox_config.eModeBoombox;
-    //g_current_source = SOURCE_AIR; // Изначально запускаем AIR радио;
+
 
     while (1) {
         /*****************************************************************************************
@@ -156,13 +162,11 @@ void boombox_task(void *pvParameters)
         ******************************************************************************************/
         if(pdTRUE == xQueueReceive(xGuiToBoomboxQueue, &xResiveGUItoBoombox, pdPASS))
         {
-            // Обработка полученных данных
-            g_current_source = (audio_source_t)xResiveGUItoBoombox.eModeBoombox;
+            g_current_source = (audio_source_t)xResiveGUItoBoombox.eModeBoombox;// Обработка полученных данных
         }
         /******************************************************************************************
          * Обработка данных от GUI 
          ******************************************************************************************/
-        // Пример использования:
         if (g_current_source == SOURCE_BLUETOOTH) {
             ESP_LOGI(TAG, "Switching to Bluetooth player");
             if(http_player_state == PLAYER_ACTIVE) {
@@ -227,20 +231,18 @@ void boombox_task(void *pvParameters)
             else {
                 air_player(&xResiveGUItoBoombox, &xTransmitBoomboxToGUI);// Запуск AIR плеера
             }
-            
         }
         /******************************************************************************************
          *  Отправка данных от Boombox к  GUI очередь xBoomboxToGuiQueue
         ******************************************************************************************/
        if(xTransmitBoomboxToGUI.State == true ){
-            if(pdTRUE == xQueueSend(xBoomboxToGuiQueue, &xTransmitBoomboxToGUI, pdPASS))
+            if(pdTRUE != xQueueSend(xBoomboxToGuiQueue, &xTransmitBoomboxToGUI, 25 / portTICK_PERIOD_MS))
             {
-                ESP_LOGE(TAG, "Error to xBoomboxToGuiQueue");
+                ESP_LOGE(TAG, "Error to xBoomboxToGuiQueue"); //??????????????????????
             }
             xTransmitBoomboxToGUI.State = false;
        }
-
        // После завершения работы плеера можно добавить логику ожидания или переключения
-       vTaskDelay(pdMS_TO_TICKS(500));
+       vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }

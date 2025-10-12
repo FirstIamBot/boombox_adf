@@ -143,6 +143,7 @@ Band band[] = {  ////
 //=======================================================
 #define RESET_PIN CONFIG_RESET_PIN
 #define SAMPLE_RATE 44100
+#define MAX_FOUND_STATIONS 50
 
 // Структура данных радио SI4735
 SI4735_t * rx_radio;
@@ -154,7 +155,7 @@ extern audio_event_iface_handle_t evt;
 extern esp_periph_set_handle_t set; 
 extern audio_source_t g_current_source;
 // Структура данных для сохранения временных(текущих) данных
-air_config_t air_radio_config;
+extern BoomBox_config_t xBoomBox_config; // Глобальная структура конфигурации Boombox  
 
 static const char *TAG = "AIR_TASK";
 char *stationName;
@@ -164,6 +165,76 @@ char *rdsTime;
 char *dataRDS;
 static uint8_t statusRDS = 0;
 //=============================================================================================================
+
+// Функция для вывода данных структуры xDataBoomBox в консоль
+void print_data_boombox_to_console(Data_Boombox_GUI_t *xDataBoomBox)
+{
+    if (xDataBoomBox == NULL) {
+        ESP_LOGE(TAG, "xDataBoomBox is NULL");
+        return;
+    }
+
+    ESP_LOGI(TAG, "================== Data_Boombox_GUI_t Debug ==================");
+    ESP_LOGI(TAG, "State: %s", xDataBoomBox->State ? "true" : "false");
+    ESP_LOGI(TAG, "eModeBoombox: %d", xDataBoomBox->eModeBoombox);
+    ESP_LOGI(TAG, "ucFreq: %u", xDataBoomBox->ucFreq);
+    ESP_LOGI(TAG, "vcFreqRange: %s", xDataBoomBox->vcFreqRange ? xDataBoomBox->vcFreqRange : "NULL");
+    ESP_LOGI(TAG, "vcBand: %s", xDataBoomBox->vcBand ? xDataBoomBox->vcBand : "NULL");
+    ESP_LOGI(TAG, "vcStereoMono: %s", xDataBoomBox->vcStereoMono ? xDataBoomBox->vcStereoMono : "NULL");
+    ESP_LOGI(TAG, "ucBand: %u", xDataBoomBox->ucBand);
+    ESP_LOGI(TAG, "ucSNR: %u dB", xDataBoomBox->ucSNR);
+    ESP_LOGI(TAG, "ucRSSI: %u dBμV", xDataBoomBox->ucRSSI);
+    ESP_LOGI(TAG, "vcStep: %s", xDataBoomBox->vcStep ? xDataBoomBox->vcStep : "NULL");
+    ESP_LOGI(TAG, "vcBW: %s", xDataBoomBox->vcBW ? xDataBoomBox->vcBW : "NULL");
+    ESP_LOGI(TAG, "vcRDSdata: %s", xDataBoomBox->vcRDSdata ? xDataBoomBox->vcRDSdata : "NULL");
+    ESP_LOGI(TAG, "===========================================================");
+}
+// Детализированная функция для вывода данных структуры xDataGUI в консоль
+void print_data_gui_detailed_to_console(Data_GUI_Boombox_t *xDataGUI)
+{
+    if (xDataGUI == NULL) {
+        ESP_LOGE(TAG, "xDataGUI is NULL");
+        return;
+    }
+
+    ESP_LOGI(TAG, "============== Data_GUI_Boombox_t Detailed Debug ==============");
+    ESP_LOGI(TAG, "State: %s", xDataGUI->State ? "ACTIVE" : "INACTIVE");
+    
+    // Расшифровка режима
+    const char* mode_str = "UNKNOWN";
+    switch(xDataGUI->eModeBoombox) {
+        case 0: mode_str = "AIR_RADIO"; break;
+        case 1: mode_str = "BLUETOOTH"; break;
+        case 2: mode_str = "HTTP_STREAM"; break;
+        default: mode_str = "UNKNOWN"; break;
+    }
+    ESP_LOGI(TAG, "eModeBoombox: %d (%s)", xDataGUI->eModeBoombox, mode_str);
+    
+    // Расшифровка команды
+    const char* cmd_str = "UNKNOWN";
+    switch(xDataGUI->eDataDescription) {
+        case BANDIDx: cmd_str = "BAND_SELECT"; break;
+        case MODIDx: cmd_str = "MODULATION"; break;
+        case STEPFM: cmd_str = "STEP_FM"; break;
+        case STEPAM: cmd_str = "STEP_AM"; break;
+        case BANDFM: cmd_str = "BANDWIDTH_FM"; break;
+        case BANDAM: cmd_str = "BANDWIDTH_AM"; break;
+        case BANDSSB: cmd_str = "BANDWIDTH_SSB"; break;
+        case STEPUP: cmd_str = "FREQ_STEP_UP"; break;
+        case STEPDOWN: cmd_str = "FREQ_STEP_DOWN"; break;
+        case STEP_STATION_UP: cmd_str = "STATION_UP"; break;
+        case STEP_STATION_DOWN: cmd_str = "STATION_DOWN"; break;
+        case UP_SEEK: cmd_str = "SEEK_UP"; break;
+        case AGCGAIN: cmd_str = "AGC_TOGGLE"; break;
+        case SLIDER_AGC: cmd_str = "AGC_GAIN"; break;
+        case SLIDER_VOL: cmd_str = "VOLUME"; break;
+        case SET_FREQ: cmd_str = "SET_FREQUENCY"; break;
+        default: cmd_str = "UNKNOWN"; break;
+    }
+    ESP_LOGI(TAG, "eDataDescription: %d (%s)", xDataGUI->eDataDescription, cmd_str);
+    ESP_LOGI(TAG, "ucValue: %u", xDataGUI->ucValue);
+    ESP_LOGI(TAG, "===============================================================");
+}
 
 void loadSSB(SI4735_t *rx, air_config_t *cnfg)
 {
@@ -481,6 +552,92 @@ char *checkRDS(SI4735_t *rx){
 return 0;
 }
 
+void scan_radio_band(SI4735_t *rx, air_config_t *cnfg) {
+
+    uint16_t freq = 0;
+    uint16_t min_freq = 0;
+    uint16_t max_freq = 0;
+    uint8_t step = 0;
+    uint8_t count = 0;
+
+    if(cnfg->currentBandType == FM_BAND_TYPE) {
+      step = stepFM[FM_BAND_TYPE].idx;
+      freq = band[FM_BAND_TYPE].minimumFreq;
+      max_freq = band[FM_BAND_TYPE].maximumFreq;
+    }
+    else if(cnfg->currentBandType == LW_BAND_TYPE) {
+      step = stepAM[LW_BAND_TYPE].idx;
+      freq = band[LW_BAND_TYPE].minimumFreq;
+      max_freq = band[LW_BAND_TYPE].maximumFreq;
+    }
+    else if(cnfg->currentBandType == MW_BAND_TYPE) {
+      step = stepAM[MW_BAND_TYPE].idx;
+      freq = band[MW_BAND_TYPE].minimumFreq;
+      max_freq = band[MW_BAND_TYPE].maximumFreq;
+    }
+    else if(cnfg->currentBandType == SW_BAND_TYPE) {
+      step = stepAM[SW_BAND_TYPE].idx;
+      freq = band[SW_BAND_TYPE].minimumFreq;
+      max_freq = band[SW_BAND_TYPE].maximumFreq;
+    }
+    
+    for (; freq <= max_freq && count < MAX_FOUND_STATIONS; freq += step) {
+        setFrequency(rx, freq);
+        vTaskDelay(pdMS_TO_TICKS(80)); // задержка для стабилизации
+
+        getCurrentReceivedSignalQuality(rx, 0);
+        uint8_t rssi = getCurrentRSSI(rx);
+        uint8_t snr  = getCurrentSNR(rx);
+
+        // порог для обнаружения станции
+        if (rssi > cnfg->rssi_thresh_seek && snr > cnfg->snr_thresh_seek) {
+            if(cnfg->currentBandType == FM_BAND_TYPE){
+              cnfg->air_FM_station.stations[count] = freq;
+            }
+            if(cnfg->currentBandType == LW_BAND_TYPE){
+              cnfg->air_LW_station.stations[count] = freq;
+            }
+            if(cnfg->currentBandType == MW_BAND_TYPE){
+              cnfg->air_MW_station.stations[count] = freq;
+            }
+            if(cnfg->currentBandType == SW_BAND_TYPE){
+              cnfg->air_SW_station.stations[count] = freq;
+            }
+            count++;
+        }
+    }
+}
+
+void seek_radio_band(SI4735_t *rx, air_config_t *cnfg) {
+  uint16_t freq = 0;
+  uint8_t count = 0;
+
+    while (count < MAX_FOUND_STATIONS || freq < 1000) {
+      freq = seekNextStation(rx_radio);
+
+        getCurrentReceivedSignalQuality(rx, 0); // ?????????????????????????????????????
+        uint8_t rssi = getCurrentRSSI(rx);
+        uint8_t snr  = getCurrentSNR(rx);
+
+        if (rssi >= cnfg->rssi_thresh_seek && snr >= cnfg->snr_thresh_seek){
+
+          if(cnfg->currentBandType == FM_BAND_TYPE) {
+              cnfg->air_FM_station.stations[count] = freq;
+          }
+          else if(cnfg->currentBandType == LW_BAND_TYPE) {
+              cnfg->air_LW_station.stations[count] = freq;
+          }
+          else if(cnfg->currentBandType == MW_BAND_TYPE) {
+              cnfg->air_MW_station.stations[count] = freq;
+          }
+          else if(cnfg->currentBandType == SW_BAND_TYPE) {
+              cnfg->air_SW_station.stations[count] = freq;
+          }
+          count++;
+        }
+    }
+}
+
 void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
 {
   static uint8_t amountStation;
@@ -592,14 +749,6 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
   }
   else if(set_data->eDataDescription == STEPUP){
     ESP_LOGD(TAG, "******* Air Radio - STEPUP = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
-    // Вставить функцию увеличения частоты на заданный шаг в верх сторону
-  }
-  else if(set_data->eDataDescription == STEPDOWN){
-    ESP_LOGD(TAG, "******* Air Radio - STEPDOWN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
-    // Вставить функцию уменьшения частоты на заданный шаг в нижнюю сторону
-  }
-  else if(set_data->eDataDescription == STEP_STATION_UP){
-    ESP_LOGD(TAG, "******* Air Radio - STEP_STATION_UP = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
     if((set->currentBandType == LW_BAND_TYPE) || (set->currentBandType == MW_BAND_TYPE) || set->currentBandType == SW_BAND_TYPE){
       set->currentFrequency += stepAM[set->currentStepAM].idx;
       //**************
@@ -618,8 +767,8 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
 
     }
   }
-  else if(set_data->eDataDescription == STEP_STATION_DOWN){
-    ESP_LOGD(TAG, "******* Air Radio - STEP_STATION_DOWN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+  else if(set_data->eDataDescription == STEPDOWN){
+    ESP_LOGD(TAG, "******* Air Radio - STEPDOWN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
     if((set->currentBandType == LW_BAND_TYPE) || (set->currentBandType == MW_BAND_TYPE) || set->currentBandType == SW_BAND_TYPE){
       //**************
       set->currentFrequency -= stepAM[set->currentStepAM].idx;
@@ -637,9 +786,90 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
       setFrequency(rx, set->currentFrequency);
     }
   }
+  else if(set_data->eDataDescription == STEP_STATION_UP){
+    ESP_LOGD(TAG, "******* Air Radio - STEP_STATION_UP = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    if(set->currentBandType == LW_BAND_TYPE){
+      if(set->air_LW_station.currentStationIndex >= MAX_FOUND_STATIONS){
+        set->air_LW_station.currentStationIndex = 0;
+      } else {
+        set->air_LW_station.currentStationIndex++;
+      }
+      set->currentFrequency = set->air_LW_station.stations[set->air_LW_station.currentStationIndex];
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType == MW_BAND_TYPE){
+      if(set->air_MW_station.currentStationIndex >= MAX_FOUND_STATIONS){
+        set->air_MW_station.currentStationIndex = 0;
+      } else {
+        set->air_MW_station.currentStationIndex++;
+      }
+      set->currentFrequency = set->air_MW_station.stations[set->air_MW_station.currentStationIndex];
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType == SW_BAND_TYPE){
+      if(set->air_SW_station.currentStationIndex >= MAX_FOUND_STATIONS){
+        set->air_SW_station.currentStationIndex = 0;
+      } else {
+        set->air_SW_station.currentStationIndex++;
+      }
+      set->currentFrequency = set->air_SW_station.stations[set->air_SW_station.currentStationIndex];
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType == FM_BAND_TYPE){
+      clearRDSbuffer();
+      if(set->air_FM_station.currentStationIndex >= MAX_FOUND_STATIONS){
+        set->air_FM_station.currentStationIndex = 0;
+      } else {
+        set->air_FM_station.currentStationIndex++;
+      }
+      set->currentFrequency = set->air_FM_station.stations[set->air_FM_station.currentStationIndex];
+      setFrequency(rx, set->currentFrequency);
+    }
+  }
+  else if(set_data->eDataDescription == STEP_STATION_DOWN){
+    ESP_LOGD(TAG, "******* Air Radio - STEP_STATION_DOWN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    if(set->currentBandType == LW_BAND_TYPE){
+      if(set->air_LW_station.currentStationIndex == 0){
+        set->air_SW_station.currentStationIndex = MAX_FOUND_STATIONS;
+      } else {
+        set->air_SW_station.currentStationIndex--;
+      }
+      set->currentFrequency = set->air_LW_station.stations[set->air_LW_station.currentStationIndex];
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType == MW_BAND_TYPE){
+      if(set->air_MW_station.currentStationIndex == 0){
+        set->air_MW_station.currentStationIndex = MAX_FOUND_STATIONS;
+      } else {
+        set->air_MW_station.currentStationIndex--;
+      }
+      set->currentFrequency = set->air_MW_station.stations[set->air_MW_station.currentStationIndex];
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType == SW_BAND_TYPE){
+      if(set->air_SW_station.currentStationIndex == 0){
+        set->air_SW_station.currentStationIndex = MAX_FOUND_STATIONS;
+      } else {
+        set->air_SW_station.currentStationIndex--;
+      }
+      set->currentFrequency = set->air_SW_station.stations[set->air_SW_station.currentStationIndex];
+      setFrequency(rx, set->currentFrequency);
+    }
+    if(set->currentBandType == FM_BAND_TYPE){
+      clearRDSbuffer();
+      if(set->air_FM_station.currentStationIndex == 0){
+        set->air_FM_station.currentStationIndex = MAX_FOUND_STATIONS;
+      } else {
+        set->air_FM_station.currentStationIndex--;
+      }
+      set->currentFrequency = set->air_FM_station.stations[set->air_FM_station.currentStationIndex];
+      setFrequency(rx, set->currentFrequency);
+    }
+  }
   else if(set_data->eDataDescription == UP_SEEK){
     ESP_LOGD(TAG, "******* Air Radio - UP_SEEK = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
-    // Вставить функцию увеличения частоты на заданный шаг или сканирование в верх сторону
+    //scan_radio_band(rx, set);
+    seek_radio_band(rx, set);
   }
   else if(set_data->eDataDescription == AGCGAIN){
     ESP_LOGD(TAG, "******* Air Radio - AGCGAIN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
@@ -977,11 +1207,14 @@ void statusRadio(SI4735_t * rx)
 // Основная функция проигрывателя AIR радио
 void air_player( Data_GUI_Boombox_t *xDataGUI,  Data_Boombox_GUI_t *xDataBoomBox)
 {
-
-    set_radio(rx_radio, xDataGUI, &air_radio_config);
+    //print_data_gui_detailed_to_console(xDataGUI);// Вывод данных xDataGUI в консоль для отладки
+    if(xDataGUI->State == true){
+      ESP_LOGW(TAG, "xDataGUI.State: %d", xDataGUI->State);
+      set_radio(rx_radio, xDataGUI, &xBoomBox_config.air_radio_config);
+      xDataGUI->State = false;
+    }
     
-    get_radio(rx_radio, xDataBoomBox, &air_radio_config);
-
-    statusRadio(rx_radio);
+    get_radio(rx_radio, xDataBoomBox, &xBoomBox_config.air_radio_config);
+    //print_data_boombox_to_console(xDataBoomBox);// Вывод данных xDataBoomBox в консоль для отладки
 
 }
