@@ -46,9 +46,9 @@
 
 #define AIR_SPEAKER 1
 #define BT_SPEAKER 2
-#define WEB_SPEKER 3
+#define WEB_SPEAKER 3
 
-
+#define MAX_FOUND_STATIONS 49
 //=================  Структура данных режимов роботы  Boombox =====
 typedef enum
 {
@@ -113,15 +113,16 @@ typedef struct
     bool State;         //  Статус Структуры, false-изменений не было, true-изменений не было
     uint8_t ucBand;     //  значение  диапазона AM/SW/SSB/FM   
     char *vcBand;       // Текстовое значение  диапазона AM/SW/SSB/FM  
+    uint8_t ucStationIDx; // значение значение номера станции из списка
     uint16_t ucFreq;    //  значение  частоты
     uint8_t ucSNR;      //  значение  SNR
     uint8_t ucRSSI;     //  значение  RSSI
     uint8_t ucslider_vol;// значение громкости
-    char * vcFreqRange; // Текстовое значение kHz/MHz 
-    char * vcStereoMono;// Текстовое значение стерео/моно
-    char * vcBW;        // Текстовое значение полосы пропускания 
-    char * vcStep;      // Текстовое значение шага перестройки
-    char *vcRDSdata;    // Текстовая информация от RDS
+    char *vcFreqRange; // Текстовое значение kHz/MHz 
+    char *vcStereoMono;// Текстовое значение стерео/моно
+    char *vcBW;        // Текстовое значение полосы пропускания 
+    char *vcStep;      // Текстовое значение шага перестройки
+    char *vcRDSdata;   // Текстовая информация от RDS
     ModeBoombox_t eModeBoombox;
     AirWebDescription_t eDataDescription;  // название Элемента
 } Data_Boombox_GUI_t;

@@ -110,27 +110,30 @@ void boombox_config_init_default(BoomBox_config_t *config)
     config->air_radio_config.currentStepFM = 1; // 1 - 10 КГц, 5 - 50КГц, 10 - 100 КГц
     config->air_radio_config.currentStepAM = 1;
     config->air_radio_config.currentFrequency = 10030;    
-    config->air_radio_config.currentVOL = 60;   // 0 = Минимум, 64 = Максимум
+    config->air_radio_config.currentVOL = 50;   // 0 = Минимум, 64 = Максимум
     config->air_radio_config.BandWidthFM = 0;     // AUT-0, 110-1
     config->air_radio_config.BandWidthAM = 0;     // 6kHz - 0
     config->air_radio_config.BandWidthSSB = 0;    // 1.2KHz - 0
-    config->air_radio_config.currentAGCgain = 36; // 0 = мин. аттенюация (макс. усиление), 36 - макс. аттенюация (мин. усиление)
-    config->air_radio_config.onoffAGCgain = 1;    // 0 = AGC включен, 1 = выключен
+    config->air_radio_config.currentAGCgain = 10; // 0 = мин. аттенюация (макс. усиление), 36 - макс. аттенюация (мин. усиление)
+    config->air_radio_config.onoffAGCgain = 0;    // 0 = AGC включен, 1 = выключен
     config->air_radio_config.rssi_thresh_seek = 15; // Минимальный уровень RSSI для принятия станции
-    config->air_radio_config.snr_thresh_seek = 8;   // Минимальный уровень SNR для принятия станции
+    config->air_radio_config.snr_thresh_seek = 10;   // Минимальный уровень SNR для принятия станции
 
     config->air_radio_config.air_FM_station.currentStationIndex = 0;
     config->air_radio_config.air_LW_station.currentStationIndex = 0;
     config->air_radio_config.air_MW_station.currentStationIndex = 0;
     config->air_radio_config.air_SW_station.currentStationIndex = 0;
 
-    for(int i = 0; i < 50; i++) {
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
         config->air_radio_config.air_FM_station.stations[i] = 0; // Инициализация массива частот станций
     }
-    for(int i = 0; i < 50; i++) {
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        config->air_radio_config.air_LW_station.stations[i] = 0; // Инициализация массива частот станций
+    } 
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
         config->air_radio_config.air_MW_station.stations[i] = 0; // Инициализация массива частот станций
     } 
-    for(int i = 0; i < 50; i++) {
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
         config->air_radio_config.air_SW_station.stations[i] = 0; // Инициализация массива частот станций
     }    
     ESP_LOGI(TAG, "Default configuration initialized");

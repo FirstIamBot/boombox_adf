@@ -134,7 +134,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
     ui->pageAirradio_label_FreqRange = lv_label_create(ui->pageAirradio);
     lv_label_set_text(ui->pageAirradio_label_FreqRange, "");
     lv_label_set_long_mode(ui->pageAirradio_label_FreqRange, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_FreqRange, 190, 104);
+    lv_obj_set_pos(ui->pageAirradio_label_FreqRange, 202, 102);
     lv_obj_set_size(ui->pageAirradio_label_FreqRange, 59, 15);
 
     //Write style for pageAirradio_label_FreqRange, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -157,7 +157,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
     ui->pageAirradio_label_Freq = lv_label_create(ui->pageAirradio);
     lv_label_set_text(ui->pageAirradio_label_Freq, "");
     lv_label_set_long_mode(ui->pageAirradio_label_Freq, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_Freq, 84, 94);
+    lv_obj_set_pos(ui->pageAirradio_label_Freq, 87, 91);
     lv_obj_set_size(ui->pageAirradio_label_Freq, 114, 26);
     lv_obj_add_flag(ui->pageAirradio_label_Freq, LV_OBJ_FLAG_CLICKABLE);
 
@@ -1280,6 +1280,29 @@ void setup_scr_pageAirradio(lv_ui *ui)
     lv_obj_set_style_bg_color(ui->pageAirradio_btnm_band, lv_color_hex(0x2195f6), LV_PART_ITEMS|LV_STATE_DEFAULT);
     lv_obj_set_style_bg_grad_dir(ui->pageAirradio_btnm_band, LV_GRAD_DIR_NONE, LV_PART_ITEMS|LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui->pageAirradio_btnm_band, 0, LV_PART_ITEMS|LV_STATE_DEFAULT);
+
+    //Write codes pageAirradio_label_stationIDx
+    ui->pageAirradio_label_stationIDx = lv_label_create(ui->pageAirradio);
+    lv_label_set_text(ui->pageAirradio_label_stationIDx, "");
+    lv_label_set_long_mode(ui->pageAirradio_label_stationIDx, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageAirradio_label_stationIDx, 63, 93);
+    lv_obj_set_size(ui->pageAirradio_label_stationIDx, 35, 22);
+
+    //Write style for pageAirradio_label_stationIDx, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageAirradio_label_stationIDx, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_label_stationIDx, &lv_font_montserratMedium_26, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_label_stationIDx, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_label_stationIDx, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
     //The custom code of pageAirradio.
 

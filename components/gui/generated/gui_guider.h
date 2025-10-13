@@ -70,6 +70,7 @@ typedef struct
 	lv_obj_t *pageAirradio_label_set_freq;
 	lv_obj_t *pageAirradio_label_band;
 	lv_obj_t *pageAirradio_btnm_band;
+	lv_obj_t *pageAirradio_label_stationIDx;
 	lv_obj_t *Bluetooth;
 	bool Bluetooth_del;
 	lv_obj_t *Bluetooth_imgbtn_airradio;

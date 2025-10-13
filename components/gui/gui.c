@@ -225,6 +225,7 @@ void awgui(void)
 void awgui_reload(Data_Boombox_GUI_t data){
 
     char valFreq[10];
+    char tempebandIDx[2];
     /*    */
     switch(data.eModeBoombox){
         case eAir:
@@ -268,6 +269,11 @@ void awgui_reload(Data_Boombox_GUI_t data){
             if (guider_ui.pageAirradio_label_band  != NULL)
             {
                 lv_label_set_text(guider_ui.pageAirradio_label_band, data.vcBand); // Текстовая информация от Band Name;
+            }
+            if (guider_ui.pageAirradio_label_stationIDx != NULL)
+            {
+                ConvertToChar(data.ucStationIDx, tempebandIDx, 2, 0, '.', true);
+                lv_label_set_text(guider_ui.pageAirradio_label_stationIDx, tempebandIDx); // Текстовая информация от Station ID
             }
         break;
         case eBT:

@@ -143,7 +143,7 @@ Band band[] = {  ////
 //=======================================================
 #define RESET_PIN CONFIG_RESET_PIN
 #define SAMPLE_RATE 44100
-#define MAX_FOUND_STATIONS 50
+
 
 // Структура данных радио SI4735
 SI4735_t * rx_radio;
@@ -164,6 +164,7 @@ char *programInfo;
 char *rdsTime;
 char *dataRDS;
 static uint8_t statusRDS = 0;
+static uint8_t count = 0;
 //=============================================================================================================
 
 // Функция для вывода данных структуры xDataBoomBox в консоль
@@ -390,13 +391,13 @@ void radio_init(SI4735_t *rx, air_config_t *cnfg)
     setFmBandwidth(rx, cnfg->BandWidthFM);      // Automatically select proper channel filter (Default)  
     setFMDeEmphasis(rx, 1);     // 1 = 50 μs Europe, Australia, Japan. 2 = 75 μs USA (default)
     setFmBlendRssiStereoThreshold(rx, 10); // 49 force stereo, set this to 0. force mono, set this to 127
-    setFmBLendRssiMonoThreshold(rx, 30);
-    setFmSoftMuteMaxAttenuation(rx, 10); //Default: 0x0002 Range: 
+    setFmBLendRssiMonoThreshold(rx, 30); //30
+    setFmSoftMuteMaxAttenuation(rx, 6); // 6 Default: 0x0002 Range: 
     setFmSoftMuteSnrAttenuation(rx, 6);
     setSeekFmLimits(rx, band[FM_BAND_TYPE].minimumFreq, band[FM_BAND_TYPE].maximumFreq);
     setSeekFmSpacing(rx, stepFM[cnfg->currentStepFM].idx); // 1(10 kHz), 5 (50 kHz), 10 (100 kHz), and 20 (200 kHz). Default is 10
-    setSeekFmSrnThreshold(rx, 6);
-    setSeekFmRssiThreshold(rx, 20);
+    setSeekFmSrnThreshold(rx, cnfg->snr_thresh_seek);
+    setSeekFmRssiThreshold(rx, cnfg->rssi_thresh_seek);
     // Starts defaul radio function and band (FM; from 84 to 108 MHz; 103.9 MHz; step 10kHz) 
     setFM(rx, band[FM_BAND_TYPE].minimumFreq, band[FM_BAND_TYPE].maximumFreq, cnfg->currentFrequency, stepFM[cnfg->currentStepFM].idx);
     setVolume(rx, cnfg->currentVOL);
@@ -560,25 +561,42 @@ void scan_radio_band(SI4735_t *rx, air_config_t *cnfg) {
     uint8_t step = 0;
     uint8_t count = 0;
 
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        cnfg->air_FM_station.stations[i] = 0; // Инициализация массива частот станций
+    }
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        cnfg->air_LW_station.stations[i] = 0; // Инициализация массива частот станций
+    } 
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        cnfg->air_MW_station.stations[i] = 0; // Инициализация массива частот станций
+    } 
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        cnfg->air_SW_station.stations[i] = 0; // Инициализация массива частот станций
+    }  
+
     if(cnfg->currentBandType == FM_BAND_TYPE) {
       step = stepFM[FM_BAND_TYPE].idx;
       freq = band[FM_BAND_TYPE].minimumFreq;
       max_freq = band[FM_BAND_TYPE].maximumFreq;
+      cnfg->air_FM_station.currentStationIndex = 0; // сброс индекса текущей станции
     }
     else if(cnfg->currentBandType == LW_BAND_TYPE) {
       step = stepAM[LW_BAND_TYPE].idx;
       freq = band[LW_BAND_TYPE].minimumFreq;
       max_freq = band[LW_BAND_TYPE].maximumFreq;
+      cnfg->air_LW_station.currentStationIndex = 0;
     }
     else if(cnfg->currentBandType == MW_BAND_TYPE) {
       step = stepAM[MW_BAND_TYPE].idx;
       freq = band[MW_BAND_TYPE].minimumFreq;
       max_freq = band[MW_BAND_TYPE].maximumFreq;
+      cnfg->air_MW_station.currentStationIndex = 0;
     }
     else if(cnfg->currentBandType == SW_BAND_TYPE) {
       step = stepAM[SW_BAND_TYPE].idx;
       freq = band[SW_BAND_TYPE].minimumFreq;
       max_freq = band[SW_BAND_TYPE].maximumFreq;
+      cnfg->air_SW_station.currentStationIndex = 0;
     }
     
     for (; freq <= max_freq && count < MAX_FOUND_STATIONS; freq += step) {
@@ -588,7 +606,6 @@ void scan_radio_band(SI4735_t *rx, air_config_t *cnfg) {
         getCurrentReceivedSignalQuality(rx, 0);
         uint8_t rssi = getCurrentRSSI(rx);
         uint8_t snr  = getCurrentSNR(rx);
-
         // порог для обнаружения станции
         if (rssi > cnfg->rssi_thresh_seek && snr > cnfg->snr_thresh_seek) {
             if(cnfg->currentBandType == FM_BAND_TYPE){
@@ -609,18 +626,55 @@ void scan_radio_band(SI4735_t *rx, air_config_t *cnfg) {
 }
 
 void seek_radio_band(SI4735_t *rx, air_config_t *cnfg) {
-  uint16_t freq = 0;
-  uint8_t count = 0;
 
-    while (count < MAX_FOUND_STATIONS || freq < 1000) {
+    uint16_t freq = 0;
+    uint16_t last_freq = 0;
+    uint16_t min_freq = 0;
+    uint16_t max_freq = 0;
+    uint8_t step = 0;
+    //uint8_t count = 0;
+    // Инициализация массива частот станций
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        cnfg->air_FM_station.stations[i] = 0; 
+    }
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        cnfg->air_LW_station.stations[i] = 0; // Инициализация массива частот станций
+    } 
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        cnfg->air_MW_station.stations[i] = 0; // Инициализация массива частот станций
+    } 
+    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        cnfg->air_SW_station.stations[i] = 0; // Инициализация массива частот станций
+    }  
+
+    if(cnfg->currentBandType == FM_BAND_TYPE) {
+      max_freq = band[FM_BAND_TYPE].maximumFreq;
+      cnfg->air_FM_station.currentStationIndex = 0; // сброс индекса текущей станции
+      setFrequency(rx, band[FM_BAND_TYPE].minimumFreq);
+    }
+    else if(cnfg->currentBandType == LW_BAND_TYPE) {
+      max_freq = band[LW_BAND_TYPE].maximumFreq;
+      cnfg->air_LW_station.currentStationIndex = 0;
+    }
+    else if(cnfg->currentBandType == MW_BAND_TYPE) {
+      max_freq = band[MW_BAND_TYPE].maximumFreq;
+      cnfg->air_MW_station.currentStationIndex = 0;
+    }
+    else if(cnfg->currentBandType == SW_BAND_TYPE) {
+      max_freq = band[SW_BAND_TYPE].maximumFreq;
+      cnfg->air_SW_station.currentStationIndex = 0;
+    }
+    
+    while (count < MAX_FOUND_STATIONS ) {
+      last_freq = freq;      
       freq = seekNextStation(rx_radio);
-
-        getCurrentReceivedSignalQuality(rx, 0); // ?????????????????????????????????????
+      if (freq == 0 || freq > max_freq) break; // Прервать, если частота недействительна или превышает максимальную
+      if (freq <= last_freq) break; // Прервать, если частота не изменилась (избежать зацикливания)
+        getCurrentReceivedSignalQuality(rx, 0);
         uint8_t rssi = getCurrentRSSI(rx);
         uint8_t snr  = getCurrentSNR(rx);
 
         if (rssi >= cnfg->rssi_thresh_seek && snr >= cnfg->snr_thresh_seek){
-
           if(cnfg->currentBandType == FM_BAND_TYPE) {
               cnfg->air_FM_station.stations[count] = freq;
           }
@@ -636,6 +690,13 @@ void seek_radio_band(SI4735_t *rx, air_config_t *cnfg) {
           count++;
         }
     }
+// Вывести все найденные FM станции
+ESP_LOGI(TAG, "FM станции (кол-во: %d):", MAX_FOUND_STATIONS);
+for (int i = 0; i < MAX_FOUND_STATIONS; i++) {
+    if (cnfg->air_FM_station.stations[i] != 0) {
+        ESP_LOGI(TAG, "[%2d] %u", i, cnfg->air_FM_station.stations[i]);
+    }
+}
 }
 
 void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
@@ -789,7 +850,7 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
   else if(set_data->eDataDescription == STEP_STATION_UP){
     ESP_LOGD(TAG, "******* Air Radio - STEP_STATION_UP = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
     if(set->currentBandType == LW_BAND_TYPE){
-      if(set->air_LW_station.currentStationIndex >= MAX_FOUND_STATIONS){
+      if(set->air_LW_station.currentStationIndex >= count){
         set->air_LW_station.currentStationIndex = 0;
       } else {
         set->air_LW_station.currentStationIndex++;
@@ -798,7 +859,7 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
       setFrequency(rx, set->currentFrequency);
     }
     if(set->currentBandType == MW_BAND_TYPE){
-      if(set->air_MW_station.currentStationIndex >= MAX_FOUND_STATIONS){
+      if(set->air_MW_station.currentStationIndex >= count){
         set->air_MW_station.currentStationIndex = 0;
       } else {
         set->air_MW_station.currentStationIndex++;
@@ -807,7 +868,7 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
       setFrequency(rx, set->currentFrequency);
     }
     if(set->currentBandType == SW_BAND_TYPE){
-      if(set->air_SW_station.currentStationIndex >= MAX_FOUND_STATIONS){
+      if(set->air_SW_station.currentStationIndex >= count){
         set->air_SW_station.currentStationIndex = 0;
       } else {
         set->air_SW_station.currentStationIndex++;
@@ -817,7 +878,7 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
     }
     if(set->currentBandType == FM_BAND_TYPE){
       clearRDSbuffer();
-      if(set->air_FM_station.currentStationIndex >= MAX_FOUND_STATIONS){
+      if(set->air_FM_station.currentStationIndex >= count){
         set->air_FM_station.currentStationIndex = 0;
       } else {
         set->air_FM_station.currentStationIndex++;
@@ -830,16 +891,16 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
     ESP_LOGD(TAG, "******* Air Radio - STEP_STATION_DOWN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
     if(set->currentBandType == LW_BAND_TYPE){
       if(set->air_LW_station.currentStationIndex == 0){
-        set->air_SW_station.currentStationIndex = MAX_FOUND_STATIONS;
+        set->air_LW_station.currentStationIndex = count;
       } else {
-        set->air_SW_station.currentStationIndex--;
+        set->air_LW_station.currentStationIndex--;
       }
       set->currentFrequency = set->air_LW_station.stations[set->air_LW_station.currentStationIndex];
       setFrequency(rx, set->currentFrequency);
     }
     if(set->currentBandType == MW_BAND_TYPE){
       if(set->air_MW_station.currentStationIndex == 0){
-        set->air_MW_station.currentStationIndex = MAX_FOUND_STATIONS;
+        set->air_MW_station.currentStationIndex = count;
       } else {
         set->air_MW_station.currentStationIndex--;
       }
@@ -848,7 +909,7 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
     }
     if(set->currentBandType == SW_BAND_TYPE){
       if(set->air_SW_station.currentStationIndex == 0){
-        set->air_SW_station.currentStationIndex = MAX_FOUND_STATIONS;
+        set->air_SW_station.currentStationIndex = count;
       } else {
         set->air_SW_station.currentStationIndex--;
       }
@@ -858,7 +919,7 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
     if(set->currentBandType == FM_BAND_TYPE){
       clearRDSbuffer();
       if(set->air_FM_station.currentStationIndex == 0){
-        set->air_FM_station.currentStationIndex = MAX_FOUND_STATIONS;
+        set->air_FM_station.currentStationIndex = count;
       } else {
         set->air_FM_station.currentStationIndex--;
       }
@@ -870,6 +931,22 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
     ESP_LOGD(TAG, "******* Air Radio - UP_SEEK = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
     //scan_radio_band(rx, set);
     seek_radio_band(rx, set);
+    if(set->currentBandType == FM_BAND_TYPE) {
+      set->currentFrequency = set->air_FM_station.stations[0];
+      setFrequency(rx, set->currentFrequency);
+    }
+    else if(set->currentBandType == LW_BAND_TYPE) {
+      set->currentFrequency = set->air_LW_station.stations[0];
+      setFrequency(rx, set->currentFrequency);
+    }
+    else if(set->currentBandType == MW_BAND_TYPE) {
+      set->currentFrequency = set->air_MW_station.stations[0];
+      setFrequency(rx, set->currentFrequency);
+    }
+    else if(set->currentBandType == SW_BAND_TYPE) {
+      set->currentFrequency = set->air_SW_station.stations[0];
+     setFrequency(rx, set->currentFrequency);
+    }
   }
   else if(set_data->eDataDescription == AGCGAIN){
     ESP_LOGD(TAG, "******* Air Radio - AGCGAIN = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
@@ -925,19 +1002,33 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
   }
 }
 
+/**
+ * @brief Заполняет структуру GUI и конфигурации текущими параметрами радиоприёмника.
+ *
+ * @param rx        Указатель на структуру радиомодуля SI4735
+ * @param get_data  Указатель на структуру данных для отображения на GUI
+ * @param get       Указатель на структуру конфигурации радиомодуля
+ *
+ * Получает текущую частоту, качество сигнала, режим (FM/AM/SSB), стерео/моно,
+ * диапазон, индекс станции, SNR, RSSI, шаг частоты, полосу пропускания, данные RDS
+ * и другие параметры, и записывает их в структуру get_data для GUI.
+ */
 void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
 {
   char strfreq[10];
 
   uint8_t n = 5, d = 3;
   
-  ESP_LOGD(TAG, "get_radio();");
+  ESP_LOGD(TAG, "get_radio();"); // Логирование вызова функции
+  // Получение текущей частоты и качества сигнала
   get->currentFrequency = getFrequency(rx);
   getCurrentReceivedSignalQuality(rx,0);
 
+  // Определение диапазона (FM или AM/SSB) и заполнение соответствующих полей
   if (isCurrentTuneFM(rx))
 	{
-    if (get->currentFrequency < 10000)
+  // Форматирование частоты для FM диапазона
+  if (get->currentFrequency < 10000)
     {
       n = 4;
       d = 2;
@@ -946,7 +1037,8 @@ void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
     convertToChar(get->currentFrequency, strfreq, n, d, '.',true);
     get_data->vcFreqRange = "MHz";
 
-    if( getCurrentPilot(rx) == 0 )
+  // Определение режима стерео/моно для FM
+  if( getCurrentPilot(rx) == 0 )
     {
       get_data->vcStereoMono = " mono ";
     } 
@@ -954,10 +1046,13 @@ void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
     {
       get_data->vcStereoMono = "stereo";
     }
-    get_data->vcBand = " FM ";
+  get_data->vcBand = " FM "; // Диапазон
+  get_data->ucStationIDx = get->air_FM_station.currentStationIndex+1; // Индекс станции FM
 	}
-	else {
-    if (get->currentBandType == MW_BAND_TYPE || get->currentBandType == LW_BAND_TYPE || get->currentBandType == SW_BAND_TYPE){
+  else {
+    // Для AM/SSB диапазонов
+  // Форматирование частоты для AM/SSB диапазонов
+  if (get->currentBandType == MW_BAND_TYPE || get->currentBandType == LW_BAND_TYPE || get->currentBandType == SW_BAND_TYPE){
       convertToChar(get->currentFrequency, strfreq, 5, 0, '.', true);
     }
     else {
@@ -965,8 +1060,9 @@ void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
     }
     get_data->ucFreq = get->currentFrequency;
     get_data->vcFreqRange = "KHz";
-    //get_data->vcStereoMono = "      ";
-    if(get->currentMod == 0) // AM (AM modulation) mode
+  // Определение модуляции: AM или SSB (USB/LSB)
+  //get_data->vcStereoMono = "      ";
+  if(get->currentMod == 0) // AM (AM modulation) mode
     {
       get_data->vcStereoMono = " AM";
     }
@@ -982,26 +1078,32 @@ void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
       }
     }
   }
+  // Установка диапазона и индекса станции для MW/LW/SW
   if(get->currentBandType == MW_BAND_TYPE){
     get_data->vcBand = " MW ";
+    get_data->ucStationIDx = get->air_MW_station.currentStationIndex+1;
   }
   if(get->currentBandType == LW_BAND_TYPE){
     get_data->vcBand = " LW ";
+    get_data->ucStationIDx = get->air_LW_station.currentStationIndex+1;
   }
   if(get->currentBandType == SW_BAND_TYPE){
     get_data->vcBand = " SW ";
+    get_data->ucStationIDx = get->air_SW_station.currentStationIndex+1;
   }
   if(get->currentBandType > 3){
     get_data->vcBand = band[get->currentBandType].bandName;
   }
+  // Получение SNR и RSSI
   get_data->ucSNR = getCurrentSNR(rx);
   get_data->ucRSSI = getCurrentRSSI(rx);
-/*
-*   Вывод данных о шаге частоты(vcStep) и полосе пропускания(vcBW) в зависимости от типа диапазона частот
-*/
+  /*
+   * Вывод данных о шаге частоты (vcStep) и полосе пропускания (vcBW)
+   * в зависимости от типа диапазона частот
+   */
   if (get->currentBandType == MW_BAND_TYPE || get->currentBandType == LW_BAND_TYPE || get->currentBandType == SW_BAND_TYPE){ 
-    get_data->vcStep = (char *)stepAM[get->currentStepAM].desc;  
-    get_data->vcBW = (char *)bandwidthAM[get->BandWidthAM];
+    get_data->vcStep = (char *)stepAM[get->currentStepAM].desc;  // Шаг частоты AM
+    get_data->vcBW = (char *)bandwidthAM[get->BandWidthAM];      // Полоса пропускания AM
   }
   else if( get->currentBandType > 3){
     get_data->vcStep = (char *)stepAM[get->currentStepAM].desc;  
@@ -1015,12 +1117,12 @@ void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
     }
   }
   else if(get->currentBandType == FM_BAND_TYPE ){
-    get_data->vcBW = (char *)bandwidthFM[get->BandWidthFM];
-    get_data->vcStep =  (char *)stepFM[get->currentStepFM].desc; 
+    get_data->vcBW = (char *)bandwidthFM[get->BandWidthFM];      // Полоса пропускания FM
+    get_data->vcStep =  (char *)stepFM[get->currentStepFM].desc; // Шаг частоты FM
   }
-  get_data->ucBand = get->currentBandType;
-  //get_data->ucslider_vol = get->currentVOL; // ??????????????????
-//*********************************************************************************************************************
+  get_data->ucBand = get->currentBandType; // Тип диапазона для GUI
+
+  // Проверка и получение данных RDS
   rdsTime = checkRDS(rx);
   if(rdsTime == 0){
     ESP_LOGI(TAG, " No data RDS  ");
@@ -1030,8 +1132,8 @@ void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
     get_data->vcRDSdata = rdsTime;
   }
   
-  get_data->eModeBoombox = eAir;
-  get_data->State = true;
+  get_data->eModeBoombox = eAir; // Установка режима работы
+  get_data->State = true;         // Флаг валидности данных
 
 }
 
@@ -1192,15 +1294,9 @@ void  deinit_air_player()
 
 // Вывод статуса радио
 void statusRadio(SI4735_t * rx)
-{
-   // ESP_LOGI(TAG, "******************** si4735task Status ******************");
-    //ESP_LOGI(TAG, "Frequency = %d, Volume = %d", getFrequency(rx), getVolume(rx));
-    //ESP_LOGI(TAG, "******* si4735task Received Signal Quality **************");
-   getCurrentReceivedSignalQuality(rx, 0 );
-   // ESP_LOGI(TAG, "Current SNR = %d, Current RSSI = %d", getCurrentSNR(rx), getCurrentRSSI(rx));
-   // ESP_LOGI(TAG, "********************************************************");
-  //printf("\033[1A\033[2K");
-    printf("Frequency = %d Hz, Volume = %d, SNR = %d dB, RSSI = %d dBμV", 
+{ 
+  getCurrentReceivedSignalQuality(rx, 0 );
+  printf("Frequency = %d Hz, Volume = %d, SNR = %d dB, RSSI = %d dBμV", 
             getFrequency(rx), getVolume(rx), getCurrentSNR(rx), getCurrentRSSI(rx));
 }
 
