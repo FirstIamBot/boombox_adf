@@ -1,0 +1,7 @@
+menu "LVGL ESP Calibration"
+
+    rsource "gui_touch_calibration/Kconfig"
+
+endmenu
+
+

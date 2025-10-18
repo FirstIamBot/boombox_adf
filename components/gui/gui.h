@@ -10,6 +10,7 @@ extern "C" {
 
 
 void task_gui(void *arg);
+void task_gui_calibrate(void *arg);
 
 #ifdef __cplusplus
 }

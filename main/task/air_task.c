@@ -1125,7 +1125,7 @@ void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
   // Проверка и получение данных RDS
   rdsTime = checkRDS(rx);
   if(rdsTime == 0){
-    ESP_LOGI(TAG, " No data RDS  ");
+    ESP_LOGD(TAG, " No data RDS  ");
     get_data->vcRDSdata = "   ";
   }
   else{
@@ -1273,7 +1273,7 @@ void init_air_player(BoomBox_config_t  *init_air_config)
 
 }
 
-void  deinit_air_player()
+void deinit_air_player()
 {
     audio_pipeline_stop(pipeline);
     audio_pipeline_wait_for_stop(pipeline);

@@ -22,6 +22,9 @@
 #include "disp_driver.h"
 #include "touch_driver.h"
 #include "commons.h"
+#include "lv_tc.h"
+#include "lv_tc_screen.h"
+#include "esp_nvs_tc.h"
  /*********************
  *      DEFINES
  *********************/
@@ -310,7 +313,66 @@ static void lv_tick_hook(void)
 /*********************************************************************************************
 *               Инициализация TFT и калибровка тачскрина
 **********************************************************************************************/
+void initCalcTFT( )
+{
+   lv_init();          
+   lvgl_driver_init(); 
 
+   /* Example for 1) */
+   static lv_disp_draw_buf_t draw_buf;
+   lv_color_t *buf1 = heap_caps_malloc((DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10) * sizeof(lv_color_t), MALLOC_CAP_DMA);
+   lv_color_t *buf2 = heap_caps_malloc((DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10) * sizeof(lv_color_t), MALLOC_CAP_DMA);
+
+   lv_disp_draw_buf_init(&draw_buf, buf1, buf2, (DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10)); /*Initialize the display buffer*/
+   /*---------------------------------------------------------------------------------------------------------------
+   * Display
+   * --------------------------------------------------------------------------------------------------------------*/
+   static lv_disp_drv_t disp_drv;         /*A variable to hold the drivers. Must be static or global.*/
+   lv_disp_drv_init(&disp_drv);           /*Basic initialization*/
+   disp_drv.draw_buf = &draw_buf;         /*Set an initialized buffer*/
+   disp_drv.flush_cb = disp_driver_flush; /*Set a flush callback to draw to the display*/
+   disp_drv.hor_res = DLV_HOR_RES_MAX;                /*Set the horizontal resolution in pixels*/
+   disp_drv.ver_res = DLV_VER_RES_MAX;                /*Set the vertical resolution in pixels*/
+   lv_disp_drv_register(&disp_drv);       /*Register the driver and save the created display objects*/
+
+    /*Initialize the (dummy) input device driver*/
+    /*------------------------------------------------------------------------------------------------------------------
+     * Encoder
+     * ----------------------------------------------------------------------------------------------------------------*/
+    //Initialize your encoder if you have
+    encoder_init();
+    //Register a encoder input device
+    lv_indev_drv_init(&encoder_indev_drv);
+    encoder_indev_drv.type = LV_INDEV_TYPE_ENCODER;
+    encoder_indev_drv.read_cb = encoder_read;
+    indev_encoder = lv_indev_drv_register(&encoder_indev_drv);
+    /*------------------------------------------------------------------------------------------------------------------
+     * Touchpad
+     * ----------------------------------------------------------------------------------------------------------------*/
+    /* Initialize the calibrated touch driver. */
+    lv_tc_indev_drv_init(&touch_indev_drv, touch_driver_read);// xpt2046_read
+    /* Register the driver. */
+    indev_touchpad = lv_indev_drv_register(&touch_indev_drv);
+    /* If using NVS: Register a calibration coefficients save callback. */
+    lv_tc_register_coeff_save_cb(esp_nvs_tc_coeff_save_cb);
+    /* Create the calibration screen. */
+    lv_obj_t *tCScreen = lv_tc_screen_create();
+    /* Register a callback for when the calibration finishes. An LV_EVENT_READY event is triggered. */
+    lv_obj_add_event_cb(tCScreen, tc_finish_cb, LV_EVENT_READY, NULL);
+    /* If using NVS: Init NVS and check for existing calibration data. */
+    /*--------------------------------------------------------------
+     * 
+    ----------------------------------------------------------------*/
+    if(esp_nvs_tc_coeff_init()) {
+        /* Данные существуют: продолжить обычное приложение, не показывая экран калибровки */
+         awgui();
+    } else {
+        /* Нет данных: загрузите экран калибровки, выполните калибровку */
+        lv_disp_load_scr(tCScreen);
+        lv_tc_screen_start(tCScreen);
+    }
+   esp_register_freertos_tick_hook(lv_tick_hook);
+}
 /**************************************************************************************
  *                            Основная задача GUI
  **************************************************************************************/
@@ -366,7 +428,7 @@ void task_gui(void *arg)
             Отправка данных от GUI к Boombox очередь xGuiToBoomboxQueue
         ******************************************************************************************/
        if(xTransmitGUItoBoombox.State == true){                 
-            if(pdTRUE != xQueueSend(xGuiToBoomboxQueue, &xTransmitGUItoBoombox, 50 / portTICK_PERIOD_MS)) 
+            if(pdTRUE != xQueueSend(xGuiToBoomboxQueue, &xTransmitGUItoBoombox, pdMS_TO_TICKS(100))) 
             {
                 ESP_LOGE(TAG, "Error to xGuiToBoomboxQueue");//??????????????????????
             }
@@ -382,5 +444,43 @@ void task_gui(void *arg)
             awgui_reload(xResivedBoomboxToGUI);
         }
 
+    }
+}
+
+void task_gui_calibrate(void *arg){
+
+   // Создаём семафор для lvgl
+    xGuiSemaphore = xSemaphoreCreateMutex();
+    initCalcTFT();
+
+    while (1)
+    {
+        /* Задержка на 10 мс */
+        vTaskDelay(pdMS_TO_TICKS(10));
+        /* Захватываем семафор и вызываем обработчик lvgl */
+        if (pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY))
+        {
+            lv_timer_handler();
+            xSemaphoreGive(xGuiSemaphore);
+        }
+       /*****************************************************************************************
+            Отправка данных от GUI к Boombox очередь xGuiToBoomboxQueue
+        ******************************************************************************************/
+       if(xTransmitGUItoBoombox.State == true){                 
+            if(pdTRUE != xQueueSend(xGuiToBoomboxQueue, &xTransmitGUItoBoombox, pdMS_TO_TICKS(100))) 
+            {
+                ESP_LOGE(TAG, "Error to xGuiToBoomboxQueue");//??????????????????????
+            }
+            xTransmitGUItoBoombox.State = false;
+        }
+        /*****************************************************************************************
+            Получаем данные из очереди xBoomboxToGuiQueue
+            и обновляем интерфейс с помощью awgui_reload
+         ******************************************************************************************/       
+ 
+        if(pdTRUE == xQueueReceive(xBoomboxToGuiQueue, &xResivedBoomboxToGUI, 50 / portTICK_PERIOD_MS))
+        {
+            awgui_reload(xResivedBoomboxToGUI);
+        }
     }
 }

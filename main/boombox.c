@@ -157,15 +157,16 @@ void boombox_task(void *pvParameters)
     }
     // Устанавливаем источник по умолчанию из конфигурации
     g_current_source = xBoomBox_config.eModeBoombox;
-
+    //init_bt_player(); // Функция инициализации Bluetooth плеера
 
     while (1) {
         /*****************************************************************************************
         *   Receive data from GUI
         ******************************************************************************************/
-        if(pdTRUE == xQueueReceive(xGuiToBoomboxQueue, &xResiveGUItoBoombox, pdPASS))
+        if(pdTRUE == xQueueReceive(xGuiToBoomboxQueue, &xResiveGUItoBoombox, pdMS_TO_TICKS(100)))
         {
             g_current_source = (audio_source_t)xResiveGUItoBoombox.eModeBoombox;// Обработка полученных данных
+            ESP_LOGI(TAG, "g_current_source = %d", g_current_source);
         }
         /******************************************************************************************
          * Обработка данных от GUI 
@@ -176,21 +177,23 @@ void boombox_task(void *pvParameters)
                 // Остановить HTTP плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 http_player_state = PLAYER_INACTIVE;
                 // deinit_http_player(); // Функция деинициализации HTTP плеера
-                ESP_LOGI(TAG, "http_player_state = PLAYER_INACTIVE;");
+                ESP_LOGD(TAG, "http_player_state = PLAYER_INACTIVE;");
             }
             else if(air_player_state == PLAYER_ACTIVE) {
                 boombox_config_save_to_nvs(&xBoomBox_config); // Сохраняем конфигурацию перед отключением AIR плеера
                 air_player_state = PLAYER_INACTIVE;// Остановить AIR плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
-                ESP_LOGI(TAG, "air_player_state = PLAYER_INACTIVE;");
+                ESP_LOGD(TAG, "air_player_state = PLAYER_INACTIVE;");
                 deinit_air_player(); // Функция деинициализации AIR плеера
             }
             else if(bt_player_state == PLAYER_INACTIVE) {
                 // Инициализация Bluetooth плеера, если он был неактивен
-                //init_bt_player();
                 ESP_LOGI(TAG, "Initializing Bluetooth player");
                 bt_player_state = PLAYER_ACTIVE;
+                //init_bt_player(); // Функция инициализации Bluetooth плеера
             }
-            //bt_player(&xResiveGUItoBoombox); // Запуск Bluetooth плеера
+            else{
+                bt_player_run(); // Запуск Bluetooth плеера
+            }
         } else if (g_current_source == SOURCE_HTTP) {
             ESP_LOGI(TAG, "Switching to HTTP player");
             if(air_player_state == PLAYER_ACTIVE) {
@@ -202,8 +205,8 @@ void boombox_task(void *pvParameters)
             else if(bt_player_state == PLAYER_ACTIVE) {
                 // Инициализация Bluetooth плеера, если он был неактивен
                 bt_player_state = PLAYER_INACTIVE;
-                ESP_LOGI(TAG, "Initializing Bluetooth player");
-                // deinit_bt_player(); // Функция деинициализации Bluetooth плеера
+                ESP_LOGI(TAG, "DeInitializing Bluetooth player");
+                //deinit_bt_player(); // Функция деинициализации Bluetooth плеера
             }
             else if(http_player_state == PLAYER_INACTIVE) {
                 // Остановить HTTP плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -218,7 +221,7 @@ void boombox_task(void *pvParameters)
                 // Остановить Bluetooth плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 bt_player_state = PLAYER_INACTIVE;
                 ESP_LOGI(TAG, "bt_player_state = PLAYER_INACTIVE;");
-                // deinit_bt_player(); // Функция деинициализации Bluetooth плеера
+                //deinit_bt_player(); // Функция деинициализации Bluetooth плеера
             }
             else if(http_player_state == PLAYER_ACTIVE) {
                 // Остановить AIR плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -246,6 +249,6 @@ void boombox_task(void *pvParameters)
             xTransmitBoomboxToGUI.State = false;
        }
        // После завершения работы плеера можно добавить логику ожидания или переключения
-       vTaskDelay(pdMS_TO_TICKS(1000));
+       vTaskDelay(pdMS_TO_TICKS(200));
     }
 }
