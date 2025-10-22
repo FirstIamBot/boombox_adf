@@ -340,12 +340,11 @@ void http_player_start( ) {
 
 // Функция проигрывателя HTTP радио
 void http_player_run( ){
-    while (1) {
         
         esp_err_t ret = audio_event_iface_listen(evt, &msg, portMAX_DELAY);
         if (ret != ESP_OK) {
             ESP_LOGE(TAG, "[ * ] Event interface error : %d", ret);
-            continue;
+            //continue;
         }
 
         if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
@@ -360,7 +359,7 @@ void http_player_run( ){
             ESP_LOGI(TAG, "[ * ] Receive music info url - %p ", music_info.uri);
 
             i2s_stream_set_clk(i2s_stream_writer, music_info.sample_rates, music_info.bits, music_info.channels);
-            continue;
+            //continue;
         }
 
         /* Stop when the last pipeline element (i2s_stream_writer in this case) receives stop event */
@@ -368,9 +367,9 @@ void http_player_run( ){
             && msg.cmd == AEL_MSG_CMD_REPORT_STATUS
             && (((int)msg.data == AEL_STATUS_STATE_STOPPED) || ((int)msg.data == AEL_STATUS_STATE_FINISHED))) {
             ESP_LOGW(TAG, "[ * ] Stop event received");
-            break;
+            //break;
         }
-    }
+
 }
 
 // Функция остановки проигрывателя HTTP радио

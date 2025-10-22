@@ -57,17 +57,20 @@ void init_bt_player( ) {
     esp_log_level_set("*", ESP_LOG_INFO);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
 
-    ESP_LOGI(TAG, "[ 1 ] Init Bluetooth");
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));
-    ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT));
-    ESP_ERROR_CHECK(esp_bluedroid_init());
-    ESP_ERROR_CHECK(esp_bluedroid_enable());
+    if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_IDLE) {
+        ESP_LOGI(TAG, "[ 1 ] Init Bluetooth");
+        ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
+        esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+        ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));
+        ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT));
+        ESP_ERROR_CHECK(esp_bluedroid_init());
+        ESP_ERROR_CHECK(esp_bluedroid_enable());
+        esp_bt_gap_set_device_name(nameBT);
+        esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+    } else {
+        ESP_LOGW(TAG, "BT controller already initialized, skipping init");
+    }
 
-    esp_bt_gap_set_device_name(nameBT);
-
-    esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
 
     ESP_LOGI(TAG, "[ 2 ] Start codec chip");
     audio_board_handle_t board_handle = audio_board_init();
@@ -98,7 +101,6 @@ void init_bt_player( ) {
 
     const char *link_tag[2] = {"bt", "i2s"};
     audio_pipeline_link(pipeline, &link_tag[0], 2);
-
 
     ESP_LOGI(TAG, "[ 5 ] Initialize peripherals");
     esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
@@ -172,14 +174,14 @@ void deinit_bt_player(){
 
     esp_periph_set_destroy(set);
 
-    esp_bluedroid_disable();
-    esp_bluedroid_deinit();
+    //esp_bluedroid_disable();
+    //esp_bluedroid_deinit();
 
-    esp_bt_controller_disable();
-    esp_bt_controller_deinit();
+    //esp_bt_controller_disable();
+    //esp_bt_controller_deinit();
 
-    bluetooth_service_destroy();
-    esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
+    //bluetooth_service_destroy();
+    //esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
     ESP_LOGI(TAG, "Bluetooth completely disabled");    
 
 }

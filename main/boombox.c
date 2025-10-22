@@ -157,7 +157,6 @@ void boombox_task(void *pvParameters)
     }
     // Устанавливаем источник по умолчанию из конфигурации
     g_current_source = xBoomBox_config.eModeBoombox;
-    //init_bt_player(); // Функция инициализации Bluetooth плеера
 
     while (1) {
         /*****************************************************************************************
@@ -176,7 +175,7 @@ void boombox_task(void *pvParameters)
             if(http_player_state == PLAYER_ACTIVE) {
                 // Остановить HTTP плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 http_player_state = PLAYER_INACTIVE;
-                // deinit_http_player(); // Функция деинициализации HTTP плеера
+                //http_player_stop(); // Функция деинициализации HTTP плеера
                 ESP_LOGD(TAG, "http_player_state = PLAYER_INACTIVE;");
             }
             else if(air_player_state == PLAYER_ACTIVE) {
@@ -189,7 +188,7 @@ void boombox_task(void *pvParameters)
                 // Инициализация Bluetooth плеера, если он был неактивен
                 ESP_LOGI(TAG, "Initializing Bluetooth player");
                 bt_player_state = PLAYER_ACTIVE;
-                //init_bt_player(); // Функция инициализации Bluetooth плеера
+                init_bt_player(); // Функция инициализации Bluetooth плеера
             }
             else{
                 bt_player_run(); // Запуск Bluetooth плеера
@@ -206,13 +205,17 @@ void boombox_task(void *pvParameters)
                 // Инициализация Bluetooth плеера, если он был неактивен
                 bt_player_state = PLAYER_INACTIVE;
                 ESP_LOGI(TAG, "DeInitializing Bluetooth player");
-                //deinit_bt_player(); // Функция деинициализации Bluetooth плеера
+                deinit_bt_player(); // Функция деинициализации Bluetooth плеера
             }
             else if(http_player_state == PLAYER_INACTIVE) {
                 // Остановить HTTP плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 http_player_state = PLAYER_ACTIVE;
                 ESP_LOGI(TAG, "http_player_state = PLAYER_ACTIVE;");
-                // init_http_player(); // Функция деинициализации HTTP плеера
+                //http_player_start( ); // Функция деинициализации HTTP плеера
+            }
+            else{
+                ESP_LOGI(TAG, " http_player_run ");
+                //http_player_run( );
             }
             //http_player(); // Запуск HTTP плеера
         } else if (g_current_source == SOURCE_AIR) {
@@ -221,13 +224,13 @@ void boombox_task(void *pvParameters)
                 // Остановить Bluetooth плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 bt_player_state = PLAYER_INACTIVE;
                 ESP_LOGI(TAG, "bt_player_state = PLAYER_INACTIVE;");
-                //deinit_bt_player(); // Функция деинициализации Bluetooth плеера
+                deinit_bt_player(); // Функция деинициализации Bluetooth плеера
             }
             else if(http_player_state == PLAYER_ACTIVE) {
                 // Остановить AIR плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 http_player_state = PLAYER_INACTIVE;
                 ESP_LOGI(TAG, "http_player_state = PLAYER_INACTIVE;");
-                // deinit_http_player(&xResiveGUItoBoombox); // Функция деинициализации AIR плеера
+                //http_player_stop(); // Функция деинициализации AIR плеера
             }
             else if(air_player_state == PLAYER_INACTIVE) {
                 air_player_state = PLAYER_ACTIVE;
