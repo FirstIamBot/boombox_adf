@@ -1,6 +1,7 @@
 
 #include "board.h"
 #include "bt_task.h"
+#include "commons.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -30,15 +31,14 @@
 #include "bluetooth_service.h"
 
 static const char *TAG = "BLUETOOTH_TASK";
-static const char *nameBT = "BOOMBOX";
 
 extern audio_pipeline_handle_t pipeline;
 extern audio_element_handle_t bt_stream_reader, i2s_stream_writer, selected_decoder;
-
 extern audio_event_iface_msg_t msg;
 extern audio_event_iface_handle_t evt;
 extern esp_periph_set_handle_t set; 
 extern audio_source_t g_current_source;
+extern BoomBox_config_t xBoomBox_config; // Глобальная структура конфигурации Boombox  
 
 esp_periph_handle_t bt_periph = NULL;
 
@@ -46,31 +46,8 @@ esp_periph_handle_t bt_periph = NULL;
 void init_bt_player( ) {
    ESP_LOGI(TAG, "[ * ] Bluetooth player started");
 
-    esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
-        // NVS partition was truncated and needs to be erased
-        // Retry nvs_flash_init
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
-
     esp_log_level_set("*", ESP_LOG_INFO);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
-
-    if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_IDLE) {
-        ESP_LOGI(TAG, "[ 1 ] Init Bluetooth");
-        ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
-        esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-        ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));
-        ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT));
-        ESP_ERROR_CHECK(esp_bluedroid_init());
-        ESP_ERROR_CHECK(esp_bluedroid_enable());
-        esp_bt_gap_set_device_name(nameBT);
-        esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
-    } else {
-        ESP_LOGW(TAG, "BT controller already initialized, skipping init");
-    }
-
 
     ESP_LOGI(TAG, "[ 2 ] Start codec chip");
     audio_board_handle_t board_handle = audio_board_init();
@@ -172,16 +149,7 @@ void deinit_bt_player(){
     audio_element_deinit(bt_stream_reader);
     audio_element_deinit(i2s_stream_writer);
 
-    esp_periph_set_destroy(set);
-
-    //esp_bluedroid_disable();
-    //esp_bluedroid_deinit();
-
-    //esp_bt_controller_disable();
-    //esp_bt_controller_deinit();
-
-    //bluetooth_service_destroy();
-    //esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
+    esp_periph_set_destroy(set);//?????????????????????????????????????????????????
     ESP_LOGI(TAG, "Bluetooth completely disabled");    
 
 }

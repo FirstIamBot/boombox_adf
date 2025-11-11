@@ -2,19 +2,25 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
+#include "nvs_flash.h"
+#include "nvs.h"
+#include "esp_netif.h"
+#include "esp_bt.h"
+#include "esp_bt_main.h"
+#include "esp_bt_device.h"
+#include "esp_gap_bt_api.h"
+#include "periph_wifi.h"
+
 #include "boombox.h"
 #include "bt_task.h"
 #include "http_task.h"
 #include "air_task.h"
 
-#include "nvs_flash.h"
-#include "nvs.h"
-
-
 #define NVS_NAMESPACE "boombox_cfg"
 #define CONFIG_KEY "config"
 
 static const char *TAG = "BOOMBOX_TASK";
+static const char *nameBT = "BOOMBOX";
 
 typedef enum {
     PLAYER_INACTIVE = 0,
@@ -110,7 +116,7 @@ void boombox_config_init_default(BoomBox_config_t *config)
     config->air_radio_config.currentStepFM = 1; // 1 - 10 КГц, 5 - 50КГц, 10 - 100 КГц
     config->air_radio_config.currentStepAM = 1;
     config->air_radio_config.currentFrequency = 10030;    
-    config->air_radio_config.currentVOL = 50;   // 0 = Минимум, 64 = Максимум
+    config->air_radio_config.currentVOL = 32;   // 0 = Минимум, 64 = Максимум
     config->air_radio_config.BandWidthFM = 0;     // AUT-0, 110-1
     config->air_radio_config.BandWidthAM = 0;     // 6kHz - 0
     config->air_radio_config.BandWidthSSB = 0;    // 1.2KHz - 0
@@ -125,30 +131,72 @@ void boombox_config_init_default(BoomBox_config_t *config)
     config->air_radio_config.air_SW_station.currentStationIndex = 0;
 
     for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        config->air_radio_config.air_FM_station.stations[i] = 0; // Инициализация массива частот станций
+        config->air_radio_config.air_FM_station.stations[i] = 0; // Инициализация массива FM частот станций
+        config->air_radio_config.air_LW_station.stations[i] = 0; // Инициализация массива LW частот станций
+        config->air_radio_config.air_MW_station.stations[i] = 0; // Инициализация массива MW частот станций
+        config->air_radio_config.air_SW_station.stations[i] = 0; // Инициализация массива SW частот станций
     }
-    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        config->air_radio_config.air_LW_station.stations[i] = 0; // Инициализация массива частот станций
-    } 
-    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        config->air_radio_config.air_MW_station.stations[i] = 0; // Инициализация массива частот станций
-    } 
-    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        config->air_radio_config.air_SW_station.stations[i] = 0; // Инициализация массива частот станций
-    }    
     ESP_LOGI(TAG, "Default configuration initialized");
 }
 
-void boombox_task(void *pvParameters)
+// Функция инициализации Bluetooth и WiFi coexistence
+esp_err_t init_bt_wifi_coex(void)
 {
-
+    esp_err_t ret = ESP_OK;
+    
+    ESP_LOGI(TAG, "Initializing Bluetooth and WiFi coexistence");
+    
     // Инициализация NVS
-    esp_err_t ret = nvs_flash_init();
+    ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
+    
+    // Инициализация сетевого интерфейса
+    ESP_ERROR_CHECK(esp_netif_init());
+    
+    // Инициализация Bluetooth контроллера (если еще не инициализирован)
+    if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_IDLE) {
+        ESP_LOGI(TAG, "Initializing Bluetooth controller");
+        ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
+        esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+        ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));
+        ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT));
+        ESP_ERROR_CHECK(esp_bluedroid_init());
+        ESP_ERROR_CHECK(esp_bluedroid_enable());
+    } else {
+        ESP_LOGW(TAG, "Bluetooth controller already initialized");
+    }
+    // Настройка Bluetooth устройства (предполагается, что контроллер уже инициализирован)
+    esp_bt_gap_set_device_name(nameBT);
+    esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+    ESP_LOGI(TAG, "Bluetooth and WiFi coexistence initialized successfully");
+    return ret;
+}
+
+// Функция деинициализации Bluetooth и WiFi coexistence
+void deinit_bt_wifi_coex(void)
+{
+    ESP_LOGI(TAG, "Deinitializing Bluetooth and WiFi coexistence");
+    
+    // Деинициализация Bluetooth (закомментировано для стабильности)
+    // if (esp_bt_controller_get_status() != ESP_BT_CONTROLLER_STATUS_IDLE) {
+    //     esp_bluedroid_disable();
+    //     esp_bluedroid_deinit();
+    //     esp_bt_controller_disable();
+    //     esp_bt_controller_deinit();
+    //     esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
+    // }
+    
+    ESP_LOGI(TAG, "Bluetooth and WiFi coexistence deinitialized");
+}
+
+void boombox_task(void *pvParameters)
+{
+    // Инициализация Bluetooth и WiFi coexistence
+    ESP_ERROR_CHECK(init_bt_wifi_coex());
 
     // Загрузка конфигурации из NVS
     if (boombox_config_load_from_nvs(&xBoomBox_config) != ESP_OK) {
@@ -175,7 +223,7 @@ void boombox_task(void *pvParameters)
             if(http_player_state == PLAYER_ACTIVE) {
                 // Остановить HTTP плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 http_player_state = PLAYER_INACTIVE;
-                //http_player_stop(); // Функция деинициализации HTTP плеера
+                deinit_http_player(); // Функция деинициализации HTTP плеера
                 ESP_LOGD(TAG, "http_player_state = PLAYER_INACTIVE;");
             }
             else if(air_player_state == PLAYER_ACTIVE) {
@@ -200,24 +248,33 @@ void boombox_task(void *pvParameters)
                 air_player_state = PLAYER_INACTIVE;// Остановить AIR плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 ESP_LOGI(TAG, "air_player_state = PLAYER_INACTIVE;");
                 deinit_air_player(); // Функция деинициализации AIR плеера
+                vTaskDelay(pdMS_TO_TICKS(500));
             }
             else if(bt_player_state == PLAYER_ACTIVE) {
                 // Инициализация Bluetooth плеера, если он был неактивен
                 bt_player_state = PLAYER_INACTIVE;
                 ESP_LOGI(TAG, "DeInitializing Bluetooth player");
-                deinit_bt_player(); // Функция деинициализации Bluetooth плеера
+                deinit_bt_player(); // Функция деинициализации Bluetooth плеера0
+                vTaskDelay(pdMS_TO_TICKS(500));
             }
             else if(http_player_state == PLAYER_INACTIVE) {
-                // Остановить HTTP плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
+                // Проверяем доступную память перед инициализацией
+                size_t free_heap = esp_get_free_heap_size();
+                ESP_LOGI(TAG, "Free heap before HTTP init: %d bytes", free_heap);
+                
+                if (free_heap < 200000) { // Минимум 200KB
+                    ESP_LOGE(TAG, "Insufficient memory for HTTP player: %d bytes", free_heap);
+                    //return; // или обработать ошибку по-другому
+                }
                 http_player_state = PLAYER_ACTIVE;
                 ESP_LOGI(TAG, "http_player_state = PLAYER_ACTIVE;");
-                //http_player_start( ); // Функция деинициализации HTTP плеера
+                init_http_player( ); // Функция инициализации HTTP плеера
             }
             else{
                 ESP_LOGI(TAG, " http_player_run ");
-                //http_player_run( );
+                http_player_run( );
             }
-            //http_player(); // Запуск HTTP плеера
+            //http_player_run(); // Запуск HTTP плеера
         } else if (g_current_source == SOURCE_AIR) {
             //ESP_LOGI(TAG, "Switching to AIR radio player");
             if(bt_player_state == PLAYER_ACTIVE) {
@@ -230,11 +287,12 @@ void boombox_task(void *pvParameters)
                 // Остановить AIR плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 http_player_state = PLAYER_INACTIVE;
                 ESP_LOGI(TAG, "http_player_state = PLAYER_INACTIVE;");
-                //http_player_stop(); // Функция деинициализации AIR плеера
+                deinit_http_player(); // Функция деинициализации AIR плеера
             }
             else if(air_player_state == PLAYER_INACTIVE) {
                 air_player_state = PLAYER_ACTIVE;
                 ESP_LOGI(TAG, "Initializing Air player");                
+                boombox_config_load_from_nvs(&xBoomBox_config); // Загружаем конфигурацию перед инициализацией AIR плеера
                 init_air_player(&xBoomBox_config); // Функция инициализации AIR плеера
             }
             else {

@@ -559,20 +559,13 @@ void scan_radio_band(SI4735_t *rx, air_config_t *cnfg) {
     uint16_t min_freq = 0;
     uint16_t max_freq = 0;
     uint8_t step = 0;
-    uint8_t count = 0;
-
+    count = 0;
     for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        cnfg->air_FM_station.stations[i] = 0; // Инициализация массива частот станций
+      cnfg->air_FM_station.stations[i] = 0; // Инициализация массива FM частот станций
+      cnfg->air_LW_station.stations[i] = 0; // Инициализация массива LW частот станций
+      cnfg->air_MW_station.stations[i] = 0; // Инициализация массива MW частот станций
+      cnfg->air_SW_station.stations[i] = 0; // Инициализация массива SW частот станций
     }
-    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        cnfg->air_LW_station.stations[i] = 0; // Инициализация массива частот станций
-    } 
-    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        cnfg->air_MW_station.stations[i] = 0; // Инициализация массива частот станций
-    } 
-    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        cnfg->air_SW_station.stations[i] = 0; // Инициализация массива частот станций
-    }  
 
     if(cnfg->currentBandType == FM_BAND_TYPE) {
       step = stepFM[FM_BAND_TYPE].idx;
@@ -602,7 +595,6 @@ void scan_radio_band(SI4735_t *rx, air_config_t *cnfg) {
     for (; freq <= max_freq && count < MAX_FOUND_STATIONS; freq += step) {
         setFrequency(rx, freq);
         vTaskDelay(pdMS_TO_TICKS(80)); // задержка для стабилизации
-
         getCurrentReceivedSignalQuality(rx, 0);
         uint8_t rssi = getCurrentRSSI(rx);
         uint8_t snr  = getCurrentSNR(rx);
@@ -623,6 +615,13 @@ void scan_radio_band(SI4735_t *rx, air_config_t *cnfg) {
             count++;
         }
     }
+    // Вывести все найденные FM станции
+    ESP_LOGI(TAG, "FM станции (кол-во: %d):", MAX_FOUND_STATIONS);
+    for (int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        if (cnfg->air_FM_station.stations[i] != 0) {
+            ESP_LOGI(TAG, "[%2d] %u", i, cnfg->air_FM_station.stations[i]);
+        }
+    }
 }
 
 void seek_radio_band(SI4735_t *rx, air_config_t *cnfg) {
@@ -632,20 +631,14 @@ void seek_radio_band(SI4735_t *rx, air_config_t *cnfg) {
     uint16_t min_freq = 0;
     uint16_t max_freq = 0;
     uint8_t step = 0;
-    //uint8_t count = 0;
+    count = 0;
     // Инициализация массива частот станций
     for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        cnfg->air_FM_station.stations[i] = 0; 
+      cnfg->air_FM_station.stations[i] = 0; // Инициализация массива FM частот станций
+      cnfg->air_LW_station.stations[i] = 0; // Инициализация массива LW частот станций
+      cnfg->air_MW_station.stations[i] = 0; // Инициализация массива MW частот станций
+      cnfg->air_SW_station.stations[i] = 0; // Инициализация массива SW частот станций
     }
-    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        cnfg->air_LW_station.stations[i] = 0; // Инициализация массива частот станций
-    } 
-    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        cnfg->air_MW_station.stations[i] = 0; // Инициализация массива частот станций
-    } 
-    for(int i = 0; i < MAX_FOUND_STATIONS; i++) {
-        cnfg->air_SW_station.stations[i] = 0; // Инициализация массива частот станций
-    }  
 
     if(cnfg->currentBandType == FM_BAND_TYPE) {
       max_freq = band[FM_BAND_TYPE].maximumFreq;
@@ -687,16 +680,17 @@ void seek_radio_band(SI4735_t *rx, air_config_t *cnfg) {
           else if(cnfg->currentBandType == SW_BAND_TYPE) {
               cnfg->air_SW_station.stations[count] = freq;
           }
-          count++;
+          //count++;
         }
     }
-// Вывести все найденные FM станции
-ESP_LOGI(TAG, "FM станции (кол-во: %d):", MAX_FOUND_STATIONS);
-for (int i = 0; i < MAX_FOUND_STATIONS; i++) {
-    if (cnfg->air_FM_station.stations[i] != 0) {
-        ESP_LOGI(TAG, "[%2d] %u", i, cnfg->air_FM_station.stations[i]);
+    count = 0;
+    // Вывести все найденные FM станции
+    ESP_LOGI(TAG, "FM станции (кол-во: %d):", MAX_FOUND_STATIONS);
+    for (int i = 0; i < MAX_FOUND_STATIONS; i++) {
+        if (cnfg->air_FM_station.stations[i] != 0) {
+            ESP_LOGI(TAG, "[%2d] %u", i, cnfg->air_FM_station.stations[i]);
+        }
     }
-}
 }
 
 void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
@@ -929,8 +923,8 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
   }
   else if(set_data->eDataDescription == UP_SEEK){
     ESP_LOGD(TAG, "******* Air Radio - UP_SEEK = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
-    //scan_radio_band(rx, set);
-    seek_radio_band(rx, set);
+    scan_radio_band(rx, set);
+    //seek_radio_band(rx, set);
     if(set->currentBandType == FM_BAND_TYPE) {
       set->currentFrequency = set->air_FM_station.stations[0];
       setFrequency(rx, set->currentFrequency);
@@ -1152,14 +1146,6 @@ void init_air_player(BoomBox_config_t  *init_air_config)
     ESP_LOGI(TAG, "[ * ] Air player started");
     //export from pipeline i2s_stream_writer -  board.c ;
 
-    esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
-        // NVS partition was truncated and needs to be erased
-        // Retry nvs_flash_init
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
-
     esp_log_level_set("*", ESP_LOG_INFO);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
 
@@ -1305,7 +1291,7 @@ void air_player( Data_GUI_Boombox_t *xDataGUI,  Data_Boombox_GUI_t *xDataBoomBox
 {
     //print_data_gui_detailed_to_console(xDataGUI);// Вывод данных xDataGUI в консоль для отладки
     if(xDataGUI->State == true){
-      ESP_LOGW(TAG, "xDataGUI.State: %d", xDataGUI->State);
+      ESP_LOGD(TAG, "xDataGUI.State: %d", xDataGUI->State);
       set_radio(rx_radio, xDataGUI, &xBoomBox_config.air_radio_config);
       xDataGUI->State = false;
     }

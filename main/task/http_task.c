@@ -2,6 +2,7 @@
 #include "board.h"
 
 #include "http_task.h"
+#include "commons.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -24,15 +25,13 @@
 
 static const char *TAG = "HTTP_PLAYER";
 
-
-//extern audio_source_t g_current_source;
 extern audio_pipeline_handle_t pipeline;
 extern audio_element_handle_t http_stream_reader, i2s_stream_writer, selected_decoder;
 extern audio_event_iface_msg_t msg;
 extern audio_event_iface_handle_t evt;
 extern esp_periph_set_handle_t set; 
 extern audio_source_t g_current_source;
-
+extern BoomBox_config_t xBoomBox_config; // Глобальная структура конфигурации Boombox  
 //*********************************************************************************************************************
 //#define SELECT_AAC_DECODER 1
 #define SELECT_MP3_DECODER 1
@@ -69,190 +68,17 @@ static const char *selected_file_to_play = "https://dl.espressif.com/dl/audio/ff
 //*********************************************************************************************************************
 
 
-void http_player()
-{
-    ESP_LOGI(TAG, "[ * ] HTTP player started");
-       esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
-        // NVS partition was truncated and needs to be erased
-        // Retry nvs_flash_init
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
-
-    ESP_ERROR_CHECK(esp_netif_init());
-
-    esp_log_level_set("*", ESP_LOG_WARN);
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
-
-    ESP_LOGI(TAG, "[ 1 ] Start audio codec chip");
-    audio_board_handle_t board_handle = audio_board_init();
-    audio_hal_ctrl_codec(board_handle->audio_hal, AUDIO_HAL_CODEC_MODE_DECODE, AUDIO_HAL_CTRL_START);
-
-    ESP_LOGI(TAG, "[2.0] Create audio pipeline for playback");
-    audio_pipeline_cfg_t pipeline_cfg = DEFAULT_AUDIO_PIPELINE_CONFIG();
-    pipeline = audio_pipeline_init(&pipeline_cfg);
-    mem_assert(pipeline);
-
-    ESP_LOGI(TAG, "[2.1] Create http stream to read data");
-    http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
-    http_cfg.out_rb_size = 1024 * 1024;
-    http_stream_reader = http_stream_init(&http_cfg);
-
-    ESP_LOGI(TAG, "[2.2] Create %s decoder to decode %s file", selected_decoder_name, selected_decoder_name);
-
-#if defined SELECT_AAC_DECODER
-    aac_decoder_cfg_t aac_cfg = DEFAULT_AAC_DECODER_CONFIG();
-    selected_decoder = aac_decoder_init(&aac_cfg);
-#elif defined SELECT_AMR_DECODER
-    amr_decoder_cfg_t amr_cfg = DEFAULT_AMR_DECODER_CONFIG();
-    selected_decoder = amr_decoder_init(&amr_cfg);
-#elif defined SELECT_FLAC_DECODER
-    flac_decoder_cfg_t flac_cfg = DEFAULT_FLAC_DECODER_CONFIG();
-    flac_cfg.out_rb_size = 500 * 1024;
-    selected_decoder = flac_decoder_init(&flac_cfg);
-#elif defined SELECT_MP3_DECODER
-    mp3_decoder_cfg_t mp3_cfg = DEFAULT_MP3_DECODER_CONFIG();
-    selected_decoder = mp3_decoder_init(&mp3_cfg);
-#elif defined SELECT_OGG_DECODER
-    ogg_decoder_cfg_t ogg_cfg = DEFAULT_OGG_DECODER_CONFIG();
-    selected_decoder = ogg_decoder_init(&ogg_cfg);
-#elif defined SELECT_OPUS_DECODER
-    opus_decoder_cfg_t opus_cfg = DEFAULT_OPUS_DECODER_CONFIG();
-    selected_decoder = decoder_opus_init(&opus_cfg);
-#else
-    wav_decoder_cfg_t wav_cfg = DEFAULT_WAV_DECODER_CONFIG();
-    selected_decoder = wav_decoder_init(&wav_cfg);
-#endif
-
-    ESP_LOGI(TAG, "[2.3] Create i2s stream to write data to codec chip");
-    i2s_stream_cfg_t i2s_cfg = I2S_STREAM_CFG_DEFAULT();
-    i2s_cfg.type = AUDIO_STREAM_WRITER;
-    i2s_stream_writer = i2s_stream_init(&i2s_cfg);
-
-    ESP_LOGI(TAG, "[2.4] Register all elements to audio pipeline");
-    audio_pipeline_register(pipeline, http_stream_reader, "http");
-    audio_pipeline_register(pipeline, selected_decoder,    selected_decoder_name);
-    audio_pipeline_register(pipeline, i2s_stream_writer,  "i2s");
-
-    ESP_LOGI(TAG, "[2.5] Link it together http_stream-->%s_decoder-->i2s_stream-->[codec_chip]", selected_decoder_name);
-    const char *link_tag[3] = {"http", selected_decoder_name, "i2s"};
-    audio_pipeline_link(pipeline, &link_tag[0], 3);
-
-    ESP_LOGI(TAG, "[2.6] Set up  uri (http as http_stream, %s as %s_decoder, and default output is i2s)",
-             selected_decoder_name, selected_decoder_name);
-    audio_element_set_uri(http_stream_reader, selected_file_to_play);
-
-    ESP_LOGI(TAG, "[ 3 ] Start and wait for Wi-Fi network");
-    esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
-    set = esp_periph_set_init(&periph_cfg);
-    periph_wifi_cfg_t wifi_cfg = {
-        .wifi_config.sta.ssid = CONFIG_WIFI_SSID,
-        .wifi_config.sta.password = CONFIG_WIFI_PASSWORD,
-    };
-    esp_periph_handle_t wifi_handle = periph_wifi_init(&wifi_cfg);
-    esp_periph_start(set, wifi_handle);
-    periph_wifi_wait_for_connected(wifi_handle, portMAX_DELAY);
-
-    ESP_LOGI(TAG, "[ 4 ] Set up  event listener");
-    audio_event_iface_cfg_t evt_cfg = AUDIO_EVENT_IFACE_DEFAULT_CFG();
-    audio_event_iface_handle_t evt = audio_event_iface_init(&evt_cfg);
-
-    ESP_LOGI(TAG, "[4.1] Listening event from all elements of pipeline");
-    audio_pipeline_set_listener(pipeline, evt);
-
-    ESP_LOGI(TAG, "[4.2] Listening event from peripherals");
-    audio_event_iface_set_listener(esp_periph_set_get_event_iface(set), evt);
-
-    ESP_LOGI(TAG, "[ 5 ] Start audio_pipeline");
-    audio_pipeline_run(pipeline);
-
-    while (1) {
-        //audio_event_iface_msg_t msg;
-        esp_err_t ret = audio_event_iface_listen(evt, &msg, portMAX_DELAY);
-        if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "[ * ] Event interface error : %d", ret);
-            continue;
-        }
-
-        if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
-            && msg.source == (void *) selected_decoder
-            && msg.cmd == AEL_MSG_CMD_REPORT_MUSIC_INFO) {
-            audio_element_info_t music_info = {0};
-            audio_element_getinfo(selected_decoder, &music_info);
-
-            ESP_LOGI(TAG, "[ * ] Receive music info from %s decoder, sample_rates=%d, bits=%d, ch=%d",
-                     selected_decoder_name, music_info.sample_rates, music_info.bits, music_info.channels);
-
-            ESP_LOGI(TAG, "[ * ] Receive music info url - %p ", music_info.uri);
-
-            i2s_stream_set_clk(i2s_stream_writer, music_info.sample_rates, music_info.bits, music_info.channels);
-            continue;
-        }
-
-        /* Stop when the last pipeline element (i2s_stream_writer in this case) receives stop event */
-        if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT && msg.source == (void *) i2s_stream_writer
-            && msg.cmd == AEL_MSG_CMD_REPORT_STATUS
-            && (((int)msg.data == AEL_STATUS_STATE_STOPPED) || ((int)msg.data == AEL_STATUS_STATE_FINISHED))) {
-            ESP_LOGW(TAG, "[ * ] Stop event received");
-            break;
-        }
-    }
-
-    ESP_LOGI(TAG, "[ 6 ] Stop audio_pipeline and release all resources");
-    
-    
-    audio_pipeline_stop(pipeline);
-    audio_pipeline_wait_for_stop(pipeline);
-    audio_pipeline_terminate(pipeline);
-    audio_pipeline_unregister(pipeline, http_stream_reader);
-    audio_pipeline_unregister(pipeline, i2s_stream_writer);
-    audio_pipeline_unregister(pipeline, selected_decoder);
-
-    /* Terminate the pipeline before removing the listener */
-    audio_pipeline_remove_listener(pipeline);
-
-    /* Stop all peripherals before removing the listener */
-    esp_periph_set_stop_all(set);
-    audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt);
-
-    /* Make sure audio_pipeline_remove_listener & audio_event_iface_remove_listener are called before destroying event_iface */
-    audio_event_iface_destroy(evt);
-
-    /* Release all resources */
-    audio_pipeline_deinit(pipeline);
-    audio_element_deinit(http_stream_reader);
-    audio_element_deinit(i2s_stream_writer);
-    audio_element_deinit(selected_decoder);
-    esp_periph_set_destroy(set);
-}
-
-void http_player_task(void *pvParameters)
-{
-    while (1) {
-        if (g_current_source == SOURCE_HTTP) {
-            http_player();
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
-
-
 // Функция запуска проигрывателя HTTP радио
-void http_player_start( ) {
+void init_http_player( ) {
   ESP_LOGI(TAG, "[ * ] HTTP player started");
-       esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
-        // NVS partition was truncated and needs to be erased
-        // Retry nvs_flash_init
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
-
-    ESP_ERROR_CHECK(esp_netif_init());
 
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
+
+    
+    // Проверка доступной памяти перед началом
+    size_t free_heap = esp_get_free_heap_size();
+    ESP_LOGW(TAG, "Free heap before HTTP init: %d bytes", free_heap);
 
     ESP_LOGI(TAG, "[ 1 ] Start audio codec chip");
     audio_board_handle_t board_handle = audio_board_init();
@@ -265,8 +91,22 @@ void http_player_start( ) {
 
     ESP_LOGI(TAG, "[2.1] Create http stream to read data");
     http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
-    http_cfg.out_rb_size = 1024 * 1024;
+    http_cfg.out_rb_size = 1024 * 1024; // Уменьшено с 1MB до 128KB
     http_stream_reader = http_stream_init(&http_cfg);
+
+        // Динамический выбор размера буфера в зависимости от доступной памяти
+    size_t current_free = esp_get_free_heap_size();
+    if (current_free > 300000) {
+        http_cfg.out_rb_size = 256 * 1024; // 256KB при хорошей памяти
+    } else if (current_free > 200000) {
+        http_cfg.out_rb_size = 128 * 1024; // 128KB при средней памяти
+    } else {
+        http_cfg.out_rb_size = 64 * 1024;  // 64KB при низкой памяти
+    }
+    
+    ESP_LOGW(TAG, "HTTP buffer size: %d KB, free heap: %d bytes", 
+             http_cfg.out_rb_size/1024, current_free);
+
 
     ESP_LOGI(TAG, "[2.2] Create %s decoder to decode %s file", selected_decoder_name, selected_decoder_name);
 
@@ -373,30 +213,63 @@ void http_player_run( ){
 }
 
 // Функция остановки проигрывателя HTTP радио
-void http_player_stop(){
+void deinit_http_player(){
     ESP_LOGI(TAG, "[ 6 ] Stop audio_pipeline and release all resources");
 
-    audio_pipeline_stop(pipeline);
-    audio_pipeline_wait_for_stop(pipeline);
-    audio_pipeline_terminate(pipeline);
-    audio_pipeline_unregister(pipeline, http_stream_reader);
-    audio_pipeline_unregister(pipeline, i2s_stream_writer);
-    audio_pipeline_unregister(pipeline, selected_decoder);
+    // Сначала останавливаем пайплайн
+    if (pipeline) {
+        audio_pipeline_stop(pipeline);
+        audio_pipeline_wait_for_stop(pipeline);
+        audio_pipeline_terminate(pipeline);
+        
+        // Удаляем элементы из пайплайна
+        if (http_stream_reader) {
+            audio_pipeline_unregister(pipeline, http_stream_reader);
+        }
+        if (i2s_stream_writer) {
+            audio_pipeline_unregister(pipeline, i2s_stream_writer);
+        }
+        if (selected_decoder) {
+            audio_pipeline_unregister(pipeline, selected_decoder);
+        }
 
-    /* Terminate the pipeline before removing the listener */
-    audio_pipeline_remove_listener(pipeline);
+        /* Terminate the pipeline before removing the listener */
+        audio_pipeline_remove_listener(pipeline);
+        
+        // Освобождаем пайплайн
+        audio_pipeline_deinit(pipeline);
+        pipeline = NULL;
+    }
 
     /* Stop all peripherals before removing the listener */
-    esp_periph_set_stop_all(set);
-    audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt);
+    if (set) {
+        esp_periph_set_stop_all(set);
+        if (evt) {
+            audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt);
+        }
+        esp_periph_set_destroy(set);
+        set = NULL;
+    }
 
     /* Make sure audio_pipeline_remove_listener & audio_event_iface_remove_listener are called before destroying event_iface */
-    audio_event_iface_destroy(evt);
+    if (evt) {
+        audio_event_iface_destroy(evt);
+        evt = NULL;
+    }
 
     /* Release all resources */
-    audio_pipeline_deinit(pipeline);
-    audio_element_deinit(http_stream_reader);
-    audio_element_deinit(i2s_stream_writer);
-    audio_element_deinit(selected_decoder);
-    esp_periph_set_destroy(set);
+    if (http_stream_reader) {
+        audio_element_deinit(http_stream_reader);
+        http_stream_reader = NULL;
+    }
+    if (i2s_stream_writer) {
+        audio_element_deinit(i2s_stream_writer);
+        i2s_stream_writer = NULL;
+    }
+    if (selected_decoder) {
+        audio_element_deinit(selected_decoder);
+        selected_decoder = NULL;
+    }
+    
+    ESP_LOGI(TAG, "HTTP player deinitialized successfully");
 }

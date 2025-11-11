@@ -2,9 +2,9 @@
 #include "board.h"
 
 
-void http_player();
-void http_player_task(void *pvParameters);
 
-void http_player_start( );
+void init_http_player( );
 void http_player_run( );
-void http_player_stop();
+void deinit_http_player();
+
+void n_init_http_player( );
