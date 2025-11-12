@@ -15,7 +15,7 @@
 #include "custom.h"
 #include "custom.h"
 
-#include "encoder.h"
+//#include "encoder.h"
 #include "driver/gpio.h"
 #include "driver/pcnt.h"
 
@@ -70,17 +70,17 @@ TaskHandle_t TaskRadio;
 TaskHandle_t *TaskBT;
 
 extern int slider_vol;
-rotary_encoder_event_t e;
+//rotary_encoder_event_t e;
 int32_t new_value;
 
 // Очередь событий энкодера и структура энкодера
 static QueueHandle_t event_queue;
-static rotary_encoder_t re;
+///static rotary_encoder_t re;
 
 
 /**************************************************************************************
 *                             Прототипы функций
-**************************************************************************************/
+
 
 // Инициализация энкодера и очереди событий
 void encoder_init(void) {
@@ -175,7 +175,7 @@ void encoder_read(lv_indev_drv_t * drv, lv_indev_data_t * data) {
     }
     e.type = -1;     
 }
-
+**************************************************************************************/
 /**
  * @brief Преобразует число в строку (char array)
  * @details Используется для экономии памяти по сравнению с sprintf и аналогами.
@@ -338,7 +338,7 @@ void initCalcTFT( )
     /*Initialize the (dummy) input device driver*/
     /*------------------------------------------------------------------------------------------------------------------
      * Encoder
-     * ----------------------------------------------------------------------------------------------------------------*/
+     
     //Initialize your encoder if you have
     encoder_init();
     //Register a encoder input device
@@ -346,6 +346,7 @@ void initCalcTFT( )
     encoder_indev_drv.type = LV_INDEV_TYPE_ENCODER;
     encoder_indev_drv.read_cb = encoder_read;
     indev_encoder = lv_indev_drv_register(&encoder_indev_drv);
+    * ----------------------------------------------------------------------------------------------------------------*/
     /*------------------------------------------------------------------------------------------------------------------
      * Touchpad
      * ----------------------------------------------------------------------------------------------------------------*/

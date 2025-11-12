@@ -65,7 +65,7 @@ void init_bt_player( ) {
     ESP_LOGI(TAG, "[4.1] Get Bluetooth stream");
     a2dp_stream_config_t a2dp_config = {
         .type = AUDIO_STREAM_READER,
-        .user_callback = {0},
+        .user_callback = {0},// добавить функцию обратного вызова для обработки блютоз
 
     };
     bt_stream_reader = a2dp_stream_init(&a2dp_config);

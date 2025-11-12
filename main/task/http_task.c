@@ -91,10 +91,9 @@ void init_http_player( ) {
 
     ESP_LOGI(TAG, "[2.1] Create http stream to read data");
     http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
-    http_cfg.out_rb_size = 1024 * 1024; // Уменьшено с 1MB до 128KB
-    http_stream_reader = http_stream_init(&http_cfg);
+    //http_cfg.out_rb_size = 1024 * 1024; // Уменьшено с 1MB до 128KB
 
-        // Динамический выбор размера буфера в зависимости от доступной памяти
+    // Динамический выбор размера буфера в зависимости от доступной памяти
     size_t current_free = esp_get_free_heap_size();
     if (current_free > 300000) {
         http_cfg.out_rb_size = 256 * 1024; // 256KB при хорошей памяти
@@ -106,9 +105,10 @@ void init_http_player( ) {
     
     ESP_LOGW(TAG, "HTTP buffer size: %d KB, free heap: %d bytes", 
              http_cfg.out_rb_size/1024, current_free);
+    
+    http_stream_reader = http_stream_init(&http_cfg);
 
-
-    ESP_LOGI(TAG, "[2.2] Create %s decoder to decode %s file", selected_decoder_name, selected_decoder_name);
+    ESP_LOGW(TAG, "[2.2] Create %s decoder to decode %s file", selected_decoder_name, selected_decoder_name);
 
 #if defined SELECT_AAC_DECODER
     aac_decoder_cfg_t aac_cfg = DEFAULT_AAC_DECODER_CONFIG();
@@ -141,7 +141,7 @@ void init_http_player( ) {
 
     ESP_LOGI(TAG, "[2.4] Register all elements to audio pipeline");
     audio_pipeline_register(pipeline, http_stream_reader, "http");
-    audio_pipeline_register(pipeline, selected_decoder,    selected_decoder_name);
+    audio_pipeline_register(pipeline, selected_decoder, selected_decoder_name);
     audio_pipeline_register(pipeline, i2s_stream_writer,  "i2s");
 
     ESP_LOGI(TAG, "[2.5] Link it together http_stream-->%s_decoder-->i2s_stream-->[codec_chip]", selected_decoder_name);
@@ -155,13 +155,16 @@ void init_http_player( ) {
     ESP_LOGI(TAG, "[ 3 ] Start and wait for Wi-Fi network");
     esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
     esp_periph_set_handle_t set = esp_periph_set_init(&periph_cfg);
-    periph_wifi_cfg_t wifi_cfg = {
+    /*    */
+        periph_wifi_cfg_t wifi_cfg = {
         .wifi_config.sta.ssid = CONFIG_WIFI_SSID,
         .wifi_config.sta.password = CONFIG_WIFI_PASSWORD,
     };
     esp_periph_handle_t wifi_handle = periph_wifi_init(&wifi_cfg);
     esp_periph_start(set, wifi_handle);
     periph_wifi_wait_for_connected(wifi_handle, portMAX_DELAY);
+
+
 
     ESP_LOGI(TAG, "[ 4 ] Set up  event listener");
     audio_event_iface_cfg_t evt_cfg = AUDIO_EVENT_IFACE_DEFAULT_CFG();
