@@ -41,7 +41,26 @@ extern audio_source_t g_current_source;
 extern BoomBox_config_t xBoomBox_config; // Глобальная структура конфигурации Boombox  
 
 esp_periph_handle_t bt_periph = NULL;
+static bool g_a2dp_connect_state = false;
 
+static void user_a2dp_sink_cb(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *param)
+{
+    ESP_LOGI(TAG, "A2DP sink user cb");
+    switch (event) {
+        case ESP_A2D_CONNECTION_STATE_EVT:
+            if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_DISCONNECTED) {
+                ESP_LOGI(TAG, "A2DP disconnected");
+                g_a2dp_connect_state = false;
+            } else if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_CONNECTED) {
+                ESP_LOGI(TAG, "A2DP connected");
+                g_a2dp_connect_state = true;
+            }
+            break;
+        default:
+            ESP_LOGI(TAG, "User cb A2DP event: %d", event);
+            break;
+    }
+}
 // Функция запуска BT проигрывателя 
 void init_bt_player( ) {
    ESP_LOGI(TAG, "[ * ] Bluetooth player started");
@@ -65,7 +84,8 @@ void init_bt_player( ) {
     ESP_LOGI(TAG, "[4.1] Get Bluetooth stream");
     a2dp_stream_config_t a2dp_config = {
         .type = AUDIO_STREAM_READER,
-        .user_callback = {0},
+        //.user_callback = {0},
+        .user_callback.user_a2d_cb = user_a2dp_sink_cb,
 
     };
     bt_stream_reader = a2dp_stream_init(&a2dp_config);

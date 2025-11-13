@@ -224,7 +224,6 @@ void boombox_task(void *pvParameters)
                 // Остановить HTTP плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 http_player_state = PLAYER_INACTIVE;
                 deinit_http_player(); // Функция деинициализации HTTP плеера
-                ESP_LOGD(TAG, "http_player_state = PLAYER_INACTIVE;");
             }
             else if(air_player_state == PLAYER_ACTIVE) {
                 boombox_config_save_to_nvs(&xBoomBox_config); // Сохраняем конфигурацию перед отключением AIR плеера
@@ -261,11 +260,6 @@ void boombox_task(void *pvParameters)
                 // Проверяем доступную память перед инициализацией
                 size_t free_heap = esp_get_free_heap_size();
                 ESP_LOGI(TAG, "Free heap before HTTP init: %d bytes", free_heap);
-                
-                if (free_heap < 200000) { // Минимум 200KB
-                    ESP_LOGE(TAG, "Insufficient memory for HTTP player: %d bytes", free_heap);
-                    //return; // или обработать ошибку по-другому
-                }
                 http_player_state = PLAYER_ACTIVE;
                 ESP_LOGI(TAG, "http_player_state = PLAYER_ACTIVE;");
                 init_http_player( ); // Функция инициализации HTTP плеера
@@ -274,7 +268,6 @@ void boombox_task(void *pvParameters)
                 ESP_LOGI(TAG, " http_player_run ");
                 http_player_run( );
             }
-            //http_player_run(); // Запуск HTTP плеера
         } else if (g_current_source == SOURCE_AIR) {
             //ESP_LOGI(TAG, "Switching to AIR radio player");
             if(bt_player_state == PLAYER_ACTIVE) {

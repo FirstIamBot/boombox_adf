@@ -161,8 +161,6 @@ esp_err_t i2c_master_init(void)
         bus_handle = NULL;
         return ret;
     }
-    
-    ESP_LOGW(TAG, "I2C master initialized successfully");
     return ESP_OK;
 }
 
