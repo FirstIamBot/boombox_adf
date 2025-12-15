@@ -1244,7 +1244,7 @@ void setup_scr_pageAirradio(lv_ui *ui)
 
     //Write codes pageAirradio_btnm_band
     ui->pageAirradio_btnm_band = lv_btnmatrix_create(ui->pageAirradio);
-    static const char *pageAirradio_btnm_band_text_map[] = {"2220M", "630M", "160M", "120M", "90M", "\n", "80M", "75M", "60M", "49M", "40M", "\n", "41M", "31M", "30M", "25M", "22M", "\n", "20M", "19M", "17M", "16M", "15M", "\n", "15M", "13M", "12M", "11M", "10M", "",};
+    static const char *pageAirradio_btnm_band_text_map[] = {"FM", "630M", "160M", "120M", "90M", "\n", "80M", "75M", "60M", "49M", "40M", "\n", "41M", "31M", "30M", "25M", "22M", "\n", "20M", "19M", "17M", "16M", "15M", "\n", "15M", "13M", "12M", "11M", "10M", "",};
     lv_btnmatrix_set_map(ui->pageAirradio_btnm_band, pageAirradio_btnm_band_text_map);
     lv_obj_set_pos(ui->pageAirradio_btnm_band, 7, 8);
     lv_obj_set_size(ui->pageAirradio_btnm_band, 305, 228);

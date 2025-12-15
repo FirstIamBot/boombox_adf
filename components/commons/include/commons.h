@@ -60,18 +60,18 @@ typedef enum
 //=================  Структура данных обработки нажатия кнопок lvgl ==============
 typedef enum
 {
-    ebandIDx = 1,       // Выбор диапазона. ucValue = LW-0, MW-1, Sw-2, FM-3 
-    eModIdx = 2,        // Выбор модуляции. ucValue = AM-0, FM-1, LSB-2, USB-3, SSB-4
-    eStepFM = 3,        // Шаг перестройки FM
-    eStepAM = 4,        // Шаг перестройки AM
-    eBandWFM = 5,       // Полоса пропускания FM. 
+    ebandIDx = BANDIDx,       // Выбор диапазона. ucValue = LW-0, MW-1, Sw-2, FM-3 
+    eModIdx = MODIDx,        // Выбор модуляции. ucValue = AM-0, FM-1, LSB-2, USB-3, SSB-4
+    eStepFM = STEPFM,        // Шаг перестройки FM
+    eStepAM = STEPAM,        // Шаг перестройки AM
+    eBandWFM = BANDFM,       // Полоса пропускания FM. 
                                         //  ucValue = 
                                         //  0  Automatically select proper channel filter (Default) |
                                         //  1  Force wide (110 kHz) channel filter |
                                         //  2  Force narrow (84 kHz) channel filter |
                                         //  3  Force narrower (60 kHz) channel filter |
                                         //  4  Force narrowest (40 kHz) channel filter |
-    eBandWAM = 6,       // Полоса пропускания AM.
+    eBandWAM = BANDAM,       // Полоса пропускания AM.
                                         //  ucValue = 
                                         //  0 = 6 kHz Bandwidth
                                         //  1 = 4 kHz Bandwidth
@@ -80,25 +80,25 @@ typedef enum
                                         //  4 = 1 kHz Bandwidth
                                         // 5 = 1.8 kHz Bandwidth
                                         // 6 = 2.5 kHz Bandwidth, gradual roll off
-    eBandWSSB = 7,      // Полоса пропускания SSB
-    eStepUP = 8,        // Переход на одну станцию в верх
-    eStepDown = 9,      // Переход на одну станцию в верх
-    eSeekUP = 10,       // Поиск станций вверх
-    eStationStepUP = 11,    // Перестройка вверх с шагом
-    eStationStepDOWN = 12,  // Перестройка вниз с шагом
-    eAGCgain    = 13,
-    eSlider_agc = 14,
-    eslider_vol = 15,   // Громкость 
+    eBandWSSB = BANDSSB,      // Полоса пропускания SSB
+    eStepUP = STEPUP,        // Переход на одну станцию в верх
+    eStepDown = STEPDOWN,      // Переход на одну станцию в верх
+    eSeekUP = UP_SEEK,       // Поиск станций вверх
+    eStationStepUP = STEP_STATION_UP,    // Перестройка вверх с шагом
+    eStationStepDOWN = STEP_STATION_DOWN,  // Перестройка вниз с шагом
+    eAGCgain    = AGCGAIN,     // Включение/выключение AGC
+    eSlider_agc = SLIDER_AGC,   // Регулировка AGC
+    eslider_vol = SLIDER_VOL,   // Громкость 
     eSetFreq = 16       // Установка частоты
 } DataDescription_t;
 //================  Структура данных помещаемых в очередь  для обработки в МК  =================
 // 
 typedef struct
 {
-    bool State;         //  Статус Структуры, false-изменений не было, true-изменений было
-    ModeBoombox_t eModeBoombox; // режим работы Boombox 
-    DataDescription_t eDataDescription;  // название Элемента
-    int ucValue;        // Значение Элемента
+    bool State;                         //  Статус Структуры, false-изменений не было, true-изменений было
+    ModeBoombox_t eModeBoombox;         // режим работы Boombox 
+    DataDescription_t eDataDescription; // название Элемента
+    int ucValue;                        // Значение Элемента
 } Data_GUI_Boombox_t;
 
 typedef enum

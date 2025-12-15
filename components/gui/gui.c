@@ -80,8 +80,7 @@ static rotary_encoder_t re;
 
 /**************************************************************************************
 *                             Прототипы функций
-
-
+**************************************************************************************/
 // Инициализация энкодера и очереди событий
 void encoder_init(void) {
     // Создаём очередь событий для энкодера
@@ -131,7 +130,6 @@ void encoder_read(lv_indev_drv_t * drv, lv_indev_data_t * data) {
             }
             break;
         case RE_ET_BTN_LONG_PRESSED:
-            //ESP_LOGI(TAG, "Looooong pressed button");
             rotary_encoder_disable_acceleration(&re);
             //ESP_LOGI(TAG, "Acceleration disabled");
             break;
@@ -152,19 +150,17 @@ void encoder_read(lv_indev_drv_t * drv, lv_indev_data_t * data) {
                 break;
             }
             else{                // Перестройка станций
-               // ESP_LOGD(TAG, "e.diff = %d", e.diff );
-               // ESP_LOGD(TAG, "data->enc_diff = %d", data->enc_diff );
                 if ( e.diff > 0 ) {
                     data->key = LV_KEY_UP;
                     data->enc_diff = e.diff;
-                    xTransmitGUItoBoombox.eDataDescription = eStationStepUP;
+                    xTransmitGUItoBoombox.eDataDescription = eStepUP;
                     xTransmitGUItoBoombox.ucValue = 1;
-                    xTransmitGUItoBoombox.State = true;     
+                    xTransmitGUItoBoombox.State = true;
                 }
                 else if ( e.diff < 0 ){
                     data->key = LV_KEY_DOWN;
                     data->enc_diff = e.diff ;
-                    xTransmitGUItoBoombox.eDataDescription = eStationStepDOWN;
+                    xTransmitGUItoBoombox.eDataDescription = eStepDown;
                     xTransmitGUItoBoombox.ucValue = 1;
                     xTransmitGUItoBoombox.State = true;   
                 }
@@ -175,7 +171,7 @@ void encoder_read(lv_indev_drv_t * drv, lv_indev_data_t * data) {
     }
     e.type = -1;     
 }
-**************************************************************************************/
+
 /**
  * @brief Преобразует число в строку (char array)
  * @details Используется для экономии памяти по сравнению с sprintf и аналогами.
@@ -338,7 +334,7 @@ void initCalcTFT( )
     /*Initialize the (dummy) input device driver*/
     /*------------------------------------------------------------------------------------------------------------------
      * Encoder
-     
+    * ----------------------------------------------------------------------------------------------------------------*/ 
     //Initialize your encoder if you have
     encoder_init();
     //Register a encoder input device
@@ -346,7 +342,7 @@ void initCalcTFT( )
     encoder_indev_drv.type = LV_INDEV_TYPE_ENCODER;
     encoder_indev_drv.read_cb = encoder_read;
     indev_encoder = lv_indev_drv_register(&encoder_indev_drv);
-    * ----------------------------------------------------------------------------------------------------------------*/
+    
     /*------------------------------------------------------------------------------------------------------------------
      * Touchpad
      * ----------------------------------------------------------------------------------------------------------------*/
@@ -376,78 +372,8 @@ void initCalcTFT( )
 }
 /**************************************************************************************
  *                            Основная задача GUI
+ *              Главная задача для работы GUI c калибровкой тачскрина
  **************************************************************************************/
-// Главная задача для работы с GUI
-void task_gui(void *arg)
-{
-   // Создаём семафор для lvgl
-   xGuiSemaphore = xSemaphoreCreateMutex();
-   lv_init();          
-   lvgl_driver_init(); 
-
-   /* Инициализация буфера отрисовки дисплея */
-   static lv_disp_draw_buf_t draw_buf;
-   lv_color_t *buf1 = heap_caps_malloc((DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10) * sizeof(lv_color_t), MALLOC_CAP_DMA);
-   lv_color_t *buf2 = heap_caps_malloc((DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10) * sizeof(lv_color_t), MALLOC_CAP_DMA);
-
-   lv_disp_draw_buf_init(&draw_buf, buf1, buf2, (DLV_HOR_RES_MAX * DLV_VER_RES_MAX/10));
-   /*------------------
-   * Настройка дисплея
-   * -----------------*/
-   static lv_disp_drv_t disp_drv;
-   lv_disp_drv_init(&disp_drv);
-   disp_drv.draw_buf = &draw_buf;
-   disp_drv.flush_cb = disp_driver_flush;
-   disp_drv.hor_res = DLV_HOR_RES_MAX;
-   disp_drv.ver_res = DLV_VER_RES_MAX;
-   lv_disp_drv_register(&disp_drv);
-   /*------------------
-   * Настройка тачпада
-   * -----------------*/
-   lv_indev_drv_init( &touch_indev_drv );
-   touch_indev_drv.type = LV_INDEV_TYPE_POINTER;
-   touch_indev_drv.read_cb = touch_driver_read;
-   indev_touchpad = lv_indev_drv_register(&touch_indev_drv);
-
-   // Регистрируем хук для системного тика
-   esp_register_freertos_tick_hook(lv_tick_hook);
-
-   // Запуск пользовательского интерфейса
-   awgui();
-
-   while (1)
-   {
-        /* Задержка на 10 мс */
-        vTaskDelay(pdMS_TO_TICKS(10));
-        /* Захватываем семафор и вызываем обработчик lvgl */
-        if (pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY))
-        {
-            lv_timer_handler();
-            xSemaphoreGive(xGuiSemaphore);
-        }
-       /*****************************************************************************************
-            Отправка данных от GUI к Boombox очередь xGuiToBoomboxQueue
-        ******************************************************************************************/
-       if(xTransmitGUItoBoombox.State == true){                 
-            if(pdTRUE != xQueueSend(xGuiToBoomboxQueue, &xTransmitGUItoBoombox, pdMS_TO_TICKS(100))) 
-            {
-                ESP_LOGE(TAG, "Error to xGuiToBoomboxQueue");//??????????????????????
-            }
-            xTransmitGUItoBoombox.State = false;
-        }
-        /*****************************************************************************************
-            Получаем данные из очереди xBoomboxToGuiQueue
-            и обновляем интерфейс с помощью awgui_reload
-         ******************************************************************************************/       
- 
-        if(pdTRUE == xQueueReceive(xBoomboxToGuiQueue, &xResivedBoomboxToGUI, 50 / portTICK_PERIOD_MS))
-        {
-            awgui_reload(xResivedBoomboxToGUI);
-        }
-
-    }
-}
-
 void task_gui_calibrate(void *arg){
 
    // Создаём семафор для lvgl
@@ -470,7 +396,7 @@ void task_gui_calibrate(void *arg){
        if(xTransmitGUItoBoombox.State == true){                 
             if(pdTRUE != xQueueSend(xGuiToBoomboxQueue, &xTransmitGUItoBoombox, pdMS_TO_TICKS(100))) 
             {
-                ESP_LOGE(TAG, "Error to xGuiToBoomboxQueue");//??????????????????????
+                ESP_LOGE(TAG, "Error to xGuiToBoomboxQueue ------ ");//??????????????????????
             }
             xTransmitGUItoBoombox.State = false;
         }

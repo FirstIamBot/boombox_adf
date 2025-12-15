@@ -2,7 +2,7 @@
   "C_Cpp.intelliSenseEngine": "default",
   "idf.espIdfPath": "/home/gena/esp/esp-idf-v5.4",
   "idf.toolsPath": "/home/gena/.espressif",
-  "idf.pythonInstallPath": "/usr/bin/python3",
+  "idf.pythonInstallPath": "/usr/bin/python",
   "idf.flashType": "UART",
   "idf.port": "/dev/ttyUSB0",
   "files.associations": {

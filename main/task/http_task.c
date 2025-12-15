@@ -139,8 +139,11 @@ void init_http_player( ) {
     audio_element_set_uri(http_stream_reader, selected_file_to_play);
 
     ESP_LOGI(TAG, "[ 3 ] Start and wait for Wi-Fi network");
-    esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
-    esp_periph_set_handle_t set = esp_periph_set_init(&periph_cfg);
+    // Проверяем, инициализирован ли уже esp_periph_set
+    if (set == NULL) {
+        esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
+        set = esp_periph_set_init(&periph_cfg);
+    }
     periph_wifi_cfg_t wifi_cfg = {
         .wifi_config.sta.ssid = CONFIG_WIFI_SSID,
         .wifi_config.sta.password = CONFIG_WIFI_PASSWORD,
@@ -169,7 +172,7 @@ void http_player_run(){
 
     ESP_LOGD(TAG, "[ 5-6 ] Listen for all pipeline events");
 
-    esp_err_t ret = audio_event_iface_listen(evt, &msg, pdMS_TO_TICKS(500)); // Уменьшаем таймаут
+    esp_err_t ret = audio_event_iface_listen(evt, &msg, pdMS_TO_TICKS(100)); // Уменьшаем таймаут
     if (ret != ESP_OK) {
         if (ret == ESP_ERR_TIMEOUT) {
             // Таймаут - это нормально, просто возвращаемся

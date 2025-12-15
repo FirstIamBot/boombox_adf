@@ -9,7 +9,6 @@ extern "C" {
 #include "events_init.h"
 
 
-void task_gui(void *arg);
 void task_gui_calibrate(void *arg);
 
 #ifdef __cplusplus

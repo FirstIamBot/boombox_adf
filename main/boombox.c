@@ -228,7 +228,7 @@ void boombox_task(void *pvParameters)
             else if(air_player_state == PLAYER_ACTIVE) {
                 boombox_config_save_to_nvs(&xBoomBox_config); // Сохраняем конфигурацию перед отключением AIR плеера
                 air_player_state = PLAYER_INACTIVE;// Остановить AIR плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
-                ESP_LOGD(TAG, "air_player_state = PLAYER_INACTIVE;");
+                ESP_LOGI(TAG, "air_player_state = PLAYER_INACTIVE;");
                 deinit_air_player(); // Функция деинициализации AIR плеера
             }
             else if(bt_player_state == PLAYER_INACTIVE) {

@@ -920,10 +920,10 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         case (0):
         {
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
-            xTransmitGUItoBoombox.ucValue = 4;
+            xTransmitGUItoBoombox.ucValue = 3;
             xTransmitGUItoBoombox.State = true;
             tempebandIDx = ebandIDx;
-            tempucucValue = 4;
+            tempucucValue = 3;
             tempeModIdx = 1;
             break;
         }

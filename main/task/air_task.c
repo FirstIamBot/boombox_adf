@@ -779,7 +779,7 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
     setFmBandwidth(rx, set->BandWidthFM );
   }
   else if(set_data->eDataDescription == BANDAM){
-    ESP_LOGI(TAG, "******* Air Radio - BANDAM = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    ESP_LOGD(TAG, "******* Air Radio - BANDAM = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
     if(set->currentBandType == LW_BAND_TYPE){
       set->BandWidthAM = set_data->ucValue;
       setAmBandwidth(rx, set->BandWidthAM , 1);
@@ -798,7 +798,7 @@ void set_radio(SI4735_t *rx, Data_GUI_Boombox_t *set_data, air_config_t *set)
     }
   }
   else if(set_data->eDataDescription == BANDSSB){
-    ESP_LOGI(TAG, "******* Air Radio - BANDSSB = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
+    ESP_LOGD(TAG, "******* Air Radio - BANDSSB = %d, ucValue = %d", set_data->eDataDescription, set_data->ucValue);
     set->BandWidthSSB = set_data->ucValue;
     setSSBAudioBandwidth(rx, set->BandWidthSSB );
   }
@@ -1140,10 +1140,10 @@ void clearRDSbuffer(){
 //=======================================================================================
 void init_air_player(BoomBox_config_t  *init_air_config)
 {
-    ESP_LOGI(TAG, "init_air_player(BoomBox_config_t  *init_air_config)");  
+    ESP_LOGD(TAG, "init_air_player(BoomBox_config_t  *init_air_config)");  
   
     // add pipeline and elements
-    ESP_LOGI(TAG, "[ * ] Air player started");
+    ESP_LOGD(TAG, "[ * ] Air player started");
     //export from pipeline i2s_stream_writer -  board.c ;
 
     esp_log_level_set("*", ESP_LOG_INFO);
@@ -1287,7 +1287,7 @@ void statusRadio(SI4735_t * rx)
 }
 
 // Основная функция проигрывателя AIR радио
-void air_player( Data_GUI_Boombox_t *xDataGUI,  Data_Boombox_GUI_t *xDataBoomBox)
+void air_player(Data_GUI_Boombox_t *xDataGUI,  Data_Boombox_GUI_t *xDataBoomBox)
 {
     //print_data_gui_detailed_to_console(xDataGUI);// Вывод данных xDataGUI в консоль для отладки
     if(xDataGUI->State == true){
