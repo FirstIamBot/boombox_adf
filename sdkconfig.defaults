@@ -15,3 +15,6 @@ CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
 # by providing new partition table in "partitions_bt_sink_example.csv"
 CONFIG_PARTITION_TABLE_CUSTOM=y
 CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_bt_sink_example.csv"
+
+CONFIG_SPIRAM_ALLOW_STACK_EXTERNAL_MEMORY=y
+CONFIG_SPIRAM_USE_MALLOC=y

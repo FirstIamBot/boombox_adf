@@ -138,7 +138,10 @@ void init_http_player( ) {
              selected_decoder_name, selected_decoder_name);
     audio_element_set_uri(http_stream_reader, selected_file_to_play);
 
+    ESP_LOGI(TAG, "Wi-Fi SSID: %s, PASSWORD: %s", CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
+
     ESP_LOGI(TAG, "[ 3 ] Start and wait for Wi-Fi network");
+    set = NULL; // или сделать для задачи http and bt свою переменную set
     // Проверяем, инициализирован ли уже esp_periph_set
     if (set == NULL) {
         esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
@@ -165,6 +168,7 @@ void init_http_player( ) {
     ESP_LOGI(TAG, "[ 5 ] Start audio_pipeline");
     audio_pipeline_run(pipeline);
 
+
 }
 
 // Функция проигрывателя HTTP радио
@@ -172,20 +176,22 @@ void http_player_run(){
 
     ESP_LOGD(TAG, "[ 5-6 ] Listen for all pipeline events");
 
-    esp_err_t ret = audio_event_iface_listen(evt, &msg, pdMS_TO_TICKS(100)); // Уменьшаем таймаут
+    esp_err_t ret = audio_event_iface_listen(evt, &msg, pdMS_TO_TICKS(1000)); // Уменьшаем таймаут
+     ESP_LOGI(TAG, " ----- msg: source_type=%d, source=%p, cmd=%d, data=%p", msg.source_type, msg.source, msg.cmd, msg.data);
     if (ret != ESP_OK) {
         if (ret == ESP_ERR_TIMEOUT) {
             // Таймаут - это нормально, просто возвращаемся
-            return;
+            ESP_LOGE(TAG, "[ * ] Event TIMEOUT : %s", esp_err_to_name(ret));
+            //return;
         }
         ESP_LOGE(TAG, "[ * ] Event interface error : %s", esp_err_to_name(ret));
-        //return;
+       //return;
     }
 
     // Проверяем, что источник все еще HTTP
     if (g_current_source != SOURCE_HTTP) {
         ESP_LOGD(TAG, "Source changed, stopping HTTP events processing");
-        return;
+        //return;
     }
 
     if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT

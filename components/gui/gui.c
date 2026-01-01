@@ -228,55 +228,61 @@ void awgui_reload(Data_Boombox_GUI_t data){
     /*    */
     switch(data.eModeBoombox){
         case eAir:
-            if(data.ucBand == 3){
+            if(data.eAirDescription.ucBand == 3){
                 //tempebandIDx = data.ucBand;
-                ConvertToChar(data.ucFreq, valFreq, 5, 3, '.', true);
+                ConvertToChar(data.eAirDescription.ucFreq, valFreq, 5, 3, '.', true);
             }
             else {
-                ConvertToChar(data.ucFreq, valFreq, 5, 0, '.', true);
+                ConvertToChar(data.eAirDescription.ucFreq, valFreq, 5, 0, '.', true);
             }
             // Проверка, что объект был успешно создан
             if (guider_ui.pageAirradio_label_Freq != NULL || guider_ui.pageAirradio_label_FreqRange  != NULL)
             {
                 lv_label_set_text(guider_ui.pageAirradio_label_Freq, valFreq);
-                lv_label_set_text(guider_ui.pageAirradio_label_FreqRange, data.vcFreqRange);
+                lv_label_set_text(guider_ui.pageAirradio_label_FreqRange, data.eAirDescription.vcFreqRange);
             }
             if (guider_ui.pageAirradio_label_mono != NULL )
             {
-                lv_label_set_text_fmt(guider_ui.pageAirradio_label_mono , data.vcStereoMono);
+                lv_label_set_text_fmt(guider_ui.pageAirradio_label_mono , data.eAirDescription.vcStereoMono);
             }
             if (guider_ui.pageAirradio_label_rssi_val != NULL )
             {
-                lv_label_set_text_fmt(guider_ui.pageAirradio_label_rssi_val,"%3d" , data.ucRSSI);
+                lv_label_set_text_fmt(guider_ui.pageAirradio_label_rssi_val,"%3d" , data.eAirDescription.ucRSSI);
             }
             if (guider_ui.pageAirradio_label_snr_val  != NULL)
             {
-                lv_label_set_text_fmt(guider_ui.pageAirradio_label_snr_val,"%3d" , data.ucSNR);
+                lv_label_set_text_fmt(guider_ui.pageAirradio_label_snr_val,"%3d" , data.eAirDescription.ucSNR);
             }
             if (guider_ui.pageAirradio_label_wb_val != NULL )
             {
-               lv_label_set_text(guider_ui.pageAirradio_label_wb_val, data.vcBW);
+               lv_label_set_text(guider_ui.pageAirradio_label_wb_val, data.eAirDescription.vcBW);
             }
             if (guider_ui.pageAirradio_label_step_val != NULL)
             {
-               lv_label_set_text(guider_ui.pageAirradio_label_step_val, data.vcStep);
+               lv_label_set_text(guider_ui.pageAirradio_label_step_val, data.eAirDescription.vcStep);
             }
             if (guider_ui.pageAirradio_RDS != NULL )
             {
-                lv_label_set_text(guider_ui.pageAirradio_RDS, data.vcRDSdata);     // Текстовая информация от RDS
+                lv_label_set_text(guider_ui.pageAirradio_RDS, data.eAirDescription.vcRDSdata);     // Текстовая информация от RDS
             }
             if (guider_ui.pageAirradio_label_band  != NULL)
             {
-                lv_label_set_text(guider_ui.pageAirradio_label_band, data.vcBand); // Текстовая информация от Band Name;
+                lv_label_set_text(guider_ui.pageAirradio_label_band, data.eAirDescription.vcBand); // Текстовая информация от Band Name;
             }
             if (guider_ui.pageAirradio_label_stationIDx != NULL)
             {
-                ConvertToChar(data.ucStationIDx, tempebandIDx, 2, 0, '.', true);
+                ConvertToChar(data.eAirDescription.ucStationIDx, tempebandIDx, 2, 0, '.', true);
                 lv_label_set_text(guider_ui.pageAirradio_label_stationIDx, tempebandIDx); // Текстовая информация от Station ID
             }
         break;
         case eBT:
-            ESP_LOGI(TAG, "************** awgui_reload - eBT");
+            ESP_LOGD(TAG, "************** awgui_reload - eBT");
+            if (guider_ui.Bluetooth_label_bt_song != NULL)
+            {
+                lv_label_set_text(guider_ui.Bluetooth_label_bt_song, data.eBtDescription.vcArtist); // Текстовая информация от Station ID
+            }
+
+            
         break;
         case eWeb:
             ESP_LOGI(TAG, "************* awgui_reload - eWeb");

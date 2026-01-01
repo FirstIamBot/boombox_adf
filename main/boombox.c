@@ -219,7 +219,7 @@ void boombox_task(void *pvParameters)
          * Обработка данных от GUI 
          ******************************************************************************************/
         if (g_current_source == SOURCE_BLUETOOTH) {
-            ESP_LOGI(TAG, "Switching to Bluetooth player");
+            ESP_LOGD(TAG, "Switching to Bluetooth player");
             if(http_player_state == PLAYER_ACTIVE) {
                 // Остановить HTTP плеер, если он был активен !!!!!!!!!!!!!!!!!!!!!!!!!!!
                 http_player_state = PLAYER_INACTIVE;
@@ -238,7 +238,7 @@ void boombox_task(void *pvParameters)
                 init_bt_player(); // Функция инициализации Bluetooth плеера
             }
             else{
-                bt_player_run(); // Запуск Bluetooth плеера
+                bt_player_run(&xResiveGUItoBoombox, &xTransmitBoomboxToGUI); // Запуск Bluetooth плеера
             }
         } else if (g_current_source == SOURCE_HTTP) {
             ESP_LOGI(TAG, "Switching to HTTP player");

@@ -110,21 +110,58 @@ typedef enum
 
 typedef struct
 {
-    bool State;         //  Статус Структуры, false-изменений не было, true-изменений не было
     uint8_t ucBand;     //  значение  диапазона AM/SW/SSB/FM   
-    char *vcBand;       // Текстовое значение  диапазона AM/SW/SSB/FM  
     uint8_t ucStationIDx; // значение значение номера станции из списка
     uint16_t ucFreq;    //  значение  частоты
     uint8_t ucSNR;      //  значение  SNR
     uint8_t ucRSSI;     //  значение  RSSI
     uint8_t ucslider_vol;// значение громкости
+    char *vcBand;       // Текстовое значение  диапазона AM/SW/SSB/FM  
     char *vcFreqRange; // Текстовое значение kHz/MHz 
     char *vcStereoMono;// Текстовое значение стерео/моно
     char *vcBW;        // Текстовое значение полосы пропускания 
     char *vcStep;      // Текстовое значение шага перестройки
     char *vcRDSdata;   // Текстовая информация от RDS
+}AirDescription_t;
+
+typedef struct
+{
+    char *vcTitle;      // Текстовое значение Заглавия 
+    char *vcArtist;     // Текстовое значение Артиста
+    char *vcAlbum;      // Текстовое значение Альбома
+
+}WebDescription_t;
+
+typedef struct
+{
+    char *vcTitle;      // Текстовое значение Заглавия 
+    char *vcArtist;     // Текстовое значение Артиста
+    char *vcAlbum;      // Текстовое значение Альбома
+
+}BtDescription_t;
+
+typedef struct
+{
+    bool State;         //  Статус Структуры, false-изменений не было, true-изменений не было
+    /*
+    uint8_t ucBand;     //  значение  диапазона AM/SW/SSB/FM   
+    uint8_t ucStationIDx; // значение значение номера станции из списка
+    uint16_t ucFreq;    //  значение  частоты
+    uint8_t ucSNR;      //  значение  SNR
+    uint8_t ucRSSI;     //  значение  RSSI
+    uint8_t ucslider_vol;// значение громкости
+    char *vcBand;       // Текстовое значение  диапазона AM/SW/SSB/FM  
+    char *vcFreqRange; // Текстовое значение kHz/MHz 
+    char *vcStereoMono;// Текстовое значение стерео/моно
+    char *vcBW;        // Текстовое значение полосы пропускания 
+    char *vcStep;      // Текстовое значение шага перестройки
+    char *vcRDSdata;   // Текстовая информация от RDS
+    */
     ModeBoombox_t eModeBoombox;
-    AirWebDescription_t eDataDescription;  // название Элемента
+    AirDescription_t eAirDescription;
+    WebDescription_t eWebDescription;
+    BtDescription_t eBtDescription;
+    //AirWebDescription_t eDataDescription;  // название Элемента
 } Data_Boombox_GUI_t;
 
 //================  Структура данных конфигурации эфирного приёмника  =================

@@ -178,16 +178,16 @@ void print_data_boombox_to_console(Data_Boombox_GUI_t *xDataBoomBox)
     ESP_LOGI(TAG, "================== Data_Boombox_GUI_t Debug ==================");
     ESP_LOGI(TAG, "State: %s", xDataBoomBox->State ? "true" : "false");
     ESP_LOGI(TAG, "eModeBoombox: %d", xDataBoomBox->eModeBoombox);
-    ESP_LOGI(TAG, "ucFreq: %u", xDataBoomBox->ucFreq);
-    ESP_LOGI(TAG, "vcFreqRange: %s", xDataBoomBox->vcFreqRange ? xDataBoomBox->vcFreqRange : "NULL");
-    ESP_LOGI(TAG, "vcBand: %s", xDataBoomBox->vcBand ? xDataBoomBox->vcBand : "NULL");
-    ESP_LOGI(TAG, "vcStereoMono: %s", xDataBoomBox->vcStereoMono ? xDataBoomBox->vcStereoMono : "NULL");
-    ESP_LOGI(TAG, "ucBand: %u", xDataBoomBox->ucBand);
-    ESP_LOGI(TAG, "ucSNR: %u dB", xDataBoomBox->ucSNR);
-    ESP_LOGI(TAG, "ucRSSI: %u dBμV", xDataBoomBox->ucRSSI);
-    ESP_LOGI(TAG, "vcStep: %s", xDataBoomBox->vcStep ? xDataBoomBox->vcStep : "NULL");
-    ESP_LOGI(TAG, "vcBW: %s", xDataBoomBox->vcBW ? xDataBoomBox->vcBW : "NULL");
-    ESP_LOGI(TAG, "vcRDSdata: %s", xDataBoomBox->vcRDSdata ? xDataBoomBox->vcRDSdata : "NULL");
+    ESP_LOGI(TAG, "ucFreq: %u", xDataBoomBox->eAirDescription.ucFreq);
+    ESP_LOGI(TAG, "vcFreqRange: %s", xDataBoomBox->eAirDescription.vcFreqRange ? xDataBoomBox->eAirDescription.vcFreqRange : "NULL");
+    ESP_LOGI(TAG, "vcBand: %s", xDataBoomBox->eAirDescription.vcBand ? xDataBoomBox->eAirDescription.vcBand : "NULL");
+    ESP_LOGI(TAG, "vcStereoMono: %s", xDataBoomBox->eAirDescription.vcStereoMono ? xDataBoomBox->eAirDescription.vcStereoMono : "NULL");
+    ESP_LOGI(TAG, "ucBand: %u", xDataBoomBox->eAirDescription.ucBand);
+    ESP_LOGI(TAG, "ucSNR: %u dB", xDataBoomBox->eAirDescription.ucSNR);
+    ESP_LOGI(TAG, "ucRSSI: %u dBμV", xDataBoomBox->eAirDescription.ucRSSI);
+    ESP_LOGI(TAG, "vcStep: %s", xDataBoomBox->eAirDescription.vcStep ? xDataBoomBox->eAirDescription.vcStep : "NULL");
+    ESP_LOGI(TAG, "vcBW: %s", xDataBoomBox->eAirDescription.vcBW ? xDataBoomBox->eAirDescription.vcBW : "NULL");
+    ESP_LOGI(TAG, "vcRDSdata: %s", xDataBoomBox->eAirDescription.vcRDSdata ? xDataBoomBox->eAirDescription.vcRDSdata : "NULL");
     ESP_LOGI(TAG, "===========================================================");
 }
 // Детализированная функция для вывода данных структуры xDataGUI в консоль
@@ -1027,21 +1027,21 @@ void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
       n = 4;
       d = 2;
     }
-    get_data->ucFreq = get->currentFrequency;
+    get_data->eAirDescription.ucFreq = get->currentFrequency;
     convertToChar(get->currentFrequency, strfreq, n, d, '.',true);
-    get_data->vcFreqRange = "MHz";
+    get_data->eAirDescription.vcFreqRange = "MHz";
 
   // Определение режима стерео/моно для FM
   if( getCurrentPilot(rx) == 0 )
     {
-      get_data->vcStereoMono = " mono ";
+      get_data->eAirDescription.vcStereoMono = " mono ";
     } 
     else
     {
-      get_data->vcStereoMono = "stereo";
+      get_data->eAirDescription.vcStereoMono = "stereo";
     }
-  get_data->vcBand = " FM "; // Диапазон
-  get_data->ucStationIDx = get->air_FM_station.currentStationIndex+1; // Индекс станции FM
+  get_data->eAirDescription.vcBand = " FM "; // Диапазон
+  get_data->eAirDescription.ucStationIDx = get->air_FM_station.currentStationIndex+1; // Индекс станции FM
 	}
   else {
     // Для AM/SSB диапазонов
@@ -1052,78 +1052,78 @@ void get_radio(SI4735_t *rx, Data_Boombox_GUI_t *get_data, air_config_t *get)
     else {
       convertToChar(get->currentFrequency, strfreq, 5, 2, '.', true);
     }
-    get_data->ucFreq = get->currentFrequency;
-    get_data->vcFreqRange = "KHz";
+    get_data->eAirDescription.ucFreq = get->currentFrequency;
+    get_data->eAirDescription.vcFreqRange = "KHz";
   // Определение модуляции: AM или SSB (USB/LSB)
   //get_data->vcStereoMono = "      ";
   if(get->currentMod == 0) // AM (AM modulation) mode
     {
-      get_data->vcStereoMono = " AM";
+      get_data->eAirDescription.vcStereoMono = " AM";
     }
     else // SSB (LSB, USB modulation) mode
     {
       if(get->currentMod == 1)
       {
-        get_data->vcStereoMono = " USB ";
+        get_data->eAirDescription.vcStereoMono = " USB ";
       }
       else
       {
-        get_data->vcStereoMono = " LSB ";
+        get_data->eAirDescription.vcStereoMono = " LSB ";
       }
     }
   }
   // Установка диапазона и индекса станции для MW/LW/SW
   if(get->currentBandType == MW_BAND_TYPE){
-    get_data->vcBand = " MW ";
-    get_data->ucStationIDx = get->air_MW_station.currentStationIndex+1;
+    get_data->eAirDescription.vcBand = " MW ";
+    get_data->eAirDescription.ucStationIDx = get->air_MW_station.currentStationIndex+1;
   }
   if(get->currentBandType == LW_BAND_TYPE){
-    get_data->vcBand = " LW ";
-    get_data->ucStationIDx = get->air_LW_station.currentStationIndex+1;
+    get_data->eAirDescription.vcBand = " LW ";
+    get_data->eAirDescription.ucStationIDx = get->air_LW_station.currentStationIndex+1;
   }
   if(get->currentBandType == SW_BAND_TYPE){
-    get_data->vcBand = " SW ";
-    get_data->ucStationIDx = get->air_SW_station.currentStationIndex+1;
+    get_data->eAirDescription.vcBand = " SW ";
+    get_data->eAirDescription.ucStationIDx = get->air_SW_station.currentStationIndex+1;
   }
   if(get->currentBandType > 3){
-    get_data->vcBand = band[get->currentBandType].bandName;
+    get_data->eAirDescription.vcBand = band[get->currentBandType].bandName;
   }
   // Получение SNR и RSSI
-  get_data->ucSNR = getCurrentSNR(rx);
-  get_data->ucRSSI = getCurrentRSSI(rx);
+  get_data->eAirDescription.ucSNR = getCurrentSNR(rx);
+  get_data->eAirDescription.ucRSSI = getCurrentRSSI(rx);
   /*
    * Вывод данных о шаге частоты (vcStep) и полосе пропускания (vcBW)
    * в зависимости от типа диапазона частот
    */
   if (get->currentBandType == MW_BAND_TYPE || get->currentBandType == LW_BAND_TYPE || get->currentBandType == SW_BAND_TYPE){ 
-    get_data->vcStep = (char *)stepAM[get->currentStepAM].desc;  // Шаг частоты AM
-    get_data->vcBW = (char *)bandwidthAM[get->BandWidthAM];      // Полоса пропускания AM
+    get_data->eAirDescription.vcStep = (char *)stepAM[get->currentStepAM].desc;  // Шаг частоты AM
+    get_data->eAirDescription.vcBW = (char *)bandwidthAM[get->BandWidthAM];      // Полоса пропускания AM
   }
   else if( get->currentBandType > 3){
-    get_data->vcStep = (char *)stepAM[get->currentStepAM].desc;  
+    get_data->eAirDescription.vcStep = (char *)stepAM[get->currentStepAM].desc;  
     if(get->currentMod == 0) // AM (AM modulation) mode
     {
-      get_data->vcBW = (char *)bandwidthAM[get->BandWidthAM];
+      get_data->eAirDescription.vcBW = (char *)bandwidthAM[get->BandWidthAM];
     }
     else // SSB (LSB, USB modulation) mode
     {
-       get_data->vcBW = (char *)bandwidthSSB[get->BandWidthSSB];
+       get_data->eAirDescription.vcBW = (char *)bandwidthSSB[get->BandWidthSSB];
     }
   }
   else if(get->currentBandType == FM_BAND_TYPE ){
-    get_data->vcBW = (char *)bandwidthFM[get->BandWidthFM];      // Полоса пропускания FM
-    get_data->vcStep =  (char *)stepFM[get->currentStepFM].desc; // Шаг частоты FM
+    get_data->eAirDescription.vcBW = (char *)bandwidthFM[get->BandWidthFM];      // Полоса пропускания FM
+    get_data->eAirDescription.vcStep =  (char *)stepFM[get->currentStepFM].desc; // Шаг частоты FM
   }
-  get_data->ucBand = get->currentBandType; // Тип диапазона для GUI
+  get_data->eAirDescription.ucBand = get->currentBandType; // Тип диапазона для GUI
 
   // Проверка и получение данных RDS
   rdsTime = checkRDS(rx);
   if(rdsTime == 0){
     ESP_LOGD(TAG, " No data RDS  ");
-    get_data->vcRDSdata = "   ";
+    get_data->eAirDescription.vcRDSdata = "   ";
   }
   else{
-    get_data->vcRDSdata = rdsTime;
+    get_data->eAirDescription.vcRDSdata = rdsTime;
   }
   
   get_data->eModeBoombox = eAir; // Установка режима работы
