@@ -1,5 +1,5 @@
 /*
-* Copyright 2025 NXP
+* Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
 * activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
@@ -103,70 +103,32 @@ void setup_scr_pageWebradio(lv_ui *ui)
     lv_obj_set_style_pad_left(ui->pageWebradio_label_vol_web, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui->pageWebradio_label_vol_web, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
-    //Write codes pageWebradio_label_web_song
-    ui->pageWebradio_label_web_song = lv_label_create(ui->pageWebradio);
-    lv_label_set_text(ui->pageWebradio_label_web_song, "Radio Rok's Live  15:00 20.03.2024");
-    lv_label_set_long_mode(ui->pageWebradio_label_web_song, LV_LABEL_LONG_SCROLL_CIRCULAR);
-    lv_obj_set_pos(ui->pageWebradio_label_web_song, 7, 81);
-    lv_obj_set_size(ui->pageWebradio_label_web_song, 307, 20);
+    //Write codes pageWebradio_label_web_title
+    ui->pageWebradio_label_web_title = lv_label_create(ui->pageWebradio);
+    lv_label_set_text(ui->pageWebradio_label_web_title, "");
+    lv_label_set_long_mode(ui->pageWebradio_label_web_title, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageWebradio_label_web_title, 65, 86);
+    lv_obj_set_size(ui->pageWebradio_label_web_title, 192, 21);
 
-    //Write style for pageWebradio_label_web_song, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageWebradio_label_web_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageWebradio_label_web_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui->pageWebradio_label_web_song, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageWebradio_label_web_song, &lv_font_montserratMedium_16, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageWebradio_label_web_song, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_letter_space(ui->pageWebradio_label_web_song, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_line_space(ui->pageWebradio_label_web_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui->pageWebradio_label_web_song, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageWebradio_label_web_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->pageWebradio_label_web_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui->pageWebradio_label_web_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->pageWebradio_label_web_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui->pageWebradio_label_web_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageWebradio_label_web_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-
-    //Write codes pageWebradio_btnm_Web_main
-    ui->pageWebradio_btnm_Web_main = lv_btnmatrix_create(ui->pageWebradio);
-    static const char *pageWebradio_btnm_Web_main_text_map[] = {"<", "||", ">", "\n", "BT", "Set", "6", "",};
-    lv_btnmatrix_set_map(ui->pageWebradio_btnm_Web_main, pageWebradio_btnm_Web_main_text_map);
-    lv_obj_set_pos(ui->pageWebradio_btnm_Web_main, 3, 158);
-    lv_obj_set_size(ui->pageWebradio_btnm_Web_main, 315, 79);
-    lv_obj_add_flag(ui->pageWebradio_btnm_Web_main, LV_OBJ_FLAG_HIDDEN);
-
-    //Write style for pageWebradio_btnm_Web_main, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(ui->pageWebradio_btnm_Web_main, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0xc9c9c9), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_border_side(ui->pageWebradio_btnm_Web_main, LV_BORDER_SIDE_FULL, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_row(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_column(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageWebradio_btnm_Web_main, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageWebradio_btnm_Web_main, 31, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0xffffff), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_grad_dir(ui->pageWebradio_btnm_Web_main, LV_GRAD_DIR_NONE, LV_PART_MAIN|LV_STATE_DEFAULT);
-
-    //Write style for pageWebradio_btnm_Web_main, Part: LV_PART_ITEMS, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageWebradio_btnm_Web_main, 1, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(ui->pageWebradio_btnm_Web_main, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0xc9c9c9), LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_border_side(ui->pageWebradio_btnm_Web_main, LV_BORDER_SIDE_FULL, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0xffffff), LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageWebradio_btnm_Web_main, &lv_font_montserratMedium_16, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageWebradio_btnm_Web_main, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageWebradio_btnm_Web_main, 4, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageWebradio_btnm_Web_main, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0x2195f6), LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_grad_dir(ui->pageWebradio_btnm_Web_main, LV_GRAD_DIR_NONE, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageWebradio_btnm_Web_main, 0, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    //Write style for pageWebradio_label_web_title, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageWebradio_label_web_title, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageWebradio_label_web_title, &lv_font_DejaVuSans_18, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageWebradio_label_web_title, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageWebradio_label_web_title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageWebradio_label_web_title, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
     //Write codes pageWebradio_cont_vol
     ui->pageWebradio_cont_vol = lv_obj_create(ui->pageWebradio);
-    lv_obj_set_pos(ui->pageWebradio_cont_vol, 130, 4);
+    lv_obj_set_pos(ui->pageWebradio_cont_vol, 190, 4);
     lv_obj_set_size(ui->pageWebradio_cont_vol, 68, 233);
     lv_obj_set_scrollbar_mode(ui->pageWebradio_cont_vol, LV_SCROLLBAR_MODE_OFF);
     lv_obj_add_flag(ui->pageWebradio_cont_vol, LV_OBJ_FLAG_HIDDEN);
@@ -234,6 +196,44 @@ void setup_scr_pageWebradio(lv_ui *ui)
     lv_obj_set_style_bg_color(ui->pageWebradio_slider_vol_web, lv_color_hex(0x00ed5c), LV_PART_KNOB|LV_STATE_DEFAULT);
     lv_obj_set_style_bg_grad_dir(ui->pageWebradio_slider_vol_web, LV_GRAD_DIR_NONE, LV_PART_KNOB|LV_STATE_DEFAULT);
     lv_obj_set_style_radius(ui->pageWebradio_slider_vol_web, 50, LV_PART_KNOB|LV_STATE_DEFAULT);
+
+    //Write codes pageWebradio_btnm_Web_main
+    ui->pageWebradio_btnm_Web_main = lv_btnmatrix_create(ui->pageWebradio);
+    static const char *pageWebradio_btnm_Web_main_text_map[] = {"<<", "O", ">", ">>", "",};
+    lv_btnmatrix_set_map(ui->pageWebradio_btnm_Web_main, pageWebradio_btnm_Web_main_text_map);
+    lv_obj_set_pos(ui->pageWebradio_btnm_Web_main, 5, 160);
+    lv_obj_set_size(ui->pageWebradio_btnm_Web_main, 310, 75);
+    lv_obj_add_flag(ui->pageWebradio_btnm_Web_main, LV_OBJ_FLAG_HIDDEN);
+
+    //Write style for pageWebradio_btnm_Web_main, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui->pageWebradio_btnm_Web_main, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0xc9c9c9), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_side(ui->pageWebradio_btnm_Web_main, LV_BORDER_SIDE_FULL, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(ui->pageWebradio_btnm_Web_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageWebradio_btnm_Web_main, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageWebradio_btnm_Web_main, 31, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0xffffff), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_dir(ui->pageWebradio_btnm_Web_main, LV_GRAD_DIR_NONE, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write style for pageWebradio_btnm_Web_main, Part: LV_PART_ITEMS, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageWebradio_btnm_Web_main, 1, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui->pageWebradio_btnm_Web_main, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0xc9c9c9), LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_side(ui->pageWebradio_btnm_Web_main, LV_BORDER_SIDE_FULL, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0xffffff), LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageWebradio_btnm_Web_main, &lv_font_montserratMedium_16, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageWebradio_btnm_Web_main, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageWebradio_btnm_Web_main, 4, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageWebradio_btnm_Web_main, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui->pageWebradio_btnm_Web_main, lv_color_hex(0x2195f6), LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_dir(ui->pageWebradio_btnm_Web_main, LV_GRAD_DIR_NONE, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageWebradio_btnm_Web_main, 0, LV_PART_ITEMS|LV_STATE_DEFAULT);
 
     //Write codes pageWebradio_imgbtn_Airradio
     ui->pageWebradio_imgbtn_Airradio = lv_imgbtn_create(ui->pageWebradio);

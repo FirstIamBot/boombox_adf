@@ -27,6 +27,11 @@
 #include "gui.h"
 #include "commons.h"
 
+#include "server_task.h"
+#include "esp_event.h"
+
+#include "playlist_parser.h"
+
 static const char *TAG = "BOOMBOX";
 
 
@@ -40,7 +45,7 @@ static TaskHandle_t http_task_handle = NULL;
 void app_main(void)
 {
     ESP_LOGI(TAG, "===  BOOMBOX STARTING ===");
-    
+
     // Инициализация NVS
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
@@ -49,9 +54,11 @@ void app_main(void)
     }
     gui_boombox_queue_init();
     boombox_gui_queue_init();
-
+    ESP_LOGI(TAG, "Init SPIFFS");
+    init_spiffs();   
     // Создаем задачи для плеера
     xTaskCreate(boombox_task, "boombox_task", 8192, NULL, 5, NULL);
     //xTaskCreate(task_gui, "task_gui", 8192, NULL, 5, NULL);
     xTaskCreate(task_gui_calibrate, "task_gui_calibrate", 8192, NULL, 5, NULL);
+    //xTaskCreate(web_server_task, "web_server_task", 8192, NULL, 5, NULL);
 }

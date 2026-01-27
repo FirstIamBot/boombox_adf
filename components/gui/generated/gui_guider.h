@@ -1,5 +1,5 @@
 /*
-* Copyright 2025 NXP
+* Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
 * activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
@@ -47,6 +47,7 @@ typedef struct
 	lv_obj_t *pageAirradio_btnm_BandWAM;
 	lv_obj_t *pageAirradio_cont_Mod;
 	lv_obj_t *pageAirradio_btnm_Mod;
+	lv_obj_t *pageAirradio_label_stationIDx;
 	lv_obj_t *pageAirradio_label_rssi_val;
 	lv_obj_t *pageAirradio_label_rrsi_name;
 	lv_obj_t *pageAirradio_label_rssi_range;
@@ -63,14 +64,13 @@ typedef struct
 	lv_obj_t *pageAirradio_cont_vol;
 	lv_obj_t *pageAirradio_textprogress_vol;
 	lv_obj_t *pageAirradio_slider_vol;
+	lv_obj_t *pageAirradio_label_band;
 	lv_obj_t *pageAirradio_imgbtn_webradio;
 	lv_obj_t *pageAirradio_imgbtn_webradio_label;
 	lv_obj_t *pageAirradio_cont_set_freq;
 	lv_obj_t *pageAirradio_btnm_set_freq;
 	lv_obj_t *pageAirradio_label_set_freq;
-	lv_obj_t *pageAirradio_label_band;
 	lv_obj_t *pageAirradio_btnm_band;
-	lv_obj_t *pageAirradio_label_stationIDx;
 	lv_obj_t *Bluetooth;
 	bool Bluetooth_del;
 	lv_obj_t *Bluetooth_imgbtn_airradio;
@@ -79,16 +79,19 @@ typedef struct
 	lv_obj_t *Bluetooth_imgbtn_webradio_label;
 	lv_obj_t *Bluetooth_label_BT;
 	lv_obj_t *Bluetooth_label_bt_song;
+	lv_obj_t *Bluetooth_label_bt_artist;
+	lv_obj_t *Bluetooth_label_bt_album;
+	lv_obj_t *Bluetooth_btnm_BT_main;
 	lv_obj_t *pageWebradio;
 	bool pageWebradio_del;
 	lv_obj_t *pageWebradio_label_BT;
 	lv_obj_t *pageWebradio_label_menu_web;
 	lv_obj_t *pageWebradio_label_vol_web;
-	lv_obj_t *pageWebradio_label_web_song;
-	lv_obj_t *pageWebradio_btnm_Web_main;
+	lv_obj_t *pageWebradio_label_web_title;
 	lv_obj_t *pageWebradio_cont_vol;
 	lv_obj_t *pageWebradio_textprogress_vol_web;
 	lv_obj_t *pageWebradio_slider_vol_web;
+	lv_obj_t *pageWebradio_btnm_Web_main;
 	lv_obj_t *pageWebradio_imgbtn_Airradio;
 	lv_obj_t *pageWebradio_imgbtn_Airradio_label;
 }lv_ui;
@@ -125,10 +128,14 @@ LV_IMG_DECLARE(_radio_alpha_22x22);
 LV_FONT_DECLARE(lv_font_montserratMedium_16)
 LV_FONT_DECLARE(lv_font_Antonio_Regular_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_10)
-LV_FONT_DECLARE(lv_font_montserratMedium_26)
-LV_FONT_DECLARE(lv_font_montserratMedium_14)
+LV_FONT_DECLARE(lv_font_DejaVuSans_16)
+LV_FONT_DECLARE(lv_font_DejaVuSans_26)
+LV_FONT_DECLARE(lv_font_DejaVuSans_14)
+LV_FONT_DECLARE(lv_font_DejaVuSans_12)
 LV_FONT_DECLARE(lv_font_montserratMedium_12)
+LV_FONT_DECLARE(lv_font_montserratMedium_14)
 LV_FONT_DECLARE(lv_font_montserratMedium_18)
+LV_FONT_DECLARE(lv_font_DejaVuSans_18)
 LV_FONT_DECLARE(lv_font_montserratMedium_56)
 
 

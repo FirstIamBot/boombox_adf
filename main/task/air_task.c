@@ -112,7 +112,7 @@ Band band[] = {  ////
   {   "LW", LW_BAND_TYPE,  AM,   150,   279,   164, 1}, //  LW          0  ////
   {   "MW", MW_BAND_TYPE,  AM,   520,  1710,   750, 1}, //  MW          1  ////
   {   "SW", SW_BAND_TYPE,  AM,  1710, 30000, 10000, 0},  // Whole SW    2  ////
-  {   "FM", FM_BAND_TYPE,  FM,  7600, 10800, 10280, 2}, //  FM          3  ////
+  {   "FM", FM_BAND_TYPE,  FM,  7600, 10800, 10080, 2}, //  FM          3  ////
   {"2220M", LW_BAND_TYPE, LSB,   130,   140,   135, 1}, // Ham          4  ////
   { "630M", LW_BAND_TYPE, LSB,   420,   520,   475, 1}, // Ham  630M    5
   { "160M", SW_BAND_TYPE, LSB,  1800,  1920,  1910, 1}, // Ham  160M    6  ////
@@ -410,7 +410,7 @@ void radio_init(SI4735_t *rx, air_config_t *cnfg)
     // OMONO Digital Output Mono Mode (0=Use mono/stereo blend ).
     // OMODE Digital Output Mode (0=I2S, 6 = Left-justified, 8 = MSB at second DCLK after DFS pulse, 12 = MSB at first DCLK after DFS pulse).
     // OFALL Digital Output DCLK Edge (0 = use DCLK rising edge, 1 = use DCLK falling edge)
-    digitalOutputFormat(rx, 0 /* OSIZE */, 0 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
+    digitalOutputFormat(rx, 0 /* OSIZE */, 1 /* OMONO */, 0 /* OMODE */, 0 /* OFALL*/);
     delay_ms(200);
     //RDS
     RdsInit();

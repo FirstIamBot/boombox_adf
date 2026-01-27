@@ -50,6 +50,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_rom_sys.h"
+
 static const char *TAG = "si4735 ";
 /**
  * @brief I2C initial defines and function
@@ -106,8 +107,8 @@ uint8_t ctsIntEnable = 0;
 uint8_t gpo2Enable = 0;
 
 
-//uint16_t refClock = 32768; //!< Frequency of Reference Clock in Hz.
-//uint16_t refClockPrescale = 1; //!< Prescaler for Reference Clock (divider).
+uint16_t refClock = 32768; // 32768; !< Frequency of Reference Clock in Hz.
+uint16_t refClockPrescale = 1; //!< Prescaler for Reference Clock (divider).
 //uint8_t refClockSourcePin = 1; //!< 0 = RCLK pin is clock source; 1 = DCLK pin is clock source.
 
 int8_t audioMuteMcuPin = -1;
@@ -697,8 +698,8 @@ void radioPowerUp(SI4735_t *cntrl_data)
     
     if (currentClockType == XOSCEN_RCLK)
     {
-        setRefClock(cntrl_data, 32678);
-        setRefClockPrescaler(cntrl_data, 1, 1);
+        setRefClock(cntrl_data, refClock);
+        setRefClockPrescaler(cntrl_data, refClockPrescale, 1);
     }
     // Turns the external mute circuit off
     if (audioMuteMcuPin >= 0)

@@ -115,7 +115,7 @@ void boombox_config_init_default(BoomBox_config_t *config)
     config->air_radio_config.currentMod = 1;     // 0 - AM, 1 - LSB, 2 - USB
     config->air_radio_config.currentStepFM = 1; // 1 - 10 КГц, 5 - 50КГц, 10 - 100 КГц
     config->air_radio_config.currentStepAM = 1;
-    config->air_radio_config.currentFrequency = 10030;    
+    config->air_radio_config.currentFrequency = 10080;    // 10030
     config->air_radio_config.currentVOL = 32;   // 0 = Минимум, 64 = Максимум
     config->air_radio_config.BandWidthFM = 0;     // AUT-0, 110-1
     config->air_radio_config.BandWidthAM = 0;     // 6kHz - 0
@@ -209,11 +209,11 @@ void boombox_task(void *pvParameters)
     while (1) {
         /*****************************************************************************************
         *   Receive data from GUI
-        ******************************************************************************************/
+        ************************************z******************************************************/
         if(pdTRUE == xQueueReceive(xGuiToBoomboxQueue, &xResiveGUItoBoombox, pdMS_TO_TICKS(100)))
         {
             g_current_source = (audio_source_t)xResiveGUItoBoombox.eModeBoombox;// Обработка полученных данных
-            ESP_LOGI(TAG, "g_current_source = %d", g_current_source);
+            ESP_LOGD(TAG, "g_current_source = %d", g_current_source);
         }
         /******************************************************************************************
          * Обработка данных от GUI 
@@ -266,7 +266,7 @@ void boombox_task(void *pvParameters)
             }
             else{
                 ESP_LOGI(TAG, " http_player_run ");
-                http_player_run( );
+                http_player_run(&xResiveGUItoBoombox, &xTransmitBoomboxToGUI);
             }
         } else if (g_current_source == SOURCE_AIR) {
             //ESP_LOGI(TAG, "Switching to AIR radio player");

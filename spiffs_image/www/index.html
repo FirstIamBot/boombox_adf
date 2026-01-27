@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Boombox Control</title>
+<style>
+body { font-family: Arial; margin: 20px; background: #f0f0f0; }
+h1 { color: #333; }
+.container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; }
+.btn-primary { background: #007bff; color: white; }
+.btn-success { background: #28a745; color: white; }
+.btn-danger { background: #dc3545; color: white; }
+.btn-info { background: #17a2b8; color: white; }
+input { padding: 8px; margin: 5px; width: 90%; font-size: 14px; }
+.status { padding: 10px; margin: 10px 0; background: #e9ecef; border-radius: 5px; }
+.section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+</style>
+</head>
+<body>
+<div class='container'>
+<h1>🎵 Boombox Control Panel</h1>
+<div class='status' id='status'>Status: Loading...</div>
+
+<div class='section'>
+<h2>Source Selection</h2>
+<button class='btn-primary' onclick='setSource("bt")'>Bluetooth</button>
+<button class='btn-primary' onclick='setSource("http")'>HTTP Radio</button>
+<button class='btn-primary' onclick='setSource("air")'>Air Radio</button>
+</div>
+
+<div class='section'>
+<h2>Playback Control</h2>
+<button class='btn-success' onclick='control("play")'>▶ Play</button>
+<button class='btn-danger' onclick='control("pause")'>⏸ Pause</button>
+<button class='btn-danger' onclick='control("stop")'>⏹ Stop</button>
+</div>
+
+<div class='section'>
+<h2>Bluetooth Control</h2>
+<button class='btn-info' onclick='btControl("prev")'>⏮ Previous</button>
+<button class='btn-info' onclick='btControl("next")'>⏭ Next</button>
+</div>
+
+<div class='section'>
+<h2>HTTP Radio</h2>
+<input type='text' id='httpUrl' placeholder='Enter HTTP stream URL'>
+<button class='btn-success' onclick='setHttpUrl()'>Set URL</button>
+</div>
+
+<div class='section'>
+<h2>Air Radio</h2>
+<input type='number' id='airFreq' placeholder='Frequency (MHz)' step='0.1'>
+<button class='btn-success' onclick='setAirFreq()'>Set Frequency</button>
+</div>
+
+</div>
+
+<script>
+function updateStatus() {
+  fetch('/api/status')
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('status').innerHTML = 
+        'Source: ' + data.source + '<br>Volume: ' + data.volume;
+    });
+}
+
+function setSource(src) {
+  fetch('/api/source?src=' + src)
+    .then(r => r.text())
+    .then(data => { alert(data); updateStatus(); });
+}
+
+function control(cmd) {
+  fetch('/api/control?cmd=' + cmd)
+    .then(r => r.text())
+    .then(data => alert(data));
+}
+
+function btControl(cmd) {
+  fetch('/api/bt?cmd=' + cmd)
+    .then(r => r.text())
+    .then(data => alert(data));
+}
+
+function setHttpUrl() {
+  const url = document.getElementById('httpUrl').value;
+  fetch('/api/http?url=' + encodeURIComponent(url))
+    .then(r => r.text())
+    .then(data => alert(data));
+}
+
+function setAirFreq() {
+  const freq = document.getElementById('airFreq').value;
+  fetch('/api/air?freq=' + freq)
+    .then(r => r.text())
+    .then(data => alert(data));
+}
+
+setInterval(updateStatus, 2000);
+updateStatus();
+</script>
+</body>
+</html>

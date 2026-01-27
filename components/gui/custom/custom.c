@@ -73,7 +73,6 @@ void custom_init(lv_ui *ui)
     lv_indev_set_group(indev_touchpad, group);
     lv_indev_set_group(indev_encoder, group);
     
-    
     lv_group_add_obj(group, ui->pageAirradio_cont_vol);
     lv_group_add_obj(group, ui->pageAirradio_slider_vol);  
     lv_group_add_obj(group, ui->pageAirradio_textprogress_vol);

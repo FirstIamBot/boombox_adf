@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "esp_log.h"
+#include "esp_spiffs.h"
 
 #define MAX_ENTRIES  20      // Максимальное количество станций в плейлисте
 #define MAX_TITLE    64      // Максимальная длина названия станции
 #define MAX_URL      256     // Максимальная длина URL
+
+static const char *TAG = "PARSER_PLAYLIST";
 
 // Структура для хранения одной записи плейлиста
 typedef struct {
@@ -20,6 +24,37 @@ typedef struct {
 
 // Глобальная переменная для хранения плейлиста
 static Playlist playlist = { .count = 0 };
+void init_spiffs(void) {
+    ESP_LOGI(TAG, "Initializing SPIFFS");
+
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = "/spiffs",
+        .partition_label = NULL,
+        .max_files = 5,
+        .format_if_mount_failed = true
+    };
+
+    esp_err_t ret = esp_vfs_spiffs_register(&conf);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(TAG, "Failed to mount or format filesystem");
+        } else if (ret == ESP_ERR_NOT_FOUND) {
+            ESP_LOGE(TAG, "Failed to find SPIFFS partition");
+        } else {
+            ESP_LOGE(TAG, "Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
+        }
+        return;
+    }
+
+    size_t total = 0, used = 0;
+    ret = esp_spiffs_info(NULL, &total, &used);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
+    } else {
+        ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+    }
+}
 
 // Функция парсинга файла плейлиста
 // filename - путь к файлу .pls
@@ -68,4 +103,37 @@ const char* playlist_get_url(int index) {
 // Получить количество станций в плейлисте
 int playlist_get_count() {
     return playlist.count;
+}
+
+void print_playlist(void) {
+    ESP_LOGI(TAG, "Playlist contains %d entries:", playlist.count);
+    for (int i = 0; i < playlist.count; ++i) {
+        ESP_LOGI(TAG, "[%d] Title: %s | URL: %s", i, playlist.entries[i].title, playlist.entries[i].url);
+    }
+}
+
+// Функция чтения и вывода содержимого index.html из SPIFFS
+void read_and_print_index_html(void) {
+    const char *filepath = "/spiffs/www/index.html";
+    FILE *f = fopen(filepath, "r");
+    
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file %s for reading", filepath);
+        return;
+    }
+    
+    ESP_LOGI(TAG, "========== Content of index.html ==========");
+    
+    // Читаем и выводим файл построчно
+    char line[256];
+    while (fgets(line, sizeof(line), f) != NULL) {
+        // Удаляем символ новой строки для более чистого вывода
+        line[strcspn(line, "\r\n")] = 0;
+        ESP_LOGI(TAG, "%s", line);
+    }
+    
+    ESP_LOGI(TAG, "==========================================");
+    
+    fclose(f);
+    ESP_LOGI(TAG, "Successfully read and printed index.html");
 }
