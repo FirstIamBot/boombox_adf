@@ -300,6 +300,10 @@ void awgui_reload(Data_Boombox_GUI_t data){
             {
                 lv_label_set_text(guider_ui.pageWebradio_label_web_title, data.eWebDescription.vcStation); // Текстовая информация 
             }
+            if (guider_ui.pageWebradio_idWeb != NULL)
+            {
+                lv_label_set_text_fmt(guider_ui.pageWebradio_idWeb, "%d", data.eWebDescription.ucStationIDx); // Текущая станция
+            }
         break;
         default:
             ESP_LOGI(TAG, "************** awgui_reload - default");

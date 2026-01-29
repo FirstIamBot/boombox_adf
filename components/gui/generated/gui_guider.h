@@ -87,6 +87,7 @@ typedef struct
 	lv_obj_t *pageWebradio_label_BT;
 	lv_obj_t *pageWebradio_label_menu_web;
 	lv_obj_t *pageWebradio_label_vol_web;
+	lv_obj_t *pageWebradio_idWeb;
 	lv_obj_t *pageWebradio_label_web_title;
 	lv_obj_t *pageWebradio_cont_vol;
 	lv_obj_t *pageWebradio_textprogress_vol_web;

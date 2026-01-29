@@ -206,7 +206,7 @@ typedef struct
     ModeBoombox_t eModeBoombox; // режим работы Boombox 
     uint8_t current_source;     // текущий источник (AIR_SPEAKER, BT_SPEAKER, WEB_SPEKER)
     air_config_t air_radio_config; // конфигурация эфирного приёмника
-    uint16_t Volume;
+    uint16_t volume;
     // Добавить конфигурации BT и WEB
     //bt_config_t bt_config;
     //web_config_t web_config;

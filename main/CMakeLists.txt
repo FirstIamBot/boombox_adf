@@ -11,13 +11,14 @@ idf_component_register(SRCS ${SOURCES}
                     INCLUDE_DIRS "." 
                                  "task" 
                                  "/home/gena/.espressif/esp-adf"
-                    EMBED_FILES  "../spiffs_image/www/index.html"  # Добавьте эту строку
+                    EMBED_FILES  "../spiffs/www/index.html"  # Добавьте эту строку
+                                 "../spiffs/playlist.pls"  # Добавьте эту строку
                     #REQUIRES spiffs esp_wifi nvs_flash bt
 )
 # Явно указываем зависимость от esp_vfs_spiffs
 
 # Путь к директории с данными SPIFFS (относительно корня проекта)
-set(SPIFFS_IMAGE_DIR "${CMAKE_SOURCE_DIR}/spiffs_image")
+set(SPIFFS_IMAGE_DIR "${CMAKE_SOURCE_DIR}/spiffs")
 
 # Проверяем существование директории и наличие файлов в ней
 if(EXISTS ${SPIFFS_IMAGE_DIR})

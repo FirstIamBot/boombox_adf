@@ -48,7 +48,7 @@ static esp_err_t status_handler(httpd_req_t *req)
     }
     
     cJSON_AddStringToObject(root, "source", source_str);
-    cJSON_AddNumberToObject(root, "volume", xBoomBox_config.Volume);
+    cJSON_AddNumberToObject(root, "volume", xBoomBox_config.volume);
     
     const char *json_str = cJSON_Print(root);
     httpd_resp_set_type(req, "application/json");

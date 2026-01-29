@@ -160,8 +160,8 @@ void cntr_http_player(Data_GUI_Boombox_t *set_data) {
                         curStation--;
                     }
                     selected_file_to_play = playlist_get_url(curStation);
-                    audio_element_set_uri(http_stream_reader, selected_file_to_play);
                     ESP_LOGI(TAG, "[ HTTP ] Switching to foward station: %d. %s - %s", curStation, playlist_get_title(curStation), playlist_get_url(curStation));
+                    audio_element_set_uri(http_stream_reader, selected_file_to_play);
                     audio_pipeline_stop(pipeline);
                     audio_pipeline_wait_for_stop(pipeline);
                     audio_pipeline_reset_ringbuffer(pipeline);
@@ -173,6 +173,7 @@ void cntr_http_player(Data_GUI_Boombox_t *set_data) {
                 break;
                 }
         break;
+
         default:
             ESP_LOGW(TAG, "[ HTTP ] Unknown data description from GUI: %d", set_data->eDataDescription);
         break;
@@ -183,7 +184,7 @@ void get_http_player(Data_Boombox_GUI_t *get_data) {
     /*      */ 
     // Функция получения параметров проигрывателя HTTP радио
     get_data->eModeBoombox = eWeb; // Устанавливаем режим Boombox как HTTP радио
-    get_data->eWebDescription.ucStationIDx = curStation; // Текущий номер станции
+    get_data->eWebDescription.ucStationIDx = curStation+1; // Текущий номер станции +1 для отображения пользователю
     get_data->eWebDescription.vcStation = playlist_get_title(curStation); // Текущее название станции
     get_data->eWebDescription.vcURIStation = playlist_get_url(curStation); // Текущий URI станции
     get_data->State = true; // Устанавливаем состояние данных для GUI
@@ -210,7 +211,9 @@ void init_http_player( ) {
 
     ESP_LOGI(TAG, "[2.1] Create http stream to read data");
     http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
-    http_cfg.out_rb_size = 1024 * 1024;
+    http_cfg.out_rb_size = 2048 * 1024; // 1024 * 1024;
+    http_cfg.task_stack = 4096;
+    http_cfg.cert_pem = NULL;  // Отключить проверку сертификата для упрощения
     http_stream_reader = http_stream_init(&http_cfg);
 
     ESP_LOGI(TAG, "[2.2] Create %s decoder to decode %s file", selected_decoder_name, selected_decoder_name);
@@ -262,7 +265,7 @@ void init_http_player( ) {
     if ( countStation > 0) {
         print_playlist();  
         selected_file_to_play = playlist_get_url(curStation);
-        ESP_LOGI(TAG, "[2.8.1] countStation = %d selected station = %s", countStation, selected_file_to_play);
+        ESP_LOGI(TAG, "[2.8.1] countStation = %d ; selected station = %s", countStation, selected_file_to_play);
     } else {
         ESP_LOGE(TAG, "Failed to parse playlist");
     }    
