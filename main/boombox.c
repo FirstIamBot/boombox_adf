@@ -9,12 +9,12 @@
 #include "esp_bt_main.h"
 #include "esp_bt_device.h"
 #include "esp_gap_bt_api.h"
-#include "periph_wifi.h"
 
 #include "boombox.h"
 #include "bt_task.h"
 #include "http_task.h"
 #include "air_task.h"
+#include "esp_wifi_manager.h"
 
 #define NVS_NAMESPACE "boombox_cfg"
 #define CONFIG_KEY "config"
@@ -198,6 +198,28 @@ void boombox_task(void *pvParameters)
     // Инициализация Bluetooth и WiFi coexistence
     ESP_ERROR_CHECK(init_bt_wifi_coex());
 
+    // Инициализация WiFi Manager
+    ESP_LOGI(TAG, "Initializing WiFi Manager...");
+    wifi_manager_config_t wifi_config = {
+        .auto_reconnect = true,
+        .max_retry_per_network = 3,
+        .retry_interval_ms = 5000,
+        .enable_captive_portal = true,
+        .stop_ap_on_connect = true,
+        .default_ap = {
+            .ssid = "BOOMBOX-Setup",
+            .password = "12345678",
+            .channel = 1,
+            .max_connections = 4,
+        },
+        .http = {
+            .enable = true,
+        },
+    };
+    
+    ESP_ERROR_CHECK(wifi_manager_init(&wifi_config));
+    ESP_LOGI(TAG, "WiFi Manager initialized");
+
     // Загрузка конфигурации из NVS
     if (boombox_config_load_from_nvs(&xBoomBox_config) != ESP_OK) {
         ESP_LOGW(TAG, "Failed to load config, using defaults");
@@ -213,7 +235,6 @@ void boombox_task(void *pvParameters)
         if(pdTRUE == xQueueReceive(xGuiToBoomboxQueue, &xResiveGUItoBoombox, pdMS_TO_TICKS(100)))
         {
             g_current_source = (audio_source_t)xResiveGUItoBoombox.eModeBoombox;// Обработка полученных данных
-            ESP_LOGI(TAG, "g_current_source = %d", g_current_source);
         }
         /******************************************************************************************
          * Обработка данных от GUI 

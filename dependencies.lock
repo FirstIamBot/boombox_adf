@@ -53,6 +53,16 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 1.1.0
+  espressif/mdns:
+    component_hash: 29e47564b1a7ee778135e17fbbf2a2773f71c97ebabfe626c8eda7c958a7ad16
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.9.1
   espressif/nghttp:
     component_hash: 32e513409ddce0000990ec74b0711f535462726236d72578cd70498e6bd66dc3
     dependencies:
@@ -77,14 +87,34 @@ dependencies:
     source:
       type: idf
     version: 5.4.1
+  tuanpmt/esp_bus:
+    component_hash: e78c5ae0f388a278258e4c7ca15b7e6a937e6aca0228ff49686836d2724c4727
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    targets:
+    - esp32
+    - esp32s2
+    - esp32s3
+    - esp32c2
+    - esp32c3
+    - esp32c6
+    - esp32h2
+    version: 1.0.3
 direct_dependencies:
 - espressif/esp-dsp
 - espressif/esp_lcd_ili9341
 - espressif/esp_websocket_client
 - espressif/jsmn
+- espressif/mdns
 - espressif/nghttp
 - espressif/zlib
 - idf
-manifest_hash: e5eec32944af38588df3429a2a8e78f65e82def8525f434082e0afb320a7fc18
+- tuanpmt/esp_bus
+manifest_hash: 69ef760a11bbcfa030932a6f1b59a66935349e53d3052f65c0c0e64897ed777d
 target: esp32
 version: 2.0.0

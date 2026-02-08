@@ -13,7 +13,8 @@ idf_component_register(SRCS ${SOURCES}
                                  "/home/gena/.espressif/esp-adf"
                     #EMBED_FILES  "../spiffs_image/www/index.html"  # Добавьте эту строку
                     EMBED_FILES  "../spiffs_image/playlist.pls"  # Добавьте эту строку
-                    #REQUIRES spiffs esp_wifi nvs_flash bt
+                    REQUIRES spiffs esp_wifi nvs_flash bt esp_wifi_manager commons boombox_board gui
+                             audio_pipeline audio_stream bluetooth_service si4735 esp_bus
 )
 # Явно указываем зависимость от esp_vfs_spiffs
 

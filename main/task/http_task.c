@@ -57,7 +57,8 @@ static const char *selected_file_to_play = "https://dl.espressif.com/dl/audio/ff
 static uint8_t countStation;
 static uint8_t curStation = 0;
 static const char *selected_decoder_name = "mp3";
-static const char *selected_file_to_play = "http://online.radioroks.ua/RadioROKS";
+//static const char *selected_file_to_play = "http://online.radioroks.ua/RadioROKS";
+static const char *selected_file_to_play ;
 #elif defined SELECT_OGG_DECODER
 #include "ogg_decoder.h"
 static const char *selected_decoder_name = "ogg";
@@ -273,23 +274,9 @@ void init_http_player( ) {
     
     audio_element_set_uri(http_stream_reader, selected_file_to_play);
 
-    ESP_LOGI(TAG, "Wi-Fi SSID: %s, PASSWORD: %s", CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
-
     ESP_LOGI(TAG, "[ 3 ] Start and wait for Wi-Fi network");
-    set = NULL; // или сделать для задачи http and bt свою переменную set
-    // Проверяем, инициализирован ли уже esp_periph_set
-    if (set == NULL) {
-        esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
-        set = esp_periph_set_init(&periph_cfg);
-    }
-    periph_wifi_cfg_t wifi_cfg = {
-        .wifi_config.sta.ssid = CONFIG_WIFI_SSID,
-        .wifi_config.sta.password = CONFIG_WIFI_PASSWORD,
-    };
-    esp_periph_handle_t wifi_handle = periph_wifi_init(&wifi_cfg);
-    esp_periph_start(set, wifi_handle);
-    periph_wifi_wait_for_connected(wifi_handle, portMAX_DELAY);
-
+    // WiFi managed by esp_wifi_manager, skip periph_wifi initialization
+    
     ESP_LOGI(TAG, "[ 4 ] Set up  event listener");
     audio_event_iface_cfg_t evt_cfg = AUDIO_EVENT_IFACE_DEFAULT_CFG();
     evt = audio_event_iface_init(&evt_cfg);
@@ -297,8 +284,8 @@ void init_http_player( ) {
     ESP_LOGI(TAG, "[4.1] Listening event from all elements of pipeline");
     audio_pipeline_set_listener(pipeline, evt);
 
-    ESP_LOGI(TAG, "[4.2] Listening event from peripherals");
-    audio_event_iface_set_listener(esp_periph_set_get_event_iface(set), evt);
+    // ESP_LOGI(TAG, "[4.2] Listening event from peripherals");
+    // audio_event_iface_set_listener(esp_periph_set_get_event_iface(set), evt); // WiFi managed externally
 
     ESP_LOGI(TAG, "[ 5 ] Start audio_pipeline");
     audio_pipeline_run(pipeline);
@@ -390,19 +377,19 @@ void deinit_http_player(){
         pipeline = NULL;
     }
 
-    // Останавливаем периферию
-    if (set) {
-        ESP_LOGI(TAG, "Stopping peripherals...");
-        esp_periph_set_stop_all(set);
-        
-        if (evt) {
-            audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt);
-        }
-        
-        vTaskDelay(pdMS_TO_TICKS(500));
-        esp_periph_set_destroy(set);
-        set = NULL;
-    }
+    // Останавливаем периферию - WiFi managed by esp_wifi_manager
+    // if (set) {
+    //     ESP_LOGI(TAG, "Stopping peripherals...");
+    //     esp_periph_set_stop_all(set);
+    //     
+    //     if (evt) {
+    //         audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt);
+    //     }
+    //     
+    //     vTaskDelay(pdMS_TO_TICKS(500));
+    //     esp_periph_set_destroy(set);
+    //     set = NULL;
+    // }
 
     // Уничтожаем интерфейс событий
     if (evt) {

@@ -3,6 +3,7 @@
 
 
 #include "commons.h"
+#include "esp_wifi_manager.h"
 
 void boombox_task(void *pvParameters);
 
