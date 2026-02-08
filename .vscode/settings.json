@@ -49,7 +49,8 @@
     "array": "c",
     "audio_idf_version.h": "c",
     "board_pins_config.h": "c",
-    "esp_bt_device.h": "c"
+    "esp_bt_device.h": "c",
+    "esp_psram.h": "c"
   },
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32",
