@@ -266,7 +266,7 @@ void boombox_task(void *pvParameters)
             }
             else{
                 ESP_LOGI(TAG, " http_player_run ");
-                http_player_run( );
+                http_player_run(&xResiveGUItoBoombox, &xTransmitBoomboxToGUI);
             }
         } else if (g_current_source == SOURCE_AIR) {
             //ESP_LOGI(TAG, "Switching to AIR radio player");

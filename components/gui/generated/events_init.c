@@ -1,5 +1,5 @@
 /*
-* Copyright 2025 NXP
+* Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
 * activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
@@ -67,6 +67,7 @@ static void pageAirradio_up_step_event_handler (lv_event_t *e)
     switch (code) {
     case LV_EVENT_LONG_PRESSED:
     {
+        xTransmitGUItoBoombox.eModeBoombox = eAir;
         xTransmitGUItoBoombox.eDataDescription = eStationStepUP;
         xTransmitGUItoBoombox.ucValue = 1;
         xTransmitGUItoBoombox.State = true;
@@ -81,6 +82,7 @@ static void pageAirradio_up_step_event_handler (lv_event_t *e)
     case LV_EVENT_PRESSED:
     {
         lv_obj_set_style_opa(guider_ui.pageAirradio_up_step, 132, 0);
+        xTransmitGUItoBoombox.eModeBoombox = eAir;
         xTransmitGUItoBoombox.eDataDescription = eStepUP;
         xTransmitGUItoBoombox.ucValue = 1;
         xTransmitGUItoBoombox.State = true;
@@ -567,6 +569,7 @@ static void pageAirradio_btnm_BandWAM_event_handler (lv_event_t *e)
             xTransmitGUItoBoombox.eDataDescription = eBandWAM;
             xTransmitGUItoBoombox.ucValue = 0;
             xTransmitGUItoBoombox.State = true;
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             break;
         }
         case (1):
@@ -574,6 +577,7 @@ static void pageAirradio_btnm_BandWAM_event_handler (lv_event_t *e)
             xTransmitGUItoBoombox.eDataDescription = eBandWAM;
             xTransmitGUItoBoombox.ucValue = 1;
             xTransmitGUItoBoombox.State = true;
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             break;
         }
         case (2):
@@ -581,6 +585,7 @@ static void pageAirradio_btnm_BandWAM_event_handler (lv_event_t *e)
             xTransmitGUItoBoombox.eDataDescription = eBandWAM;
             xTransmitGUItoBoombox.ucValue = 2;
             xTransmitGUItoBoombox.State = true;
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             break;
         }
         case (3):
@@ -588,6 +593,7 @@ static void pageAirradio_btnm_BandWAM_event_handler (lv_event_t *e)
             xTransmitGUItoBoombox.eDataDescription = eBandWAM;
             xTransmitGUItoBoombox.ucValue = 6;
             xTransmitGUItoBoombox.State = true;
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             break;
         }
         case (4):
@@ -595,6 +601,7 @@ static void pageAirradio_btnm_BandWAM_event_handler (lv_event_t *e)
             xTransmitGUItoBoombox.eDataDescription = eBandWAM;
             xTransmitGUItoBoombox.ucValue = 3;
             xTransmitGUItoBoombox.State = true;
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             break;
         }
         case (5):
@@ -602,6 +609,7 @@ static void pageAirradio_btnm_BandWAM_event_handler (lv_event_t *e)
             xTransmitGUItoBoombox.eDataDescription = eBandWAM;
             xTransmitGUItoBoombox.ucValue = 5;
             xTransmitGUItoBoombox.State = true;
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             break;
         }
         case (6):
@@ -609,6 +617,7 @@ static void pageAirradio_btnm_BandWAM_event_handler (lv_event_t *e)
             xTransmitGUItoBoombox.eDataDescription = eBandWAM;
             xTransmitGUItoBoombox.ucValue = 4;
             xTransmitGUItoBoombox.State = true;
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             break;
         }
         default:
@@ -635,6 +644,7 @@ static void pageAirradio_btnm_Mod_event_handler (lv_event_t *e)
         switch (id) {
         case (0):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = eModIdx;
             xTransmitGUItoBoombox.ucValue = 0;
             tempeModIdx = xTransmitGUItoBoombox.ucValue;
@@ -643,6 +653,7 @@ static void pageAirradio_btnm_Mod_event_handler (lv_event_t *e)
         }
         case (1):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = eModIdx;
             xTransmitGUItoBoombox.ucValue = 1;
             tempeModIdx = xTransmitGUItoBoombox.ucValue;
@@ -651,6 +662,7 @@ static void pageAirradio_btnm_Mod_event_handler (lv_event_t *e)
         }
         case (2):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = eModIdx;
             xTransmitGUItoBoombox.ucValue = 2;
             tempeModIdx = xTransmitGUItoBoombox.ucValue;
@@ -708,6 +720,7 @@ static void pageAirradio_cb_AGC_event_handler (lv_event_t *e)
         switch (status) {
         case (true):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = eAGCgain;
             xTransmitGUItoBoombox.ucValue = 1;
             xTransmitGUItoBoombox.State = true;
@@ -715,6 +728,7 @@ static void pageAirradio_cb_AGC_event_handler (lv_event_t *e)
         }
         case (false):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = eAGCgain;
             xTransmitGUItoBoombox.ucValue = 0;
             xTransmitGUItoBoombox.State = true;
@@ -788,6 +802,20 @@ static void pageAirradio_slider_vol_event_handler (lv_event_t *e)
         xTransmitGUItoBoombox.eDataDescription = eslider_vol;
         xTransmitGUItoBoombox.ucValue = slider_vol;
         xTransmitGUItoBoombox.State = true;
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void pageAirradio_label_band_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        lv_obj_clear_flag(guider_ui.pageAirradio_btnm_band, LV_OBJ_FLAG_HIDDEN);
         break;
     }
     default:
@@ -892,20 +920,6 @@ static void pageAirradio_btnm_set_freq_event_handler (lv_event_t *e)
     }
 }
 
-static void pageAirradio_label_band_event_handler (lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        lv_obj_clear_flag(guider_ui.pageAirradio_btnm_band, LV_OBJ_FLAG_HIDDEN);
-        break;
-    }
-    default:
-        break;
-    }
-}
-
 static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -919,6 +933,21 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         switch (id) {
         case (0):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
+            xTransmitGUItoBoombox.eDataDescription = ebandIDx;
+            xTransmitGUItoBoombox.ucValue = 3;
+            xTransmitGUItoBoombox.State = true;
+            tempebandIDx = ebandIDx;
+            tempucucValue = 3;
+            tempeModIdx = 1;
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
+            xTransmitGUItoBoombox.eDataDescription = ebandIDx;
+            xTransmitGUItoBoombox.ucValue = 3;
+            xTransmitGUItoBoombox.State = true;
+            tempebandIDx = ebandIDx;
+            tempucucValue = 3;
+            tempeModIdx = 1;
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 3;
             xTransmitGUItoBoombox.State = true;
@@ -929,6 +958,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (1):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 5;
             xTransmitGUItoBoombox.State = true;
@@ -939,6 +969,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (2):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 6;
             xTransmitGUItoBoombox.State = true;
@@ -949,6 +980,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (3):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 7;
             xTransmitGUItoBoombox.State = true;
@@ -969,6 +1001,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (5):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 9;
             xTransmitGUItoBoombox.State = true;
@@ -979,6 +1012,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (6):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 10;
             xTransmitGUItoBoombox.State = true;
@@ -989,6 +1023,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (7):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 11;
             xTransmitGUItoBoombox.State = true;
@@ -999,6 +1034,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (8):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 12;
             xTransmitGUItoBoombox.State = true;
@@ -1009,6 +1045,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (9):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 13;
             xTransmitGUItoBoombox.State = true;
@@ -1029,6 +1066,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (11):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 15;
             xTransmitGUItoBoombox.State = true;
@@ -1039,6 +1077,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (12):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 16;
             xTransmitGUItoBoombox.State = true;
@@ -1049,6 +1088,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (13):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 17;
             xTransmitGUItoBoombox.State = true;
@@ -1059,6 +1099,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (14):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 18;
             xTransmitGUItoBoombox.State = true;
@@ -1079,6 +1120,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (16):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 20;
             xTransmitGUItoBoombox.State = true;
@@ -1089,6 +1131,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (17):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 21;
             xTransmitGUItoBoombox.State = true;
@@ -1099,6 +1142,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (18):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 22;
             xTransmitGUItoBoombox.State = true;
@@ -1109,6 +1153,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (19):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 23;
             xTransmitGUItoBoombox.State = true;
@@ -1119,6 +1164,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (20):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 24;
             xTransmitGUItoBoombox.State = true;
@@ -1128,6 +1174,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (21):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 25;
             xTransmitGUItoBoombox.State = true;
@@ -1138,6 +1185,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (22):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 26;
             xTransmitGUItoBoombox.State = true;
@@ -1148,6 +1196,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (23):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 27;
             xTransmitGUItoBoombox.State = true;
@@ -1158,6 +1207,7 @@ static void pageAirradio_btnm_band_event_handler (lv_event_t *e)
         }
         case (24):
         {
+            xTransmitGUItoBoombox.eModeBoombox = eAir;
             xTransmitGUItoBoombox.eDataDescription = ebandIDx;
             xTransmitGUItoBoombox.ucValue = 29;
             xTransmitGUItoBoombox.State = true;
@@ -1199,10 +1249,24 @@ void events_init_pageAirradio (lv_ui *ui)
     lv_obj_add_event_cb(ui->pageAirradio_label_vol, pageAirradio_label_vol_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_label_bt, pageAirradio_label_bt_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_slider_vol, pageAirradio_slider_vol_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->pageAirradio_label_band, pageAirradio_label_band_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_imgbtn_webradio, pageAirradio_imgbtn_webradio_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_set_freq, pageAirradio_btnm_set_freq_event_handler, LV_EVENT_ALL, ui);
-    lv_obj_add_event_cb(ui->pageAirradio_label_band, pageAirradio_label_band_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_band, pageAirradio_btnm_band_event_handler, LV_EVENT_ALL, ui);
+}
+
+static void Bluetooth_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        lv_obj_add_flag(guider_ui.Bluetooth_btnm_BT_main, LV_OBJ_FLAG_HIDDEN);
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 static void Bluetooth_imgbtn_airradio_event_handler (lv_event_t *e)
@@ -1237,10 +1301,87 @@ static void Bluetooth_imgbtn_webradio_event_handler (lv_event_t *e)
     }
 }
 
+static void Bluetooth_label_BT_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        lv_obj_clear_flag(guider_ui.Bluetooth_btnm_BT_main, LV_OBJ_FLAG_HIDDEN);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void Bluetooth_btnm_BT_main_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        lv_obj_t * obj = lv_event_get_target(e);
+        uint32_t id = lv_btnmatrix_get_selected_btn(obj);
+
+        switch (id) {
+        case (0):
+        {
+            xTransmitGUItoBoombox.eModeBoombox = eBT;
+            xTransmitGUItoBoombox.eDataDescription = ePlayCNTR;
+            xTransmitGUItoBoombox.ucValue = eFOWARD;
+            xTransmitGUItoBoombox.State = true;
+            break;
+        }
+        case (1):
+        {
+            xTransmitGUItoBoombox.eModeBoombox = eBT;
+            xTransmitGUItoBoombox.eDataDescription = ePlayCNTR;
+            xTransmitGUItoBoombox.ucValue = ePAUSE;
+            xTransmitGUItoBoombox.State = true;
+            break;
+        }
+        case (2):
+        {
+            xTransmitGUItoBoombox.eModeBoombox = eBT;
+            xTransmitGUItoBoombox.eDataDescription = ePlayCNTR;
+            xTransmitGUItoBoombox.ucValue = eSTOP;
+            xTransmitGUItoBoombox.State = true;
+            break;
+        }
+        case (3):
+        {
+            xTransmitGUItoBoombox.eModeBoombox = eBT;
+            xTransmitGUItoBoombox.eDataDescription = ePlayCNTR;
+            xTransmitGUItoBoombox.ucValue = ePLAY;
+            xTransmitGUItoBoombox.State = true;
+            break;
+        }
+        case (4):
+        {
+            xTransmitGUItoBoombox.eModeBoombox = eBT;
+            xTransmitGUItoBoombox.eDataDescription = ePlayCNTR;
+            xTransmitGUItoBoombox.ucValue = eNEXT;
+            xTransmitGUItoBoombox.State = true;
+            break;
+        }
+        default:
+            break;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 void events_init_Bluetooth (lv_ui *ui)
 {
+    lv_obj_add_event_cb(ui->Bluetooth, Bluetooth_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->Bluetooth_imgbtn_airradio, Bluetooth_imgbtn_airradio_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->Bluetooth_imgbtn_webradio, Bluetooth_imgbtn_webradio_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->Bluetooth_label_BT, Bluetooth_label_BT_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->Bluetooth_btnm_BT_main, Bluetooth_btnm_BT_main_event_handler, LV_EVENT_ALL, ui);
 }
 
 static void pageWebradio_event_handler (lv_event_t *e)
@@ -1267,8 +1408,8 @@ static void pageWebradio_label_BT_event_handler (lv_event_t *e)
     case LV_EVENT_CLICKED:
     {
         ui_load_scr_animation(&guider_ui, &guider_ui.Bluetooth, guider_ui.Bluetooth_del, &guider_ui.pageWebradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-        xTransmitGUItoBoombox.State = true;
         xTransmitGUItoBoombox.eModeBoombox = eBT;
+        xTransmitGUItoBoombox.State = true;
         break;
     }
     default:
@@ -1306,31 +1447,6 @@ static void pageWebradio_label_vol_web_event_handler (lv_event_t *e)
     }
 }
 
-static void pageWebradio_btnm_Web_main_event_handler (lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        lv_obj_t * obj = lv_event_get_target(e);
-        uint32_t id = lv_btnmatrix_get_selected_btn(obj);
-
-        switch (id) {
-        case (3):
-        {
-            ui_load_scr_animation(&guider_ui, &guider_ui.Bluetooth, guider_ui.Bluetooth_del, &guider_ui.pageWebradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-            break;
-        }
-        default:
-            break;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-}
-
 static void pageWebradio_slider_vol_web_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -1349,6 +1465,58 @@ static void pageWebradio_slider_vol_web_event_handler (lv_event_t *e)
     }
 }
 
+static void pageWebradio_btnm_Web_main_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        lv_obj_t * obj = lv_event_get_target(e);
+        uint32_t id = lv_btnmatrix_get_selected_btn(obj);
+
+        switch (id) {
+        case (0):
+        {
+            xTransmitGUItoBoombox.eModeBoombox = eWeb;
+            xTransmitGUItoBoombox.eDataDescription = ePlayCNTR;
+            xTransmitGUItoBoombox.ucValue = eFOWARD;
+            xTransmitGUItoBoombox.State = true;
+            break;
+        }
+        case (1):
+        {
+            xTransmitGUItoBoombox.eModeBoombox = eWeb;
+            xTransmitGUItoBoombox.eDataDescription = ePlayCNTR;
+            xTransmitGUItoBoombox.ucValue = eSTOP;
+            xTransmitGUItoBoombox.State = true;
+            break;
+        }
+        case (2):
+        {
+            xTransmitGUItoBoombox.eModeBoombox = eWeb;
+            xTransmitGUItoBoombox.eDataDescription = ePlayCNTR;
+            xTransmitGUItoBoombox.ucValue = ePLAY;
+            xTransmitGUItoBoombox.State = true;
+            break;
+        }
+        case (3):
+        {
+            xTransmitGUItoBoombox.eModeBoombox = eWeb;
+            xTransmitGUItoBoombox.eDataDescription = ePlayCNTR;
+            xTransmitGUItoBoombox.ucValue = eNEXT;
+            xTransmitGUItoBoombox.State = true;
+            break;
+        }
+        default:
+            break;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 static void pageWebradio_imgbtn_Airradio_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -1356,8 +1524,8 @@ static void pageWebradio_imgbtn_Airradio_event_handler (lv_event_t *e)
     case LV_EVENT_CLICKED:
     {
         ui_load_scr_animation(&guider_ui, &guider_ui.pageAirradio, guider_ui.pageAirradio_del, &guider_ui.pageWebradio_del, setup_scr_pageAirradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-        xTransmitGUItoBoombox.State = true;
         xTransmitGUItoBoombox.eModeBoombox = eAir;
+        xTransmitGUItoBoombox.State = true;
         break;
     }
     default:
@@ -1371,8 +1539,8 @@ void events_init_pageWebradio (lv_ui *ui)
     lv_obj_add_event_cb(ui->pageWebradio_label_BT, pageWebradio_label_BT_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageWebradio_label_menu_web, pageWebradio_label_menu_web_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageWebradio_label_vol_web, pageWebradio_label_vol_web_event_handler, LV_EVENT_ALL, ui);
-    lv_obj_add_event_cb(ui->pageWebradio_btnm_Web_main, pageWebradio_btnm_Web_main_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageWebradio_slider_vol_web, pageWebradio_slider_vol_web_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->pageWebradio_btnm_Web_main, pageWebradio_btnm_Web_main_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageWebradio_imgbtn_Airradio, pageWebradio_imgbtn_Airradio_event_handler, LV_EVENT_ALL, ui);
 }
 

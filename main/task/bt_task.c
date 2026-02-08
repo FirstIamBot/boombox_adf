@@ -3,6 +3,7 @@
 #include "bt_task.h"
 #include "commons.h"
 #include <inttypes.h>  // Для PRIx32
+#include <string.h> // Для strlen
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -61,20 +62,23 @@ static void bt_avrc_ct_cb(esp_avrc_ct_cb_event_t event, esp_avrc_ct_cb_param_t *
     switch (event) {
         case ESP_AVRC_CT_METADATA_RSP_EVT: {
             uint8_t *attr_text = (uint8_t *)param->meta_rsp.attr_text;
-            ESP_LOGI(TAG, "AVRC metadata event, attr_id: 0x%x, attr_text: %s", 
+            ESP_LOGD(TAG, "AVRC metadata event, attr_id: 0x%x, attr_text: %s", 
                      param->meta_rsp.attr_id, attr_text);
             
             switch (param->meta_rsp.attr_id) {
                 case ESP_AVRC_MD_ATTR_TITLE:
                     snprintf(g_avrc_metadata.title, sizeof(g_avrc_metadata.title), "%s", attr_text);
+                    ESP_LOGI(TAG, "AVRC metadata title: %s", g_avrc_metadata.title); 
                     g_avrc_metadata.metadata_updated = true;
                     break;
                 case ESP_AVRC_MD_ATTR_ARTIST:
                     snprintf(g_avrc_metadata.artist, sizeof(g_avrc_metadata.artist), "%s", attr_text);
+                    ESP_LOGI(TAG, "AVRC metadata artist: %s", g_avrc_metadata.artist);
                     g_avrc_metadata.metadata_updated = true;
                     break;
                 case ESP_AVRC_MD_ATTR_ALBUM:
                     snprintf(g_avrc_metadata.album, sizeof(g_avrc_metadata.album), "%s", attr_text);
+                    ESP_LOGI(TAG, "AVRC metadata album: %s", g_avrc_metadata.album);
                     g_avrc_metadata.metadata_updated = true;
                     break;
                 case ESP_AVRC_MD_ATTR_TRACK_NUM:
@@ -105,9 +109,9 @@ static void bt_avrc_ct_cb(esp_avrc_ct_cb_event_t event, esp_avrc_ct_cb_param_t *
                 vTaskDelay(pdMS_TO_TICKS(200));
                 ESP_LOGI(TAG, "Requesting metadata...");
                 esp_avrc_ct_send_metadata_cmd(0, ESP_AVRC_MD_ATTR_TITLE);
-                vTaskDelay(pdMS_TO_TICKS(100));
+                vTaskDelay(pdMS_TO_TICKS(200));
                 esp_avrc_ct_send_metadata_cmd(0, ESP_AVRC_MD_ATTR_ARTIST);
-                vTaskDelay(pdMS_TO_TICKS(100));
+                vTaskDelay(pdMS_TO_TICKS(200));
                 esp_avrc_ct_send_metadata_cmd(0, ESP_AVRC_MD_ATTR_ALBUM);
             } else {
                 // Очищаем метаданные при отключении
@@ -129,9 +133,9 @@ static void bt_avrc_ct_cb(esp_avrc_ct_cb_event_t event, esp_avrc_ct_cb_param_t *
                 esp_avrc_ct_send_register_notification_cmd(1, ESP_AVRC_RN_TRACK_CHANGE, 0);
                 vTaskDelay(pdMS_TO_TICKS(200));
                 esp_avrc_ct_send_metadata_cmd(0, ESP_AVRC_MD_ATTR_TITLE);
-                vTaskDelay(pdMS_TO_TICKS(100));
+                vTaskDelay(pdMS_TO_TICKS(200));
                 esp_avrc_ct_send_metadata_cmd(0, ESP_AVRC_MD_ATTR_ARTIST);
-                vTaskDelay(pdMS_TO_TICKS(100));
+                vTaskDelay(pdMS_TO_TICKS(200));
                 esp_avrc_ct_send_metadata_cmd(0, ESP_AVRC_MD_ATTR_ALBUM);
             } else if (param->change_ntf.event_id == ESP_AVRC_RN_PLAY_STATUS_CHANGE) {
                 ESP_LOGI(TAG, "Play status changed");
@@ -156,16 +160,15 @@ static void bt_avrc_ct_cb(esp_avrc_ct_cb_event_t event, esp_avrc_ct_cb_param_t *
 
 // Функции для получения метаданных
 const char* bt_get_current_title(void) {
-    return g_avrc_metadata.title[0] != '\0' ? g_avrc_metadata.title : "Unknown";
-    //return g_avrc_metadata.title;
+    return g_avrc_metadata.title;
 }
 
 const char* bt_get_current_artist(void) {
-    return g_avrc_metadata.artist[0] != '\0' ? g_avrc_metadata.artist : "Unknown";
+    return g_avrc_metadata.artist;
 }
 
 const char* bt_get_current_album(void) {
-    return g_avrc_metadata.album[0] != '\0' ? g_avrc_metadata.album : "Unknown";
+    return g_avrc_metadata.album;
 }
 
 bool bt_metadata_updated(void) {
@@ -175,8 +178,6 @@ bool bt_metadata_updated(void) {
     }
     return false;
 }
-
-
 
 static void user_a2dp_sink_cb(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *param)
 {
@@ -309,25 +310,7 @@ void init_bt_player( ) {
 }
 // Функция роботы BT проигрывателя
 void bt_player_run(Data_GUI_Boombox_t *xDataGUI,  Data_Boombox_GUI_t *xDataBoomBox) {
-/*
-    ESP_LOGI(TAG, "[ 8 ] Listen for all pipeline events");
-    ESP_LOGD(TAG, "[ 5-6 ] Listen for all pipeline events");
 
-    esp_err_t ret = audio_event_iface_listen(evt, &msg, pdMS_TO_TICKS(1000)); // Уменьшаем таймаут
-    ESP_LOGI(TAG, " ----- msg: source_type=%d, source=%p, cmd=%d, data=%p", msg.source_type, msg.source, msg.cmd, msg.data);
-    //  msg: source_type=131072, source=0x3f80fa68, cmd=8, data=0xc
-   
-    if (ret != ESP_OK) {
-        if (ret == ESP_ERR_TIMEOUT) {
-            // Таймаут - это нормально, просто возвращаемся
-            ESP_LOGE(TAG, "[ * ] Event TIMEOUT : %s", esp_err_to_name(ret));
-            return;
-        }
-        ESP_LOGE(TAG, "[ * ] Event interface error : %s", esp_err_to_name(ret));
-       return;
-    }
-    
-*/
     if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT && msg.source == (void *) bt_stream_reader && msg.cmd == AEL_MSG_CMD_REPORT_MUSIC_INFO) {
         audio_element_info_t music_info = {0};
         audio_element_getinfo(bt_stream_reader, &music_info);
@@ -347,19 +330,17 @@ void bt_player_run(Data_GUI_Boombox_t *xDataGUI,  Data_Boombox_GUI_t *xDataBoomB
 
     // Проверяем и обновляем метаданные
     if (bt_metadata_updated()) {
-        ESP_LOGI(TAG, "Metadata updated:");
-        ESP_LOGI(TAG, "  Title: %s", bt_get_current_title());
-        ESP_LOGI(TAG, "  Artist: %s", bt_get_current_artist());
-        ESP_LOGI(TAG, "  Album: %s", bt_get_current_album());
-        // Раскомментируйте когда структура будет готова:
         xDataBoomBox->eModeBoombox = eBT;
         xDataBoomBox->eBtDescription.vcTitle = bt_get_current_title();
         xDataBoomBox->eBtDescription.vcArtist = bt_get_current_artist();
         xDataBoomBox->eBtDescription.vcAlbum = bt_get_current_album();
         xDataBoomBox->State = true;
-    }   
+    } else {
+        g_avrc_metadata.artist[0] = '\0';
+        g_avrc_metadata.title[0] = '\0';
+        g_avrc_metadata.album[0] = '\0';
+    }
 }
-    
 // Функция остановки BT проигрывателя 
 void deinit_bt_player(){
     
@@ -389,4 +370,3 @@ void deinit_bt_player(){
     ESP_LOGI(TAG, "Bluetooth completely disabled");    
 
 }
-

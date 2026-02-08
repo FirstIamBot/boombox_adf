@@ -8,6 +8,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+
 /***********************************************
  * 
  * For air_speaker
@@ -56,10 +57,20 @@ typedef enum
   eBT,
   eWeb,
 } ModeBoombox_t;
-
-//=================  Структура данных обработки нажатия кнопок lvgl ==============
+//=================  Структура данных режимов роботы  Плеера =====
 typedef enum
 {
+  eSTOP = 0,
+  ePLAY = 1,
+  ePAUSE = 2,
+  eFOWARD = 3,
+  eNEXT = 4,
+} ModePLAYER_t;
+//=================  Структура данных обработки нажатия кнопок Web Server ======================
+
+//=================  Структура данных обработки нажатия кнопок lvgl ===========================
+typedef enum
+{   // Элементы управления радиоприемником
     ebandIDx = BANDIDx,       // Выбор диапазона. ucValue = LW-0, MW-1, Sw-2, FM-3 
     eModIdx = MODIDx,        // Выбор модуляции. ucValue = AM-0, FM-1, LSB-2, USB-3, SSB-4
     eStepFM = STEPFM,        // Шаг перестройки FM
@@ -80,19 +91,25 @@ typedef enum
                                         //  4 = 1 kHz Bandwidth
                                         // 5 = 1.8 kHz Bandwidth
                                         // 6 = 2.5 kHz Bandwidth, gradual roll off
-    eBandWSSB = BANDSSB,      // Полоса пропускания SSB
+    eBandWSSB = BANDSSB,     // Полоса пропускания SSB
     eStepUP = STEPUP,        // Переход на одну станцию в верх
-    eStepDown = STEPDOWN,      // Переход на одну станцию в верх
+    eStepDown = STEPDOWN,    // Переход на одну станцию в верх
     eSeekUP = UP_SEEK,       // Поиск станций вверх
     eStationStepUP = STEP_STATION_UP,    // Перестройка вверх с шагом
     eStationStepDOWN = STEP_STATION_DOWN,  // Перестройка вниз с шагом
-    eAGCgain    = AGCGAIN,     // Включение/выключение AGC
-    eSlider_agc = SLIDER_AGC,   // Регулировка AGC
-    eslider_vol = SLIDER_VOL,   // Громкость 
-    eSetFreq = 16       // Установка частоты
+    eAGCgain    = AGCGAIN,    // Включение/выключение AGC
+    eSlider_agc = SLIDER_AGC, // Регулировка AGC
+    eslider_vol = SLIDER_VOL, // Громкость 
+    eSetFreq = SET_FREQ,       // Установка частоты
+    // Элементы управления BT и HTTP плеером
+    ePlayCNTR = 17, // 0 - STOP
+                    // 1 - PLAY
+                    // 2 - PAUSE
+                    // 3 - FOWARD
+                    // 4 - NEXT
 } DataDescription_t;
+
 //================  Структура данных помещаемых в очередь  для обработки в МК  =================
-// 
 typedef struct
 {
     bool State;                         //  Статус Структуры, false-изменений не было, true-изменений было
@@ -110,14 +127,14 @@ typedef enum
 
 typedef struct
 {
-    uint8_t ucBand;     //  значение  диапазона AM/SW/SSB/FM   
-    uint8_t ucStationIDx; // значение значение номера станции из списка
-    uint16_t ucFreq;    //  значение  частоты
-    uint8_t ucSNR;      //  значение  SNR
-    uint8_t ucRSSI;     //  значение  RSSI
-    uint8_t ucslider_vol;// значение громкости
-    char *vcBand;       // Текстовое значение  диапазона AM/SW/SSB/FM  
-    char *vcFreqRange; // Текстовое значение kHz/MHz 
+    uint8_t ucBand;         //  значение  диапазона AM/SW/SSB/FM   
+    uint8_t ucStationIDx;   // значение номера станции из списка
+    uint16_t ucFreq;        //  значение  частоты
+    uint8_t ucSNR;          //  значение  SNR
+    uint8_t ucRSSI;         //  значение  RSSI
+    uint8_t ucslider_vol;   // значение громкости
+    char *vcBand;           // Текстовое значение  диапазона AM/SW/SSB/FM  
+    char *vcFreqRange;      // Текстовое значение kHz/MHz 
     char *vcStereoMono;// Текстовое значение стерео/моно
     char *vcBW;        // Текстовое значение полосы пропускания 
     char *vcStep;      // Текстовое значение шага перестройки
@@ -126,9 +143,9 @@ typedef struct
 
 typedef struct
 {
-    char *vcTitle;      // Текстовое значение Заглавия 
-    char *vcArtist;     // Текстовое значение Артиста
-    char *vcAlbum;      // Текстовое значение Альбома
+    char *vcURIStation;  // Текстовое значение URI станции 
+    char *vcStation;     // Текстовое значение станции
+    uint8_t ucStationIDx;  // значение номера станции из списка
 
 }WebDescription_t;
 
@@ -143,20 +160,6 @@ typedef struct
 typedef struct
 {
     bool State;         //  Статус Структуры, false-изменений не было, true-изменений не было
-    /*
-    uint8_t ucBand;     //  значение  диапазона AM/SW/SSB/FM   
-    uint8_t ucStationIDx; // значение значение номера станции из списка
-    uint16_t ucFreq;    //  значение  частоты
-    uint8_t ucSNR;      //  значение  SNR
-    uint8_t ucRSSI;     //  значение  RSSI
-    uint8_t ucslider_vol;// значение громкости
-    char *vcBand;       // Текстовое значение  диапазона AM/SW/SSB/FM  
-    char *vcFreqRange; // Текстовое значение kHz/MHz 
-    char *vcStereoMono;// Текстовое значение стерео/моно
-    char *vcBW;        // Текстовое значение полосы пропускания 
-    char *vcStep;      // Текстовое значение шага перестройки
-    char *vcRDSdata;   // Текстовая информация от RDS
-    */
     ModeBoombox_t eModeBoombox;
     AirDescription_t eAirDescription;
     WebDescription_t eWebDescription;
@@ -192,17 +195,22 @@ typedef struct {
     si4735_station_t air_SW_station; // Структура для хранения информации о станции
 } air_config_t;
 
+typedef struct commons
+{
+    /* data */
+}web_config_t;
+
 
 typedef struct
 {
     ModeBoombox_t eModeBoombox; // режим работы Boombox 
     uint8_t current_source;     // текущий источник (AIR_SPEAKER, BT_SPEAKER, WEB_SPEKER)
     air_config_t air_radio_config; // конфигурация эфирного приёмника
+    uint16_t Volume;
     // Добавить конфигурации BT и WEB
     //bt_config_t bt_config;
     //web_config_t web_config;
 } BoomBox_config_t;
-
 
 void gui_boombox_queue_init(void);
 void boombox_gui_queue_init(void);

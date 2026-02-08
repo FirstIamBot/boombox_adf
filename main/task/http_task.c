@@ -1,6 +1,5 @@
 
 #include "board.h"
-
 #include "http_task.h"
 #include "commons.h"
 
@@ -22,6 +21,11 @@
 #include "http_stream.h"
 #include "mp3_decoder.h"
 #include "periph_wifi.h"
+
+#include "playlist_parser.h"
+
+// WiFi Manager для проверки подключения
+//#include "esp_wifi_manager.h"
 
 static const char *TAG = "HTTP_PLAYER";
 
@@ -50,8 +54,10 @@ static const char *selected_decoder_name = "flac";
 static const char *selected_file_to_play = "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.flac";
 #elif defined SELECT_MP3_DECODER
 
+static uint8_t countStation;
+static uint8_t curStation = 0;
 static const char *selected_decoder_name = "mp3";
-static const char *selected_file_to_play = "http://online.radioroks.ua/RadioROKS";//"http://online.hitfm.ua/HitFM"); //  "http://online.radioroks.ua/RadioROKS_Ukr");
+static const char *selected_file_to_play = "http://online.radioroks.ua/RadioROKS";
 #elif defined SELECT_OGG_DECODER
 #include "ogg_decoder.h"
 static const char *selected_decoder_name = "ogg";
@@ -67,7 +73,125 @@ static const char *selected_file_to_play = "https://dl.espressif.com/dl/audio/ff
 #endif
 //*********************************************************************************************************************
 
+// Функция для вывода данных из GUI в консоль
+void log_gui_control_data(const Data_GUI_Boombox_t *xDataBoomBox) {
+    if (xDataBoomBox == NULL) {
+        ESP_LOGW(TAG, "[ GUI ] Received NULL pointer from GUI");
+        return;
+    }
 
+    ESP_LOGI(TAG, "╔════════════════════════════════════════╗");
+    ESP_LOGI(TAG, "║     Data from  WEB GUI Boombox         ║");
+    ESP_LOGI(TAG, "╠════════════════════════════════════════╣");
+    
+    // Вывод описания команды
+    // Расшифровка типа данных (если есть enum)
+    switch (xDataBoomBox->eDataDescription) {
+        case ePlayCNTR:
+            ESP_LOGI(TAG, "║   Type: Соntrol Player");
+            break;
+        default:
+            ESP_LOGI(TAG, "║   Type: Unknown (%d)", xDataBoomBox->eDataDescription);
+            break;
+    }
+    
+    // Расшифровка типа данных (если есть enum)
+    switch (xDataBoomBox->ucValue) {
+        case eSTOP:
+            ESP_LOGI(TAG, "║   Type: eSTOP          %d               ║",xDataBoomBox->ucValue);
+            break;
+        case ePLAY:
+            ESP_LOGI(TAG, "║   Type: ePLAY          %d               ║",xDataBoomBox->ucValue);
+            break;
+        case ePAUSE:
+            ESP_LOGI(TAG, "║   Type: ePAUSE         %d               ║",xDataBoomBox->ucValue);
+            break;
+        case eFOWARD:
+            ESP_LOGI(TAG, "║   Type: eFOWARD        %d               ║",xDataBoomBox->ucValue);
+            break;
+        case eNEXT:
+            ESP_LOGI(TAG, "║   Type: eNEXT          %d               ║",xDataBoomBox->ucValue);
+            break;
+        default:
+            ESP_LOGI(TAG, "║   Type: Unknown (%d)", xDataBoomBox->ucValue);
+            break;
+    }
+
+    
+    ESP_LOGI(TAG, "╚════════════════════════════════════════╝");
+}
+
+// Управление HTTP плеером из GUI и Web сервера
+void cntr_http_player(Data_GUI_Boombox_t *set_data) {
+     /*      */ 
+    // Функция установки параметров проигрывателя HTTP радио
+    switch (set_data->eDataDescription) {
+        case ePlayCNTR:
+            switch (set_data->ucValue) {
+                case eSTOP:
+                    ESP_LOGI(TAG, "[ HTTP ] Stopping playback as per GUI command");
+                    audio_pipeline_stop(pipeline);
+                    audio_pipeline_wait_for_stop(pipeline);
+                    audio_pipeline_reset_ringbuffer(pipeline);
+                    audio_pipeline_reset_elements(pipeline);
+                break;
+                case ePLAY:
+                    ESP_LOGI(TAG, "[ HTTP ] Starting playback as per GUI command");
+                    audio_pipeline_run(pipeline);
+                break;
+                case eNEXT:
+                    if(curStation >= countStation - 1) {
+                        curStation = 0;
+                    }
+                    else {
+                        curStation++;
+                    }
+                    selected_file_to_play = playlist_get_url(curStation);
+                    audio_element_set_uri(http_stream_reader, selected_file_to_play);
+                    ESP_LOGI(TAG, "[ HTTP ] Switching to next station: %d. %s - %s", curStation, playlist_get_title(curStation), playlist_get_url(curStation));
+                    audio_pipeline_stop(pipeline);
+                    audio_pipeline_wait_for_stop(pipeline);
+                    audio_pipeline_reset_ringbuffer(pipeline);
+                    audio_pipeline_reset_elements(pipeline);
+                    audio_pipeline_run(pipeline);
+                    break;
+                case eFOWARD:
+                    if(curStation == 0) {
+                        curStation = countStation - 1;
+                    }
+                    else {
+                        curStation--;
+                    }
+                    selected_file_to_play = playlist_get_url(curStation);
+                    ESP_LOGI(TAG, "[ HTTP ] Switching to foward station: %d. %s - %s", curStation, playlist_get_title(curStation), playlist_get_url(curStation));
+                    audio_element_set_uri(http_stream_reader, selected_file_to_play);
+                    audio_pipeline_stop(pipeline);
+                    audio_pipeline_wait_for_stop(pipeline);
+                    audio_pipeline_reset_ringbuffer(pipeline);
+                    audio_pipeline_reset_elements(pipeline);
+                    audio_pipeline_run(pipeline);
+                break;
+                default:
+                    ESP_LOGW(TAG, "[ HTTP ] Unknown control command from GUI: %d", set_data->ucValue);
+                break;
+                }
+        break;
+
+        default:
+            ESP_LOGW(TAG, "[ HTTP ] Unknown data description from GUI: %d", set_data->eDataDescription);
+        break;
+    }
+}
+// Возврат данных проигрывателя HTTP радио на GUI  и Web сервер
+void get_http_player(Data_Boombox_GUI_t *get_data) {
+    /*      */ 
+    // Функция получения параметров проигрывателя HTTP радио
+    get_data->eModeBoombox = eWeb; // Устанавливаем режим Boombox как HTTP радио
+    get_data->eWebDescription.ucStationIDx = curStation+1; // Текущий номер станции +1 для отображения пользователю
+    get_data->eWebDescription.vcStation = playlist_get_title(curStation); // Текущее название станции
+    get_data->eWebDescription.vcURIStation = playlist_get_url(curStation); // Текущий URI станции
+    get_data->State = true; // Устанавливаем состояние данных для GUI
+}
 // Функция запуска проигрывателя HTTP радио
 void init_http_player( ) {
   ESP_LOGI(TAG, "[ * ] HTTP player started");
@@ -75,7 +199,6 @@ void init_http_player( ) {
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
 
-    
     // Проверка доступной памяти перед началом
     size_t free_heap = esp_get_free_heap_size();
     ESP_LOGW(TAG, "Free heap before HTTP init: %d bytes", free_heap);
@@ -136,6 +259,18 @@ void init_http_player( ) {
 
     ESP_LOGI(TAG, "[2.6] Set up  uri (http as http_stream, %s as %s_decoder, and default output is i2s)",
              selected_decoder_name, selected_decoder_name);
+      
+    ESP_LOGI(TAG, "[2.7] Read /spiffs/playlist.pls file");
+    countStation = parse_playlist("/spiffs/playlist.pls");
+
+    if ( countStation > 0) {
+        print_playlist();  
+        selected_file_to_play = playlist_get_url(curStation);
+        ESP_LOGI(TAG, "[2.8.1] countStation = %d selected station = %s", countStation, selected_file_to_play);
+    } else {
+        ESP_LOGE(TAG, "Failed to parse playlist");
+    }    
+    
     audio_element_set_uri(http_stream_reader, selected_file_to_play);
 
     ESP_LOGI(TAG, "Wi-Fi SSID: %s, PASSWORD: %s", CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
@@ -172,8 +307,8 @@ void init_http_player( ) {
 }
 
 // Функция проигрывателя HTTP радио
-void http_player_run(){
-
+void http_player_run(Data_GUI_Boombox_t *set_data,  Data_Boombox_GUI_t *get_data){
+    /**/
     ESP_LOGD(TAG, "[ 5-6 ] Listen for all pipeline events");
 
     esp_err_t ret = audio_event_iface_listen(evt, &msg, pdMS_TO_TICKS(1000)); // Уменьшаем таймаут
@@ -186,12 +321,6 @@ void http_player_run(){
         }
         ESP_LOGE(TAG, "[ * ] Event interface error : %s", esp_err_to_name(ret));
        //return;
-    }
-
-    // Проверяем, что источник все еще HTTP
-    if (g_current_source != SOURCE_HTTP) {
-        ESP_LOGD(TAG, "Source changed, stopping HTTP events processing");
-        //return;
     }
 
     if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
@@ -208,7 +337,7 @@ void http_player_run(){
         }
     }
 
-    /* Stop when the last pipeline element receives stop event */
+    //Stop when the last pipeline element receives stop event
     if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT && msg.source == (void *) i2s_stream_writer
         && msg.cmd == AEL_MSG_CMD_REPORT_STATUS
         && (((int)msg.data == AEL_STATUS_STATE_STOPPED) || ((int)msg.data == AEL_STATUS_STATE_FINISHED) 
@@ -216,6 +345,16 @@ void http_player_run(){
         ESP_LOGW(TAG, "[ * ] Stop/Error event received: %d", (int)msg.data);
         // Можно установить флаг для переинициализации или переключения источника
     }
+//*****************************  Секция управления HTTP проигрователя получеными данными из GUI **********************
+    // Установка данных для передачи в Boombox GUI
+    if(set_data->State == true){    
+       cntr_http_player(set_data);
+    //log_gui_control_data(set_data); // Логируем полученные данные из GUI
+    set_data->State = false; // Сбрасываем состояние после обработки  
+    }
+//******************************  Секция вывода данных на GUI ********************************************************
+    get_http_player( get_data); 
+//********************************************************************************************************************
 }
 
 // Функция остановки проигрывателя HTTP радио

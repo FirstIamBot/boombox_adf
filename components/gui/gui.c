@@ -236,9 +236,12 @@ void awgui_reload(Data_Boombox_GUI_t data){
                 ConvertToChar(data.eAirDescription.ucFreq, valFreq, 5, 0, '.', true);
             }
             // Проверка, что объект был успешно создан
-            if (guider_ui.pageAirradio_label_Freq != NULL || guider_ui.pageAirradio_label_FreqRange  != NULL)
+            if (guider_ui.pageAirradio_label_Freq != NULL )
             {
                 lv_label_set_text(guider_ui.pageAirradio_label_Freq, valFreq);
+            }
+            if (guider_ui.pageAirradio_label_FreqRange  != NULL)
+            {
                 lv_label_set_text(guider_ui.pageAirradio_label_FreqRange, data.eAirDescription.vcFreqRange);
             }
             if (guider_ui.pageAirradio_label_mono != NULL )
@@ -279,13 +282,28 @@ void awgui_reload(Data_Boombox_GUI_t data){
             ESP_LOGD(TAG, "************** awgui_reload - eBT");
             if (guider_ui.Bluetooth_label_bt_song != NULL)
             {
-                lv_label_set_text(guider_ui.Bluetooth_label_bt_song, data.eBtDescription.vcArtist); // Текстовая информация от Station ID
+                lv_label_set_text(guider_ui.Bluetooth_label_bt_song, data.eBtDescription.vcTitle); // Текстовая информация от 
             }
-
-            
+            if (guider_ui.Bluetooth_label_bt_artist != NULL)
+            {
+                lv_label_set_text(guider_ui.Bluetooth_label_bt_artist, data.eBtDescription.vcArtist); // Текстовая информация от 
+            }
+            if (guider_ui.Bluetooth_label_bt_song != NULL)
+            {
+                lv_label_set_text(guider_ui.Bluetooth_label_bt_album, data.eBtDescription.vcAlbum); // Текстовая информация альбома
+            }
         break;
         case eWeb:
             ESP_LOGI(TAG, "************* awgui_reload - eWeb");
+            // Добавить номер станции
+            if (guider_ui.pageWebradio_label_web_title != NULL)
+            {
+                lv_label_set_text(guider_ui.pageWebradio_label_web_title, data.eWebDescription.vcStation); // Текстовая информация 
+            }
+            if (guider_ui.pageWebradio_idWeb != NULL)
+            {
+                lv_label_set_text_fmt(guider_ui.pageWebradio_idWeb, "%d", data.eWebDescription.ucStationIDx); // Текущая станция
+            }
         break;
         default:
             ESP_LOGI(TAG, "************** awgui_reload - default");
@@ -306,8 +324,13 @@ static void lv_tick_task(void *arg)
    (void)arg;
    lv_tick_inc(portTICK_PERIOD_MS);
 }
-
+/*
 static void lv_tick_hook(void)
+{
+   lv_tick_inc(portTICK_PERIOD_MS);
+}
+*/
+static void IRAM_ATTR lv_tick_hook(void)
 {
    lv_tick_inc(portTICK_PERIOD_MS);
 }

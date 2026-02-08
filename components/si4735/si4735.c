@@ -50,6 +50,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_rom_sys.h"
+
 static const char *TAG = "si4735 ";
 /**
  * @brief I2C initial defines and function

@@ -1,5 +1,5 @@
 /*
-* Copyright 2025 NXP
+* Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
 * activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
@@ -119,6 +119,7 @@ void setup_scr_Bluetooth(lv_ui *ui)
     lv_label_set_long_mode(ui->Bluetooth_label_BT, LV_LABEL_LONG_WRAP);
     lv_obj_set_pos(ui->Bluetooth_label_BT, 135, 13);
     lv_obj_set_size(ui->Bluetooth_label_BT, 46, 57);
+    lv_obj_add_flag(ui->Bluetooth_label_BT, LV_OBJ_FLAG_CLICKABLE);
 
     //Write style for Bluetooth_label_BT, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_border_width(ui->Bluetooth_label_BT, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -138,16 +139,16 @@ void setup_scr_Bluetooth(lv_ui *ui)
 
     //Write codes Bluetooth_label_bt_song
     ui->Bluetooth_label_bt_song = lv_label_create(ui->Bluetooth);
-    lv_label_set_text(ui->Bluetooth_label_bt_song, "AC/DC  Hell Bell");
+    lv_label_set_text(ui->Bluetooth_label_bt_song, "");
     lv_label_set_long_mode(ui->Bluetooth_label_bt_song, LV_LABEL_LONG_SCROLL_CIRCULAR);
-    lv_obj_set_pos(ui->Bluetooth_label_bt_song, 6, 95);
-    lv_obj_set_size(ui->Bluetooth_label_bt_song, 307, 20);
+    lv_obj_set_pos(ui->Bluetooth_label_bt_song, 30, 92);
+    lv_obj_set_size(ui->Bluetooth_label_bt_song, 250, 19);
 
     //Write style for Bluetooth_label_bt_song, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_border_width(ui->Bluetooth_label_bt_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_radius(ui->Bluetooth_label_bt_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_color(ui->Bluetooth_label_bt_song, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->Bluetooth_label_bt_song, &lv_font_montserratMedium_16, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->Bluetooth_label_bt_song, &lv_font_DejaVuSans_18, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui->Bluetooth_label_bt_song, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_letter_space(ui->Bluetooth_label_bt_song, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_line_space(ui->Bluetooth_label_bt_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -158,6 +159,90 @@ void setup_scr_Bluetooth(lv_ui *ui)
     lv_obj_set_style_pad_bottom(ui->Bluetooth_label_bt_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui->Bluetooth_label_bt_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui->Bluetooth_label_bt_song, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write codes Bluetooth_label_bt_artist
+    ui->Bluetooth_label_bt_artist = lv_label_create(ui->Bluetooth);
+    lv_label_set_text(ui->Bluetooth_label_bt_artist, "");
+    lv_label_set_long_mode(ui->Bluetooth_label_bt_artist, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->Bluetooth_label_bt_artist, 30, 150);
+    lv_obj_set_size(ui->Bluetooth_label_bt_artist, 255, 20);
+
+    //Write style for Bluetooth_label_bt_artist, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->Bluetooth_label_bt_artist, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->Bluetooth_label_bt_artist, &lv_font_DejaVuSans_18, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->Bluetooth_label_bt_artist, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->Bluetooth_label_bt_artist, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->Bluetooth_label_bt_artist, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write codes Bluetooth_label_bt_album
+    ui->Bluetooth_label_bt_album = lv_label_create(ui->Bluetooth);
+    lv_label_set_text(ui->Bluetooth_label_bt_album, "");
+    lv_label_set_long_mode(ui->Bluetooth_label_bt_album, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->Bluetooth_label_bt_album, 30, 122);
+    lv_obj_set_size(ui->Bluetooth_label_bt_album, 255, 20);
+
+    //Write style for Bluetooth_label_bt_album, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->Bluetooth_label_bt_album, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->Bluetooth_label_bt_album, &lv_font_DejaVuSans_18, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->Bluetooth_label_bt_album, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->Bluetooth_label_bt_album, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->Bluetooth_label_bt_album, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write codes Bluetooth_btnm_BT_main
+    ui->Bluetooth_btnm_BT_main = lv_btnmatrix_create(ui->Bluetooth);
+    static const char *Bluetooth_btnm_BT_main_text_map[] = {"<<", "||", "o", ">", ">>", "",};
+    lv_btnmatrix_set_map(ui->Bluetooth_btnm_BT_main, Bluetooth_btnm_BT_main_text_map);
+    lv_obj_set_pos(ui->Bluetooth_btnm_BT_main, 5, 160);
+    lv_obj_set_size(ui->Bluetooth_btnm_BT_main, 310, 75);
+    lv_obj_add_flag(ui->Bluetooth_btnm_BT_main, LV_OBJ_FLAG_HIDDEN);
+
+    //Write style for Bluetooth_btnm_BT_main, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->Bluetooth_btnm_BT_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui->Bluetooth_btnm_BT_main, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui->Bluetooth_btnm_BT_main, lv_color_hex(0xc9c9c9), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_side(ui->Bluetooth_btnm_BT_main, LV_BORDER_SIDE_FULL, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->Bluetooth_btnm_BT_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->Bluetooth_btnm_BT_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->Bluetooth_btnm_BT_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->Bluetooth_btnm_BT_main, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(ui->Bluetooth_btnm_BT_main, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(ui->Bluetooth_btnm_BT_main, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->Bluetooth_btnm_BT_main, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->Bluetooth_btnm_BT_main, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui->Bluetooth_btnm_BT_main, lv_color_hex(0x2FCADA), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_dir(ui->Bluetooth_btnm_BT_main, LV_GRAD_DIR_NONE, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write style for Bluetooth_btnm_BT_main, Part: LV_PART_ITEMS, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->Bluetooth_btnm_BT_main, 1, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui->Bluetooth_btnm_BT_main, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui->Bluetooth_btnm_BT_main, lv_color_hex(0xc9c9c9), LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_side(ui->Bluetooth_btnm_BT_main, LV_BORDER_SIDE_FULL, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->Bluetooth_btnm_BT_main, lv_color_hex(0xffffff), LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->Bluetooth_btnm_BT_main, &lv_font_montserratMedium_16, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->Bluetooth_btnm_BT_main, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->Bluetooth_btnm_BT_main, 4, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->Bluetooth_btnm_BT_main, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui->Bluetooth_btnm_BT_main, lv_color_hex(0x2195f6), LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_dir(ui->Bluetooth_btnm_BT_main, LV_GRAD_DIR_NONE, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->Bluetooth_btnm_BT_main, 0, LV_PART_ITEMS|LV_STATE_DEFAULT);
 
     //The custom code of Bluetooth.
 

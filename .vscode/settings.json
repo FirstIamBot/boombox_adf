@@ -52,7 +52,8 @@
     "esp_bt_device.h": "c"
   },
   "idf.customExtraVars": {
-    "IDF_TARGET": "esp32"
+    "IDF_TARGET": "esp32",
+    "ADF_PATH": "/home/gena/.espressif/esp-adf"
   },
   "clangd.path": "/home/gena/.espressif/tools/esp-clang/esp-18.1.2_20240912/esp-clang/bin/clangd",
   "clangd.arguments": [
@@ -63,5 +64,6 @@
   "idf.openOcdConfigs": [
     "interface/ftdi/esp32_devkitj_v1.cfg",
     "target/esp32.cfg"
-  ]
+  ],
+  "idf.currentSetup": "/home/gena/esp/esp-idf-v5.4"
 }
