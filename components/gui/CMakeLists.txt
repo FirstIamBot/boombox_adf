@@ -8,4 +8,4 @@ FILE(GLOB_RECURSE SOURCES ./*.c
 
 idf_component_register(SRCS ${SOURCES}
                     INCLUDE_DIRS . generated custom import import/image gui_touch_calibration
-                    REQUIRES lvgl nvs_flash drv commons)
+                    REQUIRES lvgl nvs_flash encoder drv commons)

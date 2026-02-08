@@ -1,8 +1,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
-#include "esp_coexist.h"
-#include "esp_wifi.h"
 
 #include "nvs_flash.h"
 #include "nvs.h"
@@ -159,26 +157,11 @@ esp_err_t init_bt_wifi_coex(void)
     // Инициализация сетевого интерфейса
     ESP_ERROR_CHECK(esp_netif_init());
     
-    // Инициализация WiFi (необходимо для coexistence)
-    esp_netif_create_default_wifi_sta();
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    
-    // Настройка coexistence до инициализации Bluetooth
-    ESP_LOGI(TAG, "Configuring WiFi-BT coexistence");
-    
-    // Установка предпочтений coexistence (приоритет Bluetooth для аудио)
-    esp_coex_preference_set(ESP_COEX_PREFER_BT);
-    
-    // Инициализация Bluetooth контроллера
+    // Инициализация Bluetooth контроллера (если еще не инициализирован)
     if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_IDLE) {
-        ESP_LOGI(TAG, "Initializing Bluetooth controller with coexistence");
+        ESP_LOGI(TAG, "Initializing Bluetooth controller");
         ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
-        
         esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-        
         ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));
         ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT));
         ESP_ERROR_CHECK(esp_bluedroid_init());
@@ -186,11 +169,9 @@ esp_err_t init_bt_wifi_coex(void)
     } else {
         ESP_LOGW(TAG, "Bluetooth controller already initialized");
     }
-    
-    // Настройка Bluetooth устройства
+    // Настройка Bluetooth устройства (предполагается, что контроллер уже инициализирован)
     esp_bt_gap_set_device_name(nameBT);
     esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
-    
     ESP_LOGI(TAG, "Bluetooth and WiFi coexistence initialized successfully");
     return ret;
 }
