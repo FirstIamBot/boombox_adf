@@ -79,4 +79,9 @@ void custom_init(lv_ui *ui)
  
 }
 
-
+void web_сhange(lv_ui *ui, int32_t v)
+{
+   // ui_load_scr_animation(&ui, &ui.Bluetooth, ui.Bluetooth_del, &ui.pageWebradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+   // ui_load_scr_animation(&ui, &ui.pageAirradio, ui.pageAirradio_del, &ui.pageWebradio_del, setup_scr_pageAirradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+   // ui_load_scr_animation(&ui, &ui.pageWebradio, ui.pageWebradio_del, &ui.pageAirradio_del, setup_scr_pageWebradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+}   
