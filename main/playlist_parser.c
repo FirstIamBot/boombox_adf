@@ -4,6 +4,69 @@
 #include "esp_log.h"
 #include "esp_spiffs.h"
 
+#include "boombox_playlist.h"
+#include <errno.h>
+#include <ctype.h>
+#include <stdbool.h>
+
+// Helper: trim leading/trailing whitespace and remove leading ':'
+static void sanitize_str(const char *src, char *dst, size_t dst_len)
+{
+    if (!src || !dst || dst_len == 0) return;
+    // skip leading whitespace
+    while (*src && isspace((unsigned char)*src)) src++;
+    // skip leading ':' characters
+    while (*src == ':') src++;
+    // copy
+    size_t i = 0;
+    while (*src && i + 1 < dst_len) dst[i++] = *src++;
+    dst[i] = '\0';
+    // trim trailing whitespace
+    while (i > 0 && isspace((unsigned char)dst[i-1])) dst[--i] = '\0';
+}
+
+// Helper: ensure scheme present (prepend http:// if missing)
+static void ensure_scheme(char *s, size_t len)
+{
+    if (!s) return;
+    if (strstr(s, "://") == NULL) {
+        const char *scheme = "http://";
+        size_t sl = strlen(scheme);
+        size_t cur = strlen(s);
+        if (cur + sl + 1 < len) {
+            memmove(s + sl, s, cur + 1);
+            memcpy(s, scheme, sl);
+        }
+    }
+}
+
+// Helper: simple URL validity check (has scheme and host)
+static bool is_valid_url(const char *s)
+{
+    if (!s) return false;
+    const char *p = strstr(s, "://");
+    if (!p) return false;
+    p += 3; // after ://
+    if (*p == '\0') return false;
+    // host must contain at least one alnum
+    const char *q = p;
+    while (*q && *q != '/' && *q != ':') {
+        if (isalnum((unsigned char)*q)) return true;
+        q++;
+    }
+    return false;
+}
+
+// Helper: append invalid entry to a file for inspection
+static void record_invalid(const char *title, const char *url, const char *reason)
+{
+    const char *invalid_path = "/spiffs/playlist_invalid.txt";
+    FILE *inv = fopen(invalid_path, "a");
+    if (!inv) return;
+    fprintf(inv, "Title=%s\nURL=%s\nReason=%s\n---\n", title ? title : "", url ? url : "", reason ? reason : "");
+    fclose(inv);
+}
+
 #define MAX_ENTRIES  20      // Максимальное количество станций в плейлисте
 #define MAX_TITLE    64      // Максимальная длина названия станции
 #define MAX_URL      256     // Максимальная длина URL
@@ -64,22 +127,45 @@ int parse_playlist(const char *filename) {
     if (!f) return -1;
     char line[512];
     int idx = 0;
+    char pending_title[MAX_TITLE] = {0};
+    char tmp_url[MAX_URL];
+    char sanitized[MAX_URL];
+
     while (fgets(line, sizeof(line), f)) {
         // Поиск строки с названием станции
         if (strncmp(line, "Title", 5) == 0) {
             char *eq = strchr(line, '=');
             if (eq && idx < MAX_ENTRIES) {
-                strncpy(playlist.entries[idx].title, eq + 1, MAX_TITLE - 1);
-                // Удаление символа новой строки
-                playlist.entries[idx].title[strcspn(playlist.entries[idx].title, "\r\n")] = 0;
+                // store pending title until we have a valid URL
+                strncpy(pending_title, eq + 1, MAX_TITLE - 1);
+                pending_title[strcspn(pending_title, "\r\n")] = 0;
             }
         // Поиск строки с URL станции
         } else if (strncmp(line, "File", 4) == 0) {
             char *eq = strchr(line, '=');
             if (eq && idx < MAX_ENTRIES) {
-                strncpy(playlist.entries[idx].url, eq + 1, MAX_URL - 1);
-                playlist.entries[idx].url[strcspn(playlist.entries[idx].url, "\r\n")] = 0;
-                idx++; // Переход к следующей записи
+                strncpy(tmp_url, eq + 1, MAX_URL - 1);
+                tmp_url[strcspn(tmp_url, "\r\n")] = 0;
+
+                // sanitize and ensure scheme
+                sanitize_str(tmp_url, sanitized, sizeof(sanitized));
+                ensure_scheme(sanitized, sizeof(sanitized));
+
+                if (is_valid_url(sanitized)) {
+                    // commit entry
+                    strncpy(playlist.entries[idx].title, pending_title, MAX_TITLE - 1);
+                    playlist.entries[idx].title[MAX_TITLE - 1] = '\0';
+                    strncpy(playlist.entries[idx].url, sanitized, MAX_URL - 1);
+                    playlist.entries[idx].url[MAX_URL - 1] = '\0';
+                    idx++; // next entry
+                    // clear pending title
+                    pending_title[0] = '\0';
+                } else {
+                    ESP_LOGW(TAG, "Skipping invalid URL in playlist: '%s' (sanitized: '%s')", tmp_url, sanitized);
+                    record_invalid(pending_title[0] ? pending_title : "(no title)", tmp_url, "invalid url/sanitized");
+                    // clear pending title
+                    pending_title[0] = '\0';
+                }
             }
         }
     }
@@ -103,6 +189,102 @@ const char* playlist_get_url(int index) {
 // Получить количество станций в плейлисте
 int playlist_get_count() {
     return playlist.count;
+}
+
+// Добавить запись в плейлист (в RAM) и сохранить в SPIFFS
+int playlist_add_entry(const char *title, const char *url) {
+    if (!title || !url) return -1;
+    if (playlist.count >= MAX_ENTRIES) return -2; // full
+
+    strncpy(playlist.entries[playlist.count].title, title, MAX_TITLE - 1);
+    playlist.entries[playlist.count].title[MAX_TITLE - 1] = '\0';
+    strncpy(playlist.entries[playlist.count].url, url, MAX_URL - 1);
+    playlist.entries[playlist.count].url[MAX_URL - 1] = '\0';
+    playlist.count++;
+
+    // Persist immediately
+    return playlist_save();
+}
+
+// Удалить запись по индексу и сохранить
+int playlist_delete_entry(int index) {
+    if (index < 0 || index >= playlist.count) return -1;
+    for (int i = index; i < playlist.count - 1; ++i) {
+        strncpy(playlist.entries[i].title, playlist.entries[i+1].title, MAX_TITLE);
+        strncpy(playlist.entries[i].url, playlist.entries[i+1].url, MAX_URL);
+    }
+    // Clear last
+    playlist.entries[playlist.count - 1].title[0] = '\0';
+    playlist.entries[playlist.count - 1].url[0] = '\0';
+    playlist.count--;
+
+    return playlist_save();
+}
+
+// Сохранить плейлист в /spiffs/playlist.pls в формате PLS
+int playlist_save(void) {
+    const char *filepath = "/spiffs/playlist.pls";
+    FILE *f = fopen(filepath, "w");
+    if (!f) {
+        ESP_LOGE(TAG, "Failed to open %s for writing: %d", filepath, errno);
+        return -1;
+    }
+
+    fprintf(f, "[playlist]\n");
+    fprintf(f, "NumberOfEntries=%d\n", playlist.count);
+    for (int i = 0; i < playlist.count; ++i) {
+        // PLS fields are 1-based
+        fprintf(f, "File%d=%s\n", i + 1, playlist.entries[i].url);
+        fprintf(f, "Title%d=%s\n", i + 1, playlist.entries[i].title);
+    }
+    fprintf(f, "Version=2\n");
+    fclose(f);
+
+    ESP_LOGI(TAG, "Playlist saved (%d entries) to %s", playlist.count, filepath);
+    return 0;
+}
+
+// Обновить существующую запись
+int playlist_update_entry(int index, const char *title, const char *url) {
+    if (index < 0 || index >= playlist.count) return -1;
+    if (title) {
+        strncpy(playlist.entries[index].title, title, MAX_TITLE - 1);
+        playlist.entries[index].title[MAX_TITLE - 1] = '\0';
+    }
+    if (url) {
+        strncpy(playlist.entries[index].url, url, MAX_URL - 1);
+        playlist.entries[index].url[MAX_URL - 1] = '\0';
+    }
+    return playlist_save();
+}
+
+// Переместить запись в плейлисте (shift others accordingly)
+int playlist_move_entry(int from, int to) {
+    if (from < 0 || from >= playlist.count) return -1;
+    if (to < 0) to = 0;
+    if (to >= playlist.count) to = playlist.count - 1;
+    if (from == to) return 0;
+
+    PlaylistEntry tmp;
+    strncpy(tmp.title, playlist.entries[from].title, MAX_TITLE);
+    strncpy(tmp.url, playlist.entries[from].url, MAX_URL);
+
+    if (from < to) {
+        for (int i = from; i < to; ++i) {
+            strncpy(playlist.entries[i].title, playlist.entries[i+1].title, MAX_TITLE);
+            strncpy(playlist.entries[i].url, playlist.entries[i+1].url, MAX_URL);
+        }
+    } else {
+        for (int i = from; i > to; --i) {
+            strncpy(playlist.entries[i].title, playlist.entries[i-1].title, MAX_TITLE);
+            strncpy(playlist.entries[i].url, playlist.entries[i-1].url, MAX_URL);
+        }
+    }
+
+    strncpy(playlist.entries[to].title, tmp.title, MAX_TITLE);
+    strncpy(playlist.entries[to].url, tmp.url, MAX_URL);
+
+    return playlist_save();
 }
 
 void print_playlist(void) {

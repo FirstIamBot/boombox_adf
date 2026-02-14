@@ -34,7 +34,7 @@ dependencies:
       type: service
     version: 1.2.0
   espressif/esp_websocket_client:
-    component_hash: ac62982fcf9b266409c2299d2b6b1844122105b35163a3b7f8d0adaa9f7eb989
+    component_hash: c5a067a9fddea370c478017e66fac302f4b79c3d4027e9bdd42a019786cceb92
     dependencies:
     - name: idf
       require: private
@@ -42,7 +42,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com/
       type: service
-    version: 1.5.0
+    version: 1.6.1
   espressif/jsmn:
     component_hash: d80350c41bbaa827c98a25b6072df00884e72f54885996fab4a4f0aebce6b6c3
     dependencies:
@@ -64,7 +64,7 @@ dependencies:
       type: service
     version: 1.9.1
   espressif/nghttp:
-    component_hash: 32e513409ddce0000990ec74b0711f535462726236d72578cd70498e6bd66dc3
+    component_hash: 933b5b78c1e092dd04aba9c695c82fc29cb189a7d85a30bee4cfa8164affefc7
     dependencies:
     - name: idf
       require: private
@@ -72,7 +72,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com/
       type: service
-    version: 1.65.0
+    version: 1.68.0
   espressif/zlib:
     component_hash: d901723af51f13fc8e5824f39f32239c847956e8fd951a05266588dc5cfbb9ae
     dependencies:

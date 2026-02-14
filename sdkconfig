@@ -3158,6 +3158,12 @@ CONFIG_MDNS_PREDEF_NETIF_ETH=y
 # end of mDNS
 
 #
+# NGHTTP configuration
+#
+CONFIG_ESP_NGHTTP2_INBOUND_BUFFER_LENGTH=4096
+# end of NGHTTP configuration
+
+#
 # ESP Bus Configuration
 #
 CONFIG_ESP_BUS_TASK_STACK_SIZE=4096

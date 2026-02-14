@@ -112,7 +112,7 @@ typedef enum
 //================  Структура данных помещаемых в очередь  для обработки в МК  =================
 typedef struct
 {
-    bool State;                         //  Статус Структуры, false-изменений не было, true-изменений было
+    bool State;                         // Статус Структуры, false-изменений не было, true-изменений было
     ModeBoombox_t eModeBoombox;         // режим работы Boombox 
     DataDescription_t eDataDescription; // название Элемента
     int ucValue;                        // Значение Элемента

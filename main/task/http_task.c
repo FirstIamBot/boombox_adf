@@ -23,11 +23,54 @@
 #include "periph_wifi.h"
 
 #include "playlist_parser.h"
-
-// WiFi Manager для проверки подключения
-//#include "esp_wifi_manager.h"
+#include <ctype.h>
 
 static const char *TAG = "HTTP_PLAYER";
+
+// Buffer used to hold sanitized URI before passing to http stream
+static char sanitized_uri[512];
+
+// Helper: sanitize a URI string into dst. Removes leading whitespace and ':' characters,
+// ensures there's a scheme (http://) if missing, and trims trailing whitespace/newlines.
+static const char* sanitize_uri(const char *src, char *dst, size_t dst_len)
+{
+    if (!src || !dst || dst_len == 0) return NULL;
+
+    const char *orig = src;
+
+    // Skip leading whitespace
+    while (*src && isspace((unsigned char)*src)) src++;
+
+    // Remove leading ':' characters (some bad playlist entries start with ':')
+    while (*src == ':') src++;
+
+    // Trim trailing whitespace/newline by copying into dst and then stripping
+    size_t i = 0;
+    while (*src && i + 1 < dst_len) {
+        dst[i++] = *src++;
+    }
+    dst[i] = '\0';
+
+    // Trim trailing whitespace
+    while (i > 0 && isspace((unsigned char)dst[i-1])) dst[--i] = '\0';
+
+    // If no scheme present, prepend http://
+    if (i > 0 && !strstr(dst, "://")) {
+        // shift right if enough space
+        const char *scheme = "http://";
+        size_t scheme_len = strlen(scheme);
+        if (i + scheme_len + 1 < dst_len) {
+            memmove(dst + scheme_len, dst, i + 1);
+            memcpy(dst, scheme, scheme_len);
+        }
+    }
+
+    if (strcmp(orig, dst) != 0) {
+        ESP_LOGI(TAG, "sanitize_uri: from '%s' -> '%s'", orig, dst);
+    }
+
+    return dst;
+}
 
 extern audio_pipeline_handle_t pipeline;
 extern audio_element_handle_t http_stream_reader, i2s_stream_writer, selected_decoder;
@@ -56,8 +99,10 @@ static const char *selected_file_to_play = "https://dl.espressif.com/dl/audio/ff
 
 static uint8_t countStation;
 static uint8_t curStation = 0;
+static uint8_t retry_count = 0;
+static const int MAX_RETRIES = 3;
 static const char *selected_decoder_name = "mp3";
-//static const char *selected_file_to_play = "http://online.radioroks.ua/RadioROKS";
+
 static const char *selected_file_to_play ;
 #elif defined SELECT_OGG_DECODER
 #include "ogg_decoder.h"
@@ -138,9 +183,11 @@ void cntr_http_player(Data_GUI_Boombox_t *set_data) {
                 break;
                 case ePLAY:
                     ESP_LOGI(TAG, "[ HTTP ] Starting playback as per GUI command");
+                    retry_count = 0; // Reset retry counter
                     audio_pipeline_run(pipeline);
                 break;
                 case eNEXT:
+                    retry_count = 0; // Reset retry counter on manual switch
                     if(curStation >= countStation - 1) {
                         curStation = 0;
                     }
@@ -148,7 +195,8 @@ void cntr_http_player(Data_GUI_Boombox_t *set_data) {
                         curStation++;
                     }
                     selected_file_to_play = playlist_get_url(curStation);
-                    audio_element_set_uri(http_stream_reader, selected_file_to_play);
+                    sanitize_uri(selected_file_to_play, sanitized_uri, sizeof(sanitized_uri));
+                    audio_element_set_uri(http_stream_reader, sanitized_uri[0] ? sanitized_uri : selected_file_to_play);
                     ESP_LOGI(TAG, "[ HTTP ] Switching to next station: %d. %s - %s", curStation, playlist_get_title(curStation), playlist_get_url(curStation));
                     audio_pipeline_stop(pipeline);
                     audio_pipeline_wait_for_stop(pipeline);
@@ -157,6 +205,7 @@ void cntr_http_player(Data_GUI_Boombox_t *set_data) {
                     audio_pipeline_run(pipeline);
                     break;
                 case eFOWARD:
+                    retry_count = 0; // Reset retry counter on manual switch
                     if(curStation == 0) {
                         curStation = countStation - 1;
                     }
@@ -165,7 +214,8 @@ void cntr_http_player(Data_GUI_Boombox_t *set_data) {
                     }
                     selected_file_to_play = playlist_get_url(curStation);
                     ESP_LOGI(TAG, "[ HTTP ] Switching to foward station: %d. %s - %s", curStation, playlist_get_title(curStation), playlist_get_url(curStation));
-                    audio_element_set_uri(http_stream_reader, selected_file_to_play);
+                    sanitize_uri(selected_file_to_play, sanitized_uri, sizeof(sanitized_uri));
+                    audio_element_set_uri(http_stream_reader, sanitized_uri[0] ? sanitized_uri : selected_file_to_play);
                     audio_pipeline_stop(pipeline);
                     audio_pipeline_wait_for_stop(pipeline);
                     audio_pipeline_reset_ringbuffer(pipeline);
@@ -173,7 +223,27 @@ void cntr_http_player(Data_GUI_Boombox_t *set_data) {
                     audio_pipeline_run(pipeline);
                 break;
                 default:
-                    ESP_LOGW(TAG, "[ HTTP ] Unknown control command from GUI: %d", set_data->ucValue);
+                    // Values >= 100 are direct station indices
+                    if (set_data->ucValue >= 100) {
+                        retry_count = 0; // Reset retry counter on manual select
+                        int stationIndex = set_data->ucValue - 100;
+                        if (stationIndex >= 0 && stationIndex < countStation) {
+                            curStation = stationIndex;
+                            selected_file_to_play = playlist_get_url(curStation);
+                            ESP_LOGI(TAG, "[ HTTP ] Direct station select: %d. %s - %s", curStation, playlist_get_title(curStation), playlist_get_url(curStation));
+                            sanitize_uri(selected_file_to_play, sanitized_uri, sizeof(sanitized_uri));
+                            audio_element_set_uri(http_stream_reader, sanitized_uri[0] ? sanitized_uri : selected_file_to_play);
+                            audio_pipeline_stop(pipeline);
+                            audio_pipeline_wait_for_stop(pipeline);
+                            audio_pipeline_reset_ringbuffer(pipeline);
+                            audio_pipeline_reset_elements(pipeline);
+                            audio_pipeline_run(pipeline);
+                        } else {
+                            ESP_LOGW(TAG, "[ HTTP ] Invalid station index: %d (total stations: %d)", stationIndex, countStation);
+                        }
+                    } else {
+                        ESP_LOGW(TAG, "[ HTTP ] Unknown control command from GUI: %d", set_data->ucValue);
+                    }
                 break;
                 }
         break;
@@ -272,7 +342,8 @@ void init_http_player( ) {
         ESP_LOGE(TAG, "Failed to parse playlist");
     }    
     
-    audio_element_set_uri(http_stream_reader, selected_file_to_play);
+    sanitize_uri(selected_file_to_play, sanitized_uri, sizeof(sanitized_uri));
+    audio_element_set_uri(http_stream_reader, sanitized_uri[0] ? sanitized_uri : selected_file_to_play);
 
     ESP_LOGI(TAG, "[ 3 ] Start and wait for Wi-Fi network");
     // WiFi managed by esp_wifi_manager, skip periph_wifi initialization
@@ -319,6 +390,9 @@ void http_player_run(Data_GUI_Boombox_t *set_data,  Data_Boombox_GUI_t *get_data
         ESP_LOGI(TAG, "[ * ] Receive music info from %s decoder, sample_rates=%d, bits=%d, ch=%d",
                  selected_decoder_name, music_info.sample_rates, music_info.bits, music_info.channels);
 
+        // Reset retry count on successful decode
+        retry_count = 0;
+
         if (i2s_stream_writer && music_info.sample_rates > 0) {
             i2s_stream_set_clk(i2s_stream_writer, music_info.sample_rates, music_info.bits, music_info.channels);
         }
@@ -329,8 +403,51 @@ void http_player_run(Data_GUI_Boombox_t *set_data,  Data_Boombox_GUI_t *get_data
         && msg.cmd == AEL_MSG_CMD_REPORT_STATUS
         && (((int)msg.data == AEL_STATUS_STATE_STOPPED) || ((int)msg.data == AEL_STATUS_STATE_FINISHED) 
             || ((int)msg.data == AEL_STATUS_ERROR_OPEN))) {
-        ESP_LOGW(TAG, "[ * ] Stop/Error event received: %d", (int)msg.data);
-        // Можно установить флаг для переинициализации или переключения источника
+        
+        int status = (int)msg.data;
+        ESP_LOGW(TAG, "[ * ] Stop/Error event received: %d", status);
+        
+        // Handle ERROR_OPEN (14) - connection failed
+        if (status == AEL_STATUS_ERROR_OPEN) {
+            retry_count++;
+            ESP_LOGW(TAG, "[ * ] Connection error, retry %d/%d", retry_count, MAX_RETRIES);
+            
+            if (retry_count < MAX_RETRIES) {
+                // Retry same station
+                ESP_LOGI(TAG, "[ * ] Retrying station: %s", playlist_get_title(curStation));
+                vTaskDelay(pdMS_TO_TICKS(2000)); // Wait before retry
+                audio_pipeline_stop(pipeline);
+                audio_pipeline_wait_for_stop(pipeline);
+                audio_pipeline_reset_ringbuffer(pipeline);
+                audio_pipeline_reset_elements(pipeline);
+                audio_pipeline_run(pipeline);
+            } else {
+                // Switch to next station after max retries
+                retry_count = 0;
+                ESP_LOGW(TAG, "[ * ] Max retries reached, switching to next station");
+                
+                if (curStation >= countStation - 1) {
+                    curStation = 0;
+                } else {
+                    curStation++;
+                }
+                
+                selected_file_to_play = playlist_get_url(curStation);
+                ESP_LOGI(TAG, "[ * ] Auto-switching to station: %d. %s - %s", 
+                         curStation, playlist_get_title(curStation), playlist_get_url(curStation));
+                
+                sanitize_uri(selected_file_to_play, sanitized_uri, sizeof(sanitized_uri));
+                audio_element_set_uri(http_stream_reader, sanitized_uri[0] ? sanitized_uri : selected_file_to_play);
+                audio_pipeline_stop(pipeline);
+                audio_pipeline_wait_for_stop(pipeline);
+                audio_pipeline_reset_ringbuffer(pipeline);
+                audio_pipeline_reset_elements(pipeline);
+                audio_pipeline_run(pipeline);
+            }
+        } else {
+            // Reset retry count on successful stop or finish
+            retry_count = 0;
+        }
     }
 //*****************************  Секция управления HTTP проигрователя получеными данными из GUI **********************
     // Установка данных для передачи в Boombox GUI

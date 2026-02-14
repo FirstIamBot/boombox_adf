@@ -66,7 +66,7 @@ static void event_cb_ecoder_button(lv_event_t * e)
 
 void custom_init(lv_ui *ui)
 {
-       /* Add your codes here */
+    /* Add your codes here */
     group = lv_group_create();
     lv_group_set_default(group);
     
@@ -81,7 +81,11 @@ void custom_init(lv_ui *ui)
 
 void web_сhange(lv_ui *ui, int32_t v)
 {
-   // ui_load_scr_animation(&ui, &ui.Bluetooth, ui.Bluetooth_del, &ui.pageWebradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-   // ui_load_scr_animation(&ui, &ui.pageAirradio, ui.pageAirradio_del, &ui.pageWebradio_del, setup_scr_pageAirradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-   // ui_load_scr_animation(&ui, &ui.pageWebradio, ui.pageWebradio_del, &ui.pageAirradio_del, setup_scr_pageWebradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+   //ui_load_scr_animation(&ui, &ui.Bluetooth, ui.Bluetooth_del, &ui.pageWebradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+   //ui_load_scr_animation(&ui, &ui.pageAirradio, ui.pageAirradio_del, &ui.pageWebradio_del, setup_scr_pageAirradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+   //ui_load_scr_animation(&ui, &ui.pageWebradio, ui.pageWebradio_del, &ui.pageAirradio_del, setup_scr_pageWebradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+   
+   //ui_load_scr_animation(&guider_ui, &guider_ui.pageAirradio, guider_ui.pageAirradio_del, &guider_ui.Bluetooth_del, setup_scr_pageAirradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+   //ui_load_scr_animation(&guider_ui, &guider_ui.Bluetooth, guider_ui.Bluetooth_del, &guider_ui.pageWebradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+   //ui_load_scr_animation(&guider_ui, &guider_ui.pageWebradio, guider_ui.pageWebradio_del, &guider_ui.pageAirradio_del, setup_scr_pageWebradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
 }   
