@@ -20,6 +20,7 @@ extern "C" {
 static uint8_t button_pres = 0;
 
 void custom_init(lv_ui *ui);
+void page_change(lv_ui *ui, int32_t v);
 
 
 #ifdef __cplusplus

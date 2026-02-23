@@ -146,6 +146,7 @@ typedef struct
     char *vcURIStation;  // Текстовое значение URI станции 
     char *vcStation;     // Текстовое значение станции
     uint8_t ucStationIDx;  // значение номера станции из списка
+    char vcIP[64];      // Текущий IP адрес Wi-Fi + RSSI (статический буфер)
     char *vcTitle;      // Текстовое значение Заглавия (для Web Radio)
     char *vcArtist;     // Текстовое значение Артиста (для Web Radio)
     char *vcAlbum;      // Текстовое значение Альбома (для Web Radio)

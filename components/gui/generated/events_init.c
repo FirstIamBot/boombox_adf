@@ -299,6 +299,69 @@ static void pageAirradio_label_wb_range_event_handler (lv_event_t *e)
     }
 }
 
+static void pageAirradio_label_vol_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        lv_obj_clear_flag(guider_ui.pageAirradio_cont_vol, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(guider_ui.pageAirradio_slider_vol, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(guider_ui.pageAirradio_textprogress_vol, LV_OBJ_FLAG_HIDDEN);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void pageAirradio_label_bt_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        ui_load_scr_animation(&guider_ui, &guider_ui.Bluetooth, guider_ui.Bluetooth_del, &guider_ui.pageAirradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+        xTransmitGUItoBoombox.State = true;
+        xTransmitGUItoBoombox.eModeBoombox = eBT;
+
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void pageAirradio_label_set_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        lv_obj_clear_flag(guider_ui.pageAirradio_btnm_Main, LV_OBJ_FLAG_HIDDEN);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void pageAirradio_imgbtn_webradio_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        ui_load_scr_animation(&guider_ui, &guider_ui.pageWebradio, guider_ui.pageWebradio_del, &guider_ui.pageAirradio_del, setup_scr_pageWebradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+        xTransmitGUItoBoombox.State = true;
+        xTransmitGUItoBoombox.eModeBoombox = eWeb;
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 static void pageAirradio_label_wb_val_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -374,6 +437,20 @@ static void pageAirradio_btnm_StepAM_event_handler (lv_event_t *e)
         default:
             break;
         }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void pageAirradio_label_band_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        lv_obj_clear_flag(guider_ui.pageAirradio_btnm_band, LV_OBJ_FLAG_HIDDEN);
         break;
     }
     default:
@@ -672,83 +749,6 @@ static void pageAirradio_btnm_Mod_event_handler (lv_event_t *e)
         default:
             break;
         }
-        break;
-    }
-    default:
-        break;
-    }
-}
-
-static void pageAirradio_label_set_event_handler (lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        lv_obj_clear_flag(guider_ui.pageAirradio_btnm_Main, LV_OBJ_FLAG_HIDDEN);
-        break;
-    }
-    default:
-        break;
-    }
-}
-
-static void pageAirradio_label_vol_event_handler (lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        lv_obj_clear_flag(guider_ui.pageAirradio_cont_vol, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(guider_ui.pageAirradio_slider_vol, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(guider_ui.pageAirradio_textprogress_vol, LV_OBJ_FLAG_HIDDEN);
-        break;
-    }
-    default:
-        break;
-    }
-}
-
-static void pageAirradio_label_bt_event_handler (lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        ui_load_scr_animation(&guider_ui, &guider_ui.Bluetooth, guider_ui.Bluetooth_del, &guider_ui.pageAirradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-        xTransmitGUItoBoombox.State = true;
-        xTransmitGUItoBoombox.eModeBoombox = eBT;
-
-        break;
-    }
-    default:
-        break;
-    }
-}
-
-static void pageAirradio_imgbtn_webradio_event_handler (lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        ui_load_scr_animation(&guider_ui, &guider_ui.pageWebradio, guider_ui.pageWebradio_del, &guider_ui.pageAirradio_del, setup_scr_pageWebradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-        xTransmitGUItoBoombox.State = true;
-        xTransmitGUItoBoombox.eModeBoombox = eWeb;
-        break;
-    }
-    default:
-        break;
-    }
-}
-
-static void pageAirradio_label_band_event_handler (lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        lv_obj_clear_flag(guider_ui.pageAirradio_btnm_band, LV_OBJ_FLAG_HIDDEN);
         break;
     }
     default:
@@ -1236,18 +1236,18 @@ void events_init_pageAirradio (lv_ui *ui)
     lv_obj_add_event_cb(ui->pageAirradio_label_step_val, pageAirradio_label_step_val_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_Main, pageAirradio_btnm_Main_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_label_wb_range, pageAirradio_label_wb_range_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->pageAirradio_label_vol, pageAirradio_label_vol_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->pageAirradio_label_bt, pageAirradio_label_bt_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->pageAirradio_label_set, pageAirradio_label_set_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->pageAirradio_imgbtn_webradio, pageAirradio_imgbtn_webradio_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_label_wb_val, pageAirradio_label_wb_val_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_StepAM, pageAirradio_btnm_StepAM_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->pageAirradio_label_band, pageAirradio_label_band_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_StepFM, pageAirradio_btnm_StepFM_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_BandWFM, pageAirradio_btnm_BandWFM_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_BandWSSB, pageAirradio_btnm_BandWSSB_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_BandWAM, pageAirradio_btnm_BandWAM_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_Mod, pageAirradio_btnm_Mod_event_handler, LV_EVENT_ALL, ui);
-    lv_obj_add_event_cb(ui->pageAirradio_label_set, pageAirradio_label_set_event_handler, LV_EVENT_ALL, ui);
-    lv_obj_add_event_cb(ui->pageAirradio_label_vol, pageAirradio_label_vol_event_handler, LV_EVENT_ALL, ui);
-    lv_obj_add_event_cb(ui->pageAirradio_label_bt, pageAirradio_label_bt_event_handler, LV_EVENT_ALL, ui);
-    lv_obj_add_event_cb(ui->pageAirradio_imgbtn_webradio, pageAirradio_imgbtn_webradio_event_handler, LV_EVENT_ALL, ui);
-    lv_obj_add_event_cb(ui->pageAirradio_label_band, pageAirradio_label_band_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_slider_AGC, pageAirradio_slider_AGC_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_cb_AGC, pageAirradio_cb_AGC_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->pageAirradio_btnm_set_freq, pageAirradio_btnm_set_freq_event_handler, LV_EVENT_ALL, ui);

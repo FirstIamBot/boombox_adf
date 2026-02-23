@@ -1,6 +1,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
+#include <stdio.h>
+#include <string.h>
 
 #include "nvs_flash.h"
 #include "nvs.h"
@@ -15,6 +17,7 @@
 #include "http_task.h"
 #include "air_task.h"
 #include "esp_wifi_manager.h"
+#include "esp_bus.h"
 
 #define NVS_NAMESPACE "boombox_cfg"
 #define CONFIG_KEY "config"
@@ -42,6 +45,74 @@ extern QueueHandle_t xBoomboxToGuiQueue;
 
 // Глобальная переменная для выбора источника
 audio_source_t g_current_source; // Изначально запускаем AIR радио;
+
+static volatile bool s_wifi_ip_dirty = true;
+static char s_cached_web_ip[64] = "N/A";
+static TickType_t s_last_ip_refresh_tick = 0;
+
+static void boombox_on_wifi_event(const char *event, const void *data, size_t len, void *ctx)
+{
+    (void)data;
+    (void)len;
+    (void)ctx;
+
+    s_wifi_ip_dirty = true;
+    ESP_LOGD(TAG, "WiFi event: %s", (event != NULL) ? event : "unknown");
+}
+
+static void boombox_subscribe_wifi_events(void)
+{
+    esp_bus_sub(WIFI_EVT(WIFI_MGR_EVT_CONNECTED), boombox_on_wifi_event, NULL);
+    esp_bus_sub(WIFI_EVT(WIFI_MGR_EVT_DISCONNECTED), boombox_on_wifi_event, NULL);
+    esp_bus_sub(WIFI_EVT(WIFI_MGR_EVT_GOT_IP), boombox_on_wifi_event, NULL);
+    esp_bus_sub(WIFI_EVT(WIFI_MGR_EVT_LOST_IP), boombox_on_wifi_event, NULL);
+    esp_bus_sub(WIFI_EVT(WIFI_MGR_EVT_AP_START), boombox_on_wifi_event, NULL);
+    esp_bus_sub(WIFI_EVT(WIFI_MGR_EVT_AP_STOP), boombox_on_wifi_event, NULL);
+}
+
+static void boombox_refresh_web_ip_cache(void)
+{
+    wifi_status_t wifi_status = {0};
+    wifi_ap_status_t ap_status = {0};
+    char new_ip[sizeof(s_cached_web_ip)] = "N/A";
+    TickType_t now = xTaskGetTickCount();
+    bool periodic_refresh = (s_last_ip_refresh_tick == 0)
+                        || ((now - s_last_ip_refresh_tick) >= pdMS_TO_TICKS(2000));
+
+    if (!s_wifi_ip_dirty && !periodic_refresh) {
+        return;
+    }
+
+    if (wifi_manager_get_status(&wifi_status) == ESP_OK) {
+        if (wifi_status.ip[0] != '\0' && strcmp(wifi_status.ip, "0.0.0.0") != 0) {
+            snprintf(new_ip, sizeof(new_ip), "STA: %s RSSI:%d", wifi_status.ip, wifi_status.rssi);
+        }
+    }
+
+    if (strcmp(new_ip, "N/A") == 0 && wifi_manager_get_ap_status(&ap_status) == ESP_OK) {
+        if (ap_status.active && ap_status.ip[0] != '\0' && strcmp(ap_status.ip, "0.0.0.0") != 0) {
+            snprintf(new_ip, sizeof(new_ip), "AP: %s", ap_status.ip);
+        }
+    }
+
+    if (strcmp(s_cached_web_ip, new_ip) != 0) {
+        snprintf(s_cached_web_ip, sizeof(s_cached_web_ip), "%s", new_ip);
+        ESP_LOGD(TAG, "WEB IP: %s", s_cached_web_ip);
+    }
+
+    s_wifi_ip_dirty = false;
+    s_last_ip_refresh_tick = now;
+}
+
+static void boombox_fill_web_ip(WebDescription_t *web_description)
+{
+    if (web_description == NULL) {
+        return;
+    }
+
+    boombox_refresh_web_ip_cache();
+    snprintf(web_description->vcIP, sizeof(web_description->vcIP), "%s", s_cached_web_ip);
+}
 
 esp_err_t boombox_config_load_from_nvs(BoomBox_config_t *config)
 {
@@ -220,6 +291,9 @@ void boombox_task(void *pvParameters)
     ESP_ERROR_CHECK(wifi_manager_init(&wifi_config));
     ESP_LOGI(TAG, "WiFi Manager initialized");
 
+    boombox_subscribe_wifi_events();
+    s_wifi_ip_dirty = true;
+
     // Загрузка конфигурации из NVS
     if (boombox_config_load_from_nvs(&xBoomBox_config) != ESP_OK) {
         ESP_LOGW(TAG, "Failed to load config, using defaults");
@@ -317,13 +391,24 @@ void boombox_task(void *pvParameters)
          *  Отправка данных от Boombox к  GUI очередь xBoomboxToGuiQueue
         ******************************************************************************************/
        if(xTransmitBoomboxToGUI.State == true ){
-            if(pdTRUE != xQueueSend(xBoomboxToGuiQueue, &xTransmitBoomboxToGUI, 25 / portTICK_PERIOD_MS))
+            if (xTransmitBoomboxToGUI.eModeBoombox == eWeb || xTransmitBoomboxToGUI.eModeBoombox == eAir) {
+                boombox_fill_web_ip(&xTransmitBoomboxToGUI.eWebDescription);
+            }
+
+            /* Не блокируем при отправке - если очередь полна, очищаем и отправляем снова */
+            if(pdTRUE != xQueueSend(xBoomboxToGuiQueue, &xTransmitBoomboxToGUI, 0))
             {
-                ESP_LOGE(TAG, "Error to xBoomboxToGuiQueue"); //??????????????????????
+                /* Очередь полна - сбрасываем старые данные и отправляем новые */
+                xQueueReset(xBoomboxToGuiQueue);
+                xQueueSend(xBoomboxToGuiQueue, &xTransmitBoomboxToGUI, 0);
             }
             xTransmitBoomboxToGUI.State = false;
        }
-       // После завершения работы плеера можно добавить логику ожидания или переключения
-       vTaskDelay(pdMS_TO_TICKS(200));
+       
+       /* Даём шанс задачам с более низким приоритетом выполниться */
+       taskYIELD();
+       
+       /* Задержка 100ms - достаточно для обновления состояния */
+       vTaskDelay(pdMS_TO_TICKS(100));
     }
 }

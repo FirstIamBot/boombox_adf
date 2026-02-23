@@ -22,7 +22,7 @@ void gui_boombox_queue_init(void)
 // Инициализация очереди для передачи данных от Boombox к GUI
 void boombox_gui_queue_init(void)
 {
-    xBoomboxToGuiQueue = xQueueCreate(2, sizeof(Data_Boombox_GUI_t));
+    xBoomboxToGuiQueue = xQueueCreate(10, sizeof(Data_Boombox_GUI_t));
     if( xBoomboxToGuiQueue == NULL )
 	{
         ESP_LOGE(TAG, "Error create xBoomboxToGuiQueue");

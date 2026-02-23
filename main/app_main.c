@@ -57,7 +57,7 @@ void app_main(void)
     ESP_LOGI(TAG, "Init SPIFFS");
     init_spiffs();   
     // Создаем задачи для плеера
-    xTaskCreate(boombox_task, "boombox_task", 8192, NULL, 5, NULL);
-    xTaskCreate(task_gui_calibrate, "task_gui_calibrate", 8192, NULL, 5, NULL);
+    xTaskCreate(boombox_task, "boombox_task", 8192, NULL, 7, NULL);
+    xTaskCreatePinnedToCore(task_gui_calibrate, "task_gui_calibrate", 8192, NULL, 5, NULL, 1);// GUI к CPU 1
 
 }

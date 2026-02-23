@@ -21,6 +21,7 @@ typedef struct
 	lv_obj_t *pageAirradio;
 	bool pageAirradio_del;
 	lv_obj_t *pageAirradio_RDS;
+	lv_obj_t *pageAirradio_label_air_id;
 	lv_obj_t *pageAirradio_up_step;
 	lv_obj_t *pageAirradio_up_step_label;
 	lv_obj_t *pageAirradio_down_step;
@@ -34,9 +35,17 @@ typedef struct
 	lv_obj_t *pageAirradio_label_wb_name;
 	lv_obj_t *pageAirradio_btnm_Main;
 	lv_obj_t *pageAirradio_label_wb_range;
+	lv_obj_t *pageAirradio_label_rssi_val;
+	lv_obj_t *pageAirradio_label_stationIDx;
+	lv_obj_t *pageAirradio_label_vol;
+	lv_obj_t *pageAirradio_label_bt;
+	lv_obj_t *pageAirradio_label_set;
+	lv_obj_t *pageAirradio_imgbtn_webradio;
+	lv_obj_t *pageAirradio_imgbtn_webradio_label;
 	lv_obj_t *pageAirradio_label_wb_val;
 	lv_obj_t *pageAirradio_cont_StepAM;
 	lv_obj_t *pageAirradio_btnm_StepAM;
+	lv_obj_t *pageAirradio_label_band;
 	lv_obj_t *pageAirradio_cont_StepFM;
 	lv_obj_t *pageAirradio_btnm_StepFM;
 	lv_obj_t *pageAirradio_cont_BandWFM;
@@ -47,19 +56,11 @@ typedef struct
 	lv_obj_t *pageAirradio_btnm_BandWAM;
 	lv_obj_t *pageAirradio_cont_Mod;
 	lv_obj_t *pageAirradio_btnm_Mod;
-	lv_obj_t *pageAirradio_label_stationIDx;
-	lv_obj_t *pageAirradio_label_rssi_val;
 	lv_obj_t *pageAirradio_label_rrsi_name;
 	lv_obj_t *pageAirradio_label_rssi_range;
+	lv_obj_t *pageAirradio_label_snr_range;
 	lv_obj_t *pageAirradio_label_snr_val;
 	lv_obj_t *pageAirradio_label_snr_name;
-	lv_obj_t *pageAirradio_label_snr_range;
-	lv_obj_t *pageAirradio_label_set;
-	lv_obj_t *pageAirradio_label_vol;
-	lv_obj_t *pageAirradio_label_bt;
-	lv_obj_t *pageAirradio_imgbtn_webradio;
-	lv_obj_t *pageAirradio_imgbtn_webradio_label;
-	lv_obj_t *pageAirradio_label_band;
 	lv_obj_t *pageAirradio_cont_AGC;
 	lv_obj_t *pageAirradio_textprogress_AGC;
 	lv_obj_t *pageAirradio_slider_AGC;
@@ -84,6 +85,7 @@ typedef struct
 	lv_obj_t *Bluetooth_btnm_BT_main;
 	lv_obj_t *pageWebradio;
 	bool pageWebradio_del;
+	lv_obj_t *pageWebradio_label_web_id;
 	lv_obj_t *pageWebradio_label_BT;
 	lv_obj_t *pageWebradio_label_menu_web;
 	lv_obj_t *pageWebradio_label_vol_web;
@@ -127,11 +129,11 @@ LV_IMG_DECLARE(_website_alpha_22x22);
 LV_IMG_DECLARE(_radio_alpha_22x22);
 
 LV_FONT_DECLARE(lv_font_montserratMedium_16)
+LV_FONT_DECLARE(lv_font_DejaVuSans_14)
 LV_FONT_DECLARE(lv_font_Antonio_Regular_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_10)
 LV_FONT_DECLARE(lv_font_DejaVuSans_16)
 LV_FONT_DECLARE(lv_font_DejaVuSans_26)
-LV_FONT_DECLARE(lv_font_DejaVuSans_14)
 LV_FONT_DECLARE(lv_font_DejaVuSans_12)
 LV_FONT_DECLARE(lv_font_montserratMedium_12)
 LV_FONT_DECLARE(lv_font_montserratMedium_14)

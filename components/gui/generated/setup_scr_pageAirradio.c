@@ -54,6 +54,29 @@ void setup_scr_pageAirradio(lv_ui *ui)
     lv_obj_set_style_pad_left(ui->pageAirradio_RDS, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui->pageAirradio_RDS, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
+    //Write codes pageAirradio_label_air_id
+    ui->pageAirradio_label_air_id = lv_label_create(ui->pageAirradio);
+    lv_label_set_text(ui->pageAirradio_label_air_id, "");
+    lv_label_set_long_mode(ui->pageAirradio_label_air_id, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageAirradio_label_air_id, 10, 210);
+    lv_obj_set_size(ui->pageAirradio_label_air_id, 230, 15);
+
+    //Write style for pageAirradio_label_air_id, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageAirradio_label_air_id, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_label_air_id, &lv_font_DejaVuSans_14, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_label_air_id, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_label_air_id, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_label_air_id, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
     //Write codes pageAirradio_up_step
     ui->pageAirradio_up_step = lv_btn_create(ui->pageAirradio);
     ui->pageAirradio_up_step_label = lv_label_create(ui->pageAirradio_up_step);
@@ -331,6 +354,165 @@ void setup_scr_pageAirradio(lv_ui *ui)
     lv_obj_set_style_pad_left(ui->pageAirradio_label_wb_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui->pageAirradio_label_wb_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
+    //Write codes pageAirradio_label_rssi_val
+    ui->pageAirradio_label_rssi_val = lv_label_create(ui->pageAirradio);
+    lv_label_set_text(ui->pageAirradio_label_rssi_val, "");
+    lv_label_set_long_mode(ui->pageAirradio_label_rssi_val, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageAirradio_label_rssi_val, 144, 9);
+    lv_obj_set_size(ui->pageAirradio_label_rssi_val, 29, 14);
+
+    //Write style for pageAirradio_label_rssi_val, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageAirradio_label_rssi_val, lv_color_hex(0xd80000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_label_rssi_val, &lv_font_montserratMedium_14, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_label_rssi_val, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_label_rssi_val, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write codes pageAirradio_label_stationIDx
+    ui->pageAirradio_label_stationIDx = lv_label_create(ui->pageAirradio);
+    lv_label_set_text(ui->pageAirradio_label_stationIDx, "");
+    lv_label_set_long_mode(ui->pageAirradio_label_stationIDx, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageAirradio_label_stationIDx, 63, 95);
+    lv_obj_set_size(ui->pageAirradio_label_stationIDx, 35, 22);
+
+    //Write style for pageAirradio_label_stationIDx, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageAirradio_label_stationIDx, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_label_stationIDx, &lv_font_DejaVuSans_26, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_label_stationIDx, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_label_stationIDx, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write codes pageAirradio_label_vol
+    ui->pageAirradio_label_vol = lv_label_create(ui->pageAirradio);
+    lv_label_set_text(ui->pageAirradio_label_vol, "" LV_SYMBOL_VOLUME_MAX " ");
+    lv_label_set_long_mode(ui->pageAirradio_label_vol, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageAirradio_label_vol, 285, 38);
+    lv_obj_set_size(ui->pageAirradio_label_vol, 20, 20);
+    lv_obj_add_flag(ui->pageAirradio_label_vol, LV_OBJ_FLAG_CLICKABLE);
+
+    //Write style for pageAirradio_label_vol, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageAirradio_label_vol, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_label_vol, &lv_font_montserratMedium_16, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_label_vol, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_vol, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_label_vol, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageAirradio_label_vol, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageAirradio_label_vol, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write codes pageAirradio_label_bt
+    ui->pageAirradio_label_bt = lv_label_create(ui->pageAirradio);
+    lv_label_set_text(ui->pageAirradio_label_bt, "" LV_SYMBOL_BLUETOOTH " ");
+    lv_label_set_long_mode(ui->pageAirradio_label_bt, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageAirradio_label_bt, 232, 36);
+    lv_obj_set_size(ui->pageAirradio_label_bt, 21, 21);
+    lv_obj_add_flag(ui->pageAirradio_label_bt, LV_OBJ_FLAG_CLICKABLE);
+
+    //Write style for pageAirradio_label_bt, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageAirradio_label_bt, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_label_bt, &lv_font_montserratMedium_16, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_label_bt, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_bt, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_label_bt, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageAirradio_label_bt, 3, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageAirradio_label_bt, 3, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write codes pageAirradio_label_set
+    ui->pageAirradio_label_set = lv_label_create(ui->pageAirradio);
+    lv_label_set_text(ui->pageAirradio_label_set, "" LV_SYMBOL_SETTINGS " ");
+    lv_label_set_long_mode(ui->pageAirradio_label_set, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageAirradio_label_set, 257, 37);
+    lv_obj_set_size(ui->pageAirradio_label_set, 20, 20);
+    lv_obj_add_flag(ui->pageAirradio_label_set, LV_OBJ_FLAG_CLICKABLE);
+
+    //Write style for pageAirradio_label_set, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageAirradio_label_set, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_label_set, &lv_font_montserratMedium_16, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_label_set, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_set, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_label_set, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageAirradio_label_set, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write codes pageAirradio_imgbtn_webradio
+    ui->pageAirradio_imgbtn_webradio = lv_imgbtn_create(ui->pageAirradio);
+    lv_obj_add_flag(ui->pageAirradio_imgbtn_webradio, LV_OBJ_FLAG_CHECKABLE);
+    lv_imgbtn_set_src(ui->pageAirradio_imgbtn_webradio, LV_IMGBTN_STATE_RELEASED, NULL, &_website_alpha_22x22, NULL);
+    ui->pageAirradio_imgbtn_webradio_label = lv_label_create(ui->pageAirradio_imgbtn_webradio);
+    lv_label_set_text(ui->pageAirradio_imgbtn_webradio_label, "");
+    lv_label_set_long_mode(ui->pageAirradio_imgbtn_webradio_label, LV_LABEL_LONG_WRAP);
+    lv_obj_align(ui->pageAirradio_imgbtn_webradio_label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_pad_all(ui->pageAirradio_imgbtn_webradio, 0, LV_STATE_DEFAULT);
+    lv_obj_set_pos(ui->pageAirradio_imgbtn_webradio, 204, 36);
+    lv_obj_set_size(ui->pageAirradio_imgbtn_webradio, 22, 22);
+
+    //Write style for pageAirradio_imgbtn_webradio, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_text_color(ui->pageAirradio_imgbtn_webradio, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_imgbtn_webradio, &lv_font_montserratMedium_12, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_imgbtn_webradio, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_clip_corner(ui->pageAirradio_imgbtn_webradio, true, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write style for pageAirradio_imgbtn_webradio, Part: LV_PART_MAIN, State: LV_STATE_PRESSED.
+    lv_obj_set_style_img_recolor_opa(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_PRESSED);
+    lv_obj_set_style_img_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(ui->pageAirradio_imgbtn_webradio, lv_color_hex(0xFF33FF), LV_PART_MAIN|LV_STATE_PRESSED);
+    lv_obj_set_style_text_font(ui->pageAirradio_imgbtn_webradio, &lv_font_montserratMedium_12, LV_PART_MAIN|LV_STATE_PRESSED);
+    lv_obj_set_style_text_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_PRESSED);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_PRESSED);
+
+    //Write style for pageAirradio_imgbtn_webradio, Part: LV_PART_MAIN, State: LV_STATE_CHECKED.
+    lv_obj_set_style_img_recolor_opa(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_CHECKED);
+    lv_obj_set_style_img_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_CHECKED);
+    lv_obj_set_style_text_color(ui->pageAirradio_imgbtn_webradio, lv_color_hex(0xFF33FF), LV_PART_MAIN|LV_STATE_CHECKED);
+    lv_obj_set_style_text_font(ui->pageAirradio_imgbtn_webradio, &lv_font_montserratMedium_12, LV_PART_MAIN|LV_STATE_CHECKED);
+    lv_obj_set_style_text_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_CHECKED);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_CHECKED);
+
+    //Write style for pageAirradio_imgbtn_webradio, Part: LV_PART_MAIN, State: LV_IMGBTN_STATE_RELEASED.
+    lv_obj_set_style_img_recolor_opa(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_IMGBTN_STATE_RELEASED);
+    lv_obj_set_style_img_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_IMGBTN_STATE_RELEASED);
+
     //Write codes pageAirradio_label_wb_val
     ui->pageAirradio_label_wb_val = lv_label_create(ui->pageAirradio);
     lv_label_set_text(ui->pageAirradio_label_wb_val, "");
@@ -412,6 +594,30 @@ void setup_scr_pageAirradio(lv_ui *ui)
     lv_obj_set_style_bg_color(ui->pageAirradio_btnm_StepAM, lv_color_hex(0x2195f6), LV_PART_ITEMS|LV_STATE_DEFAULT);
     lv_obj_set_style_bg_grad_dir(ui->pageAirradio_btnm_StepAM, LV_GRAD_DIR_NONE, LV_PART_ITEMS|LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui->pageAirradio_btnm_StepAM, 0, LV_PART_ITEMS|LV_STATE_DEFAULT);
+
+    //Write codes pageAirradio_label_band
+    ui->pageAirradio_label_band = lv_label_create(ui->pageAirradio_cont_StepAM);
+    lv_label_set_text(ui->pageAirradio_label_band, "");
+    lv_label_set_long_mode(ui->pageAirradio_label_band, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageAirradio_label_band, 114, 38);
+    lv_obj_set_size(ui->pageAirradio_label_band, 75, 20);
+    lv_obj_add_flag(ui->pageAirradio_label_band, LV_OBJ_FLAG_CLICKABLE);
+
+    //Write style for pageAirradio_label_band, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageAirradio_label_band, lv_color_hex(0x02041a), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_label_band, &lv_font_montserratMedium_18, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_label_band, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_band, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_label_band, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageAirradio_label_band, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
     //Write codes pageAirradio_cont_StepFM
     ui->pageAirradio_cont_StepFM = lv_obj_create(ui->pageAirradio);
@@ -707,52 +913,6 @@ void setup_scr_pageAirradio(lv_ui *ui)
     lv_obj_set_style_bg_grad_dir(ui->pageAirradio_btnm_Mod, LV_GRAD_DIR_NONE, LV_PART_ITEMS|LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui->pageAirradio_btnm_Mod, 0, LV_PART_ITEMS|LV_STATE_DEFAULT);
 
-    //Write codes pageAirradio_label_stationIDx
-    ui->pageAirradio_label_stationIDx = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_stationIDx, "");
-    lv_label_set_long_mode(ui->pageAirradio_label_stationIDx, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_stationIDx, 63, 95);
-    lv_obj_set_size(ui->pageAirradio_label_stationIDx, 35, 22);
-
-    //Write style for pageAirradio_label_stationIDx, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui->pageAirradio_label_stationIDx, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageAirradio_label_stationIDx, &lv_font_DejaVuSans_26, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageAirradio_label_stationIDx, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_line_space(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui->pageAirradio_label_stationIDx, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_label_stationIDx, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-
-    //Write codes pageAirradio_label_rssi_val
-    ui->pageAirradio_label_rssi_val = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_rssi_val, "");
-    lv_label_set_long_mode(ui->pageAirradio_label_rssi_val, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_rssi_val, 144, 9);
-    lv_obj_set_size(ui->pageAirradio_label_rssi_val, 29, 14);
-
-    //Write style for pageAirradio_label_rssi_val, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui->pageAirradio_label_rssi_val, lv_color_hex(0xd80000), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageAirradio_label_rssi_val, &lv_font_montserratMedium_14, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageAirradio_label_rssi_val, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_line_space(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui->pageAirradio_label_rssi_val, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_label_rssi_val, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-
     //Write codes pageAirradio_label_rrsi_name
     ui->pageAirradio_label_rrsi_name = lv_label_create(ui->pageAirradio);
     lv_label_set_text(ui->pageAirradio_label_rrsi_name, "RSSI");
@@ -799,6 +959,29 @@ void setup_scr_pageAirradio(lv_ui *ui)
     lv_obj_set_style_pad_left(ui->pageAirradio_label_rssi_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui->pageAirradio_label_rssi_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
+    //Write codes pageAirradio_label_snr_range
+    ui->pageAirradio_label_snr_range = lv_label_create(ui->pageAirradio);
+    lv_label_set_text(ui->pageAirradio_label_snr_range, "dB");
+    lv_label_set_long_mode(ui->pageAirradio_label_snr_range, LV_LABEL_LONG_WRAP);
+    lv_obj_set_pos(ui->pageAirradio_label_snr_range, 281, 9);
+    lv_obj_set_size(ui->pageAirradio_label_snr_range, 22, 12);
+
+    //Write style for pageAirradio_label_snr_range, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_border_width(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui->pageAirradio_label_snr_range, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->pageAirradio_label_snr_range, &lv_font_DejaVuSans_12, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->pageAirradio_label_snr_range, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_line_space(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->pageAirradio_label_snr_range, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+
     //Write codes pageAirradio_label_snr_val
     ui->pageAirradio_label_snr_val = lv_label_create(ui->pageAirradio);
     lv_label_set_text(ui->pageAirradio_label_snr_val, "");
@@ -844,166 +1027,6 @@ void setup_scr_pageAirradio(lv_ui *ui)
     lv_obj_set_style_pad_bottom(ui->pageAirradio_label_snr_name, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui->pageAirradio_label_snr_name, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui->pageAirradio_label_snr_name, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-
-    //Write codes pageAirradio_label_snr_range
-    ui->pageAirradio_label_snr_range = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_snr_range, "dB");
-    lv_label_set_long_mode(ui->pageAirradio_label_snr_range, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_snr_range, 281, 9);
-    lv_obj_set_size(ui->pageAirradio_label_snr_range, 22, 12);
-
-    //Write style for pageAirradio_label_snr_range, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui->pageAirradio_label_snr_range, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageAirradio_label_snr_range, &lv_font_DejaVuSans_12, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageAirradio_label_snr_range, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_line_space(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui->pageAirradio_label_snr_range, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_label_snr_range, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-
-    //Write codes pageAirradio_label_set
-    ui->pageAirradio_label_set = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_set, "" LV_SYMBOL_SETTINGS " ");
-    lv_label_set_long_mode(ui->pageAirradio_label_set, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_set, 257, 37);
-    lv_obj_set_size(ui->pageAirradio_label_set, 20, 20);
-    lv_obj_add_flag(ui->pageAirradio_label_set, LV_OBJ_FLAG_CLICKABLE);
-
-    //Write style for pageAirradio_label_set, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui->pageAirradio_label_set, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageAirradio_label_set, &lv_font_montserratMedium_16, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageAirradio_label_set, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_set, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_line_space(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui->pageAirradio_label_set, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->pageAirradio_label_set, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_label_set, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-
-    //Write codes pageAirradio_label_vol
-    ui->pageAirradio_label_vol = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_vol, "" LV_SYMBOL_VOLUME_MAX " ");
-    lv_label_set_long_mode(ui->pageAirradio_label_vol, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_vol, 285, 38);
-    lv_obj_set_size(ui->pageAirradio_label_vol, 20, 20);
-    lv_obj_add_flag(ui->pageAirradio_label_vol, LV_OBJ_FLAG_CLICKABLE);
-
-    //Write style for pageAirradio_label_vol, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui->pageAirradio_label_vol, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageAirradio_label_vol, &lv_font_montserratMedium_16, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageAirradio_label_vol, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_vol, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_line_space(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui->pageAirradio_label_vol, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->pageAirradio_label_vol, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui->pageAirradio_label_vol, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_label_vol, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-
-    //Write codes pageAirradio_label_bt
-    ui->pageAirradio_label_bt = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_bt, "" LV_SYMBOL_BLUETOOTH " ");
-    lv_label_set_long_mode(ui->pageAirradio_label_bt, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_bt, 232, 36);
-    lv_obj_set_size(ui->pageAirradio_label_bt, 21, 21);
-    lv_obj_add_flag(ui->pageAirradio_label_bt, LV_OBJ_FLAG_CLICKABLE);
-
-    //Write style for pageAirradio_label_bt, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui->pageAirradio_label_bt, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageAirradio_label_bt, &lv_font_montserratMedium_16, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageAirradio_label_bt, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_bt, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_line_space(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui->pageAirradio_label_bt, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->pageAirradio_label_bt, 3, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui->pageAirradio_label_bt, 3, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_label_bt, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-
-    //Write codes pageAirradio_imgbtn_webradio
-    ui->pageAirradio_imgbtn_webradio = lv_imgbtn_create(ui->pageAirradio);
-    lv_obj_add_flag(ui->pageAirradio_imgbtn_webradio, LV_OBJ_FLAG_CHECKABLE);
-    lv_imgbtn_set_src(ui->pageAirradio_imgbtn_webradio, LV_IMGBTN_STATE_RELEASED, NULL, &_website_alpha_22x22, NULL);
-    ui->pageAirradio_imgbtn_webradio_label = lv_label_create(ui->pageAirradio_imgbtn_webradio);
-    lv_label_set_text(ui->pageAirradio_imgbtn_webradio_label, "");
-    lv_label_set_long_mode(ui->pageAirradio_imgbtn_webradio_label, LV_LABEL_LONG_WRAP);
-    lv_obj_align(ui->pageAirradio_imgbtn_webradio_label, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_pad_all(ui->pageAirradio_imgbtn_webradio, 0, LV_STATE_DEFAULT);
-    lv_obj_set_pos(ui->pageAirradio_imgbtn_webradio, 204, 36);
-    lv_obj_set_size(ui->pageAirradio_imgbtn_webradio, 22, 22);
-
-    //Write style for pageAirradio_imgbtn_webradio, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_text_color(ui->pageAirradio_imgbtn_webradio, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageAirradio_imgbtn_webradio, &lv_font_montserratMedium_12, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui->pageAirradio_imgbtn_webradio, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_clip_corner(ui->pageAirradio_imgbtn_webradio, true, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-
-    //Write style for pageAirradio_imgbtn_webradio, Part: LV_PART_MAIN, State: LV_STATE_PRESSED.
-    lv_obj_set_style_img_recolor_opa(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_PRESSED);
-    lv_obj_set_style_img_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_PRESSED);
-    lv_obj_set_style_text_color(ui->pageAirradio_imgbtn_webradio, lv_color_hex(0xFF33FF), LV_PART_MAIN|LV_STATE_PRESSED);
-    lv_obj_set_style_text_font(ui->pageAirradio_imgbtn_webradio, &lv_font_montserratMedium_12, LV_PART_MAIN|LV_STATE_PRESSED);
-    lv_obj_set_style_text_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_PRESSED);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_PRESSED);
-
-    //Write style for pageAirradio_imgbtn_webradio, Part: LV_PART_MAIN, State: LV_STATE_CHECKED.
-    lv_obj_set_style_img_recolor_opa(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_CHECKED);
-    lv_obj_set_style_img_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_CHECKED);
-    lv_obj_set_style_text_color(ui->pageAirradio_imgbtn_webradio, lv_color_hex(0xFF33FF), LV_PART_MAIN|LV_STATE_CHECKED);
-    lv_obj_set_style_text_font(ui->pageAirradio_imgbtn_webradio, &lv_font_montserratMedium_12, LV_PART_MAIN|LV_STATE_CHECKED);
-    lv_obj_set_style_text_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_STATE_CHECKED);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_STATE_CHECKED);
-
-    //Write style for pageAirradio_imgbtn_webradio, Part: LV_PART_MAIN, State: LV_IMGBTN_STATE_RELEASED.
-    lv_obj_set_style_img_recolor_opa(ui->pageAirradio_imgbtn_webradio, 0, LV_PART_MAIN|LV_IMGBTN_STATE_RELEASED);
-    lv_obj_set_style_img_opa(ui->pageAirradio_imgbtn_webradio, 255, LV_PART_MAIN|LV_IMGBTN_STATE_RELEASED);
-
-    //Write codes pageAirradio_label_band
-    ui->pageAirradio_label_band = lv_label_create(ui->pageAirradio);
-    lv_label_set_text(ui->pageAirradio_label_band, "");
-    lv_label_set_long_mode(ui->pageAirradio_label_band, LV_LABEL_LONG_WRAP);
-    lv_obj_set_pos(ui->pageAirradio_label_band, 114, 38);
-    lv_obj_set_size(ui->pageAirradio_label_band, 75, 20);
-    lv_obj_add_flag(ui->pageAirradio_label_band, LV_OBJ_FLAG_CLICKABLE);
-
-    //Write style for pageAirradio_label_band, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_border_width(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(ui->pageAirradio_label_band, lv_color_hex(0x02041a), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->pageAirradio_label_band, &lv_font_montserratMedium_18, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui->pageAirradio_label_band, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_letter_space(ui->pageAirradio_label_band, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_line_space(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui->pageAirradio_label_band, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->pageAirradio_label_band, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(ui->pageAirradio_label_band, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
 
     //Write codes pageAirradio_cont_AGC
     ui->pageAirradio_cont_AGC = lv_obj_create(ui->pageAirradio);

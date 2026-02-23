@@ -65,6 +65,17 @@ static const char* sanitize_uri(const char *src, char *dst, size_t dst_len)
         }
     }
 
+    // Fix malformed host after scheme, e.g.:
+    // "http://:online.hitfm.ua", "https://   :online.hitfm.ua", "http:///online.hitfm.ua"
+    // Keep removing stray ':', '/', and spaces right after "://"
+    char *scheme_pos = strstr(dst, "://");
+    if (scheme_pos) {
+        char *host = scheme_pos + 3;
+        while (*host == ':' || *host == '/' || isspace((unsigned char)*host)) {
+            memmove(host, host + 1, strlen(host));
+        }
+    }
+
     if (strcmp(orig, dst) != 0) {
         ESP_LOGI(TAG, "sanitize_uri: from '%s' -> '%s'", orig, dst);
     }
@@ -255,7 +266,7 @@ void cntr_http_player(Data_GUI_Boombox_t *set_data) {
 }
 // Возврат данных проигрывателя HTTP радио на GUI  и Web сервер
 void get_http_player(Data_Boombox_GUI_t *get_data) {
-    /*      */ 
+    /*      */
     // Функция получения параметров проигрывателя HTTP радио
     get_data->eModeBoombox = eWeb; // Устанавливаем режим Boombox как HTTP радио
     get_data->eWebDescription.ucStationIDx = curStation+1; // Текущий номер станции +1 для отображения пользователю
@@ -265,7 +276,14 @@ void get_http_player(Data_Boombox_GUI_t *get_data) {
 }
 // Функция запуска проигрывателя HTTP радио
 void init_http_player( ) {
-  ESP_LOGI(TAG, "[ * ] HTTP player started");
+    // Защита от повторной инициализации
+    if (pipeline != NULL || http_stream_reader != NULL) {
+        ESP_LOGW(TAG, "HTTP player already initialized or not fully deinitialized - cleaning up first");
+        deinit_http_player();
+        vTaskDelay(pdMS_TO_TICKS(500)); // Даем время на полную очистку
+    }
+    
+    ESP_LOGI(TAG, "[ * ] HTTP player started");
 
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
@@ -457,7 +475,7 @@ void http_player_run(Data_GUI_Boombox_t *set_data,  Data_Boombox_GUI_t *get_data
     set_data->State = false; // Сбрасываем состояние после обработки  
     }
 //******************************  Секция вывода данных на GUI ********************************************************
-    get_http_player( get_data); 
+    get_http_player(get_data); 
 //********************************************************************************************************************
 }
 

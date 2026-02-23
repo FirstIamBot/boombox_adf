@@ -79,13 +79,37 @@ void custom_init(lv_ui *ui)
  
 }
 
-void web_сhange(lv_ui *ui, int32_t v)
+void page_change(lv_ui *ui, int32_t v)
 {
-   //ui_load_scr_animation(&ui, &ui.Bluetooth, ui.Bluetooth_del, &ui.pageWebradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-   //ui_load_scr_animation(&ui, &ui.pageAirradio, ui.pageAirradio_del, &ui.pageWebradio_del, setup_scr_pageAirradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-   //ui_load_scr_animation(&ui, &ui.pageWebradio, ui.pageWebradio_del, &ui.pageAirradio_del, setup_scr_pageWebradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-   
-   //ui_load_scr_animation(&guider_ui, &guider_ui.pageAirradio, guider_ui.pageAirradio_del, &guider_ui.Bluetooth_del, setup_scr_pageAirradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-   //ui_load_scr_animation(&guider_ui, &guider_ui.Bluetooth, guider_ui.Bluetooth_del, &guider_ui.pageWebradio_del, setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
-   //ui_load_scr_animation(&guider_ui, &guider_ui.pageWebradio, guider_ui.pageWebradio_del, &guider_ui.pageAirradio_del, setup_scr_pageWebradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+   if (ui == NULL) {
+       return;
+   }
+
+   lv_obj_t *active_scr = lv_scr_act();
+
+   switch ((ModeBoombox_t)v) {
+       case eAir:
+           if (active_scr != ui->pageAirradio) {
+               ui_load_scr_animation(ui, &ui->pageAirradio, ui->pageAirradio_del, &ui->Bluetooth_del,
+                                     setup_scr_pageAirradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+           }
+           break;
+
+       case eBT:
+           if (active_scr != ui->Bluetooth) {
+               ui_load_scr_animation(ui, &ui->Bluetooth, ui->Bluetooth_del, &ui->pageAirradio_del,
+                                     setup_scr_Bluetooth, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+           }
+           break;
+
+       case eWeb:
+           if (active_scr != ui->pageWebradio) {
+               ui_load_scr_animation(ui, &ui->pageWebradio, ui->pageWebradio_del, &ui->Bluetooth_del,
+                                     setup_scr_pageWebradio, LV_SCR_LOAD_ANIM_NONE, 200, 200, false, true);
+           }
+           break;
+
+       default:
+           break;
+   }
 }   

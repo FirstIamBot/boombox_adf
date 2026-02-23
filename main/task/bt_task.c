@@ -246,7 +246,14 @@ static void user_a2dp_sink_cb(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *para
 }
 // Функция запуска BT проигрывателя 
 void init_bt_player( ) {
-   ESP_LOGI(TAG, "[ * ] Bluetooth player started");
+    // Защита от повторной инициализации - проверяем, не инициализирован ли уже
+    if (pipeline != NULL || bt_stream_reader != NULL) {
+        ESP_LOGW(TAG, "Bluetooth player already initialized or not fully deinitialized - cleaning up first");
+        deinit_bt_player();
+        vTaskDelay(pdMS_TO_TICKS(500)); // Даем время на полную очистку
+    }
+    
+    ESP_LOGI(TAG, "[ * ] Bluetooth player started");
 
     esp_log_level_set("*", ESP_LOG_INFO);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
@@ -344,6 +351,12 @@ void bt_player_run(Data_GUI_Boombox_t *xDataGUI,  Data_Boombox_GUI_t *xDataBoomB
 // Функция остановки BT проигрывателя 
 void deinit_bt_player(){
     
+    // Защита от повторного вызова - проверяем, инициализирован ли pipeline
+    if (pipeline == NULL || bt_stream_reader == NULL) {
+        ESP_LOGW(TAG, "Bluetooth player already deinitialized, skipping");
+        return;
+    }
+    
     ESP_LOGI(TAG, "[ 9 ] DeInit Bluetooth");
     audio_pipeline_stop(pipeline);
     audio_pipeline_wait_for_stop(pipeline);
@@ -353,20 +366,37 @@ void deinit_bt_player(){
     audio_pipeline_remove_listener(pipeline);
 
     // Stop all periph before removing the listener
-    esp_periph_set_stop_all(set);
-    audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt);
+    if (set != NULL) {
+        esp_periph_set_stop_all(set);
+        if (evt != NULL) {
+            audio_event_iface_remove_listener(esp_periph_set_get_event_iface(set), evt);
+        }
+    }
 
     // Make sure audio_pipeline_remove_listener & audio_event_iface_remove_listener are called before destroying event_iface
-    audio_event_iface_destroy(evt);
+    if (evt != NULL) {
+        audio_event_iface_destroy(evt);
+        evt = NULL;
+    }
+    
     // Release all resources 
     audio_pipeline_unregister(pipeline, bt_stream_reader);
     audio_pipeline_unregister(pipeline, i2s_stream_writer);
 
     audio_pipeline_deinit(pipeline);
+    pipeline = NULL;
+    
     audio_element_deinit(bt_stream_reader);
+    bt_stream_reader = NULL;
+    
     audio_element_deinit(i2s_stream_writer);
+    i2s_stream_writer = NULL;
 
-    esp_periph_set_destroy(set);//?????????????????????????????????????????????????
+    if (set != NULL) {
+        esp_periph_set_destroy(set);
+        set = NULL;
+    }
+    
     ESP_LOGI(TAG, "Bluetooth completely disabled");    
 
 }

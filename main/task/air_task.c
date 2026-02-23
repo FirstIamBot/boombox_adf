@@ -1140,6 +1140,13 @@ void clearRDSbuffer(){
 //=======================================================================================
 void init_air_player(BoomBox_config_t  *init_air_config)
 {
+  // Защита от повторной инициализации
+  if (pipeline != NULL || i2s_stream_writer != NULL) {
+    ESP_LOGW(TAG, "AIR player already initialized or not fully deinitialized - cleaning up first");
+    deinit_air_player();
+    vTaskDelay(pdMS_TO_TICKS(500));
+  }
+
     ESP_LOGD(TAG, "init_air_player(BoomBox_config_t  *init_air_config)");  
   
     // add pipeline and elements
@@ -1261,20 +1268,39 @@ void init_air_player(BoomBox_config_t  *init_air_config)
 
 void deinit_air_player()
 {
+    // Защита от повторного вызова
+    if (pipeline == NULL || i2s_stream_writer == NULL) {
+        ESP_LOGW(TAG, "AIR player already deinitialized, skipping");
+        return;
+    }
+    
+    ESP_LOGI(TAG, "[ 10 ] Cleaning up AIR player resources");
+    
     audio_pipeline_stop(pipeline);
     audio_pipeline_wait_for_stop(pipeline);
     audio_pipeline_terminate(pipeline);
     audio_pipeline_unregister(pipeline, i2s_stream_writer);
+    
     /* Terminate the pipeline before removing the listener */
     audio_pipeline_remove_listener(pipeline);
+    
     /* Make sure audio_pipeline_remove_listener & audio_event_iface_remove_listener are called before destroying event_iface */
-    audio_event_iface_destroy(evt);
+    if (evt != NULL) {
+        audio_event_iface_destroy(evt);
+        evt = NULL;
+    }
+    
     /* Release all resources */
     audio_pipeline_deinit(pipeline);
+    pipeline = NULL;
+    
     audio_element_deinit(i2s_stream_writer);
-    ESP_LOGI(TAG, "[ 10 ] Cleaning up AIR player resources");
+    i2s_stream_writer = NULL;
+    
     // Здесь должна быть очистка ресурсов pipeline, radio и т.д.
-    radio_deinit(rx_radio);
+    if (rx_radio != NULL) {
+        radio_deinit(rx_radio);
+    }
 
 }
 
