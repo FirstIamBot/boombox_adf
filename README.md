@@ -20,7 +20,7 @@ Modern multi-source audio player based on ESP32 with ESP-ADF (Audio Development 
 - **Rotary Encoder** - Volume and frequency control with button
 
 ### 🎛️ Audio Processing
-- **ES8388 Audio Codec** - High-quality 24-bit stereo DAC/ADC
+- **PCM5102 I2S DAC** - High-quality 32-bit stereo amplifier
 - **10-Band Equalizer** - Software equalizer with preset support (coming soon)
 - **Hardware Volume Control** - 0-100 level via codec
 - **I2S Audio Pipeline** - Low-latency digital audio path
@@ -39,7 +39,7 @@ Modern multi-source audio player based on ESP32 with ESP-ADF (Audio Development 
 - **Display:** ILI9341 320×240 (SPI)
 - **Touch:** XPT2046 (SPI)
 - **Encoder:** Rotary encoder with push button
-- **Amplifier:** Any I2S-compatible or analog amplifier
+- **Amplifier:** Any I2S-compatible PCM5102 amplifier
 
 ### Custom Board
 This project uses `boombox_board_v1_0` custom board configuration. Pin mapping is defined in:
