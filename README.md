@@ -35,7 +35,6 @@ Modern multi-source audio player based on ESP32 with ESP-ADF (Audio Development 
 
 ### Main Components
 - **MCU:** ESP32-WROVER-E (dual-core 240MHz, 4MB PSRAM)
-- **Audio Codec:** ES8388 (I2C, I2S)
 - **Radio Chip:** Si4735-D60 (I2C, analog output)
 - **Display:** ILI9341 320×240 (SPI)
 - **Touch:** XPT2046 (SPI)
@@ -234,9 +233,8 @@ git add components/esp_wifi_manager/
 
 **No audio output:**
 1. Check I2S connections (BCK, WS, DOUT pins)
-2. Verify ES8388 I2C address (0x10)
-3. Check speaker/amplifier connections
-4. Monitor serial output for codec init errors
+2. Check speaker/amplifier connections
+3. Monitor serial output for codec init errors
 
 **Touch not responsive:**
 1. Check XPT2046 SPI connections
